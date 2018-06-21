@@ -3,6 +3,7 @@ import numpy  as np
 
 from invisible_cities.core            import system_of_units as units
 from invisible_cities.evm.event_model import Waveform
+from invisible_cities.io.mcinfo_io    import units_dict
 
 from typing import Mapping
 
@@ -17,7 +18,7 @@ def read_SiPM_bin_width_from_conf(h5f):
             param_value = row['param_value'].decode('utf-8','ignore')
             numb, unit  = param_value.split()
             if param_name.find('SiPM') >= 0:
-                bin_width = float(numb)
+                bin_width = float(numb) * units_dict[unit]
 
     if bin_width is None:
         bin_width = 1 * units.microsecond
