@@ -12,8 +12,8 @@ def build_xy(xmin=0, xmax=204, ymin=0, ymax=16, pitch=1):
     x_hist, y_hist = np.meshgrid(x, y) ## write x and y to be given to hist2d
 
     ## Use the centers of the bins, instead of the edges
-    x_entries = np.array(x_hist.flatten() + 0.5, dtype='float32')
-    y_entries = np.array(y_hist.flatten() + 0.5, dtype='float32')
+    x_entries = np.array(x_hist.flatten() + pitch/2., dtype='float32')
+    y_entries = np.array(y_hist.flatten() + pitch/2., dtype='float32')
 
     return x_entries, y_entries
 
