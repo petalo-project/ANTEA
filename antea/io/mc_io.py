@@ -46,6 +46,7 @@ def read_mcsns_response_evt (mctables: (tb.Table, tb.Table),
             # the index of the first waveform is 0 unless the first event
             #  written is to be skipped: in this case they must be read from the extents
             iwvf_end          = int(h5extents[iext][last_line_of_event])
+            if iwvf_end < iwvf: break
             current_sensor_id = h5waveforms[iwvf]['sensor_id']
             time_bins         = []
             charges           = []
