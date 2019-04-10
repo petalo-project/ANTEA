@@ -4,7 +4,6 @@
 *.c
 .cache
 *.egg-info
-*.sqlite3
 *.*~
 __*__
 environment?.?.yml
