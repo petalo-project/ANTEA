@@ -23,7 +23,7 @@ def DataSiPM(db_file, run_number=1e5, conf_label='P7R195Z140mm'):
 
     sql = '''select pos.SensorID, map.ElecID "ChannelID",
 case when msk.SensorID is NULL then 1 else 0 end "Active",
-X, Y, Z, Centroid "adc_to_pes", Sigma, PhiNumber, ZNumber,
+X, Y, Z, Centroid "adc_to_pes", Sigma, PhiNumber, ZNumber
 from ChannelPosition{0} as pos INNER JOIN ChannelGain{0} as gain
 ON pos.SensorID = gain.SensorID INNER JOIN ChannelMapping{0} as map
 ON pos.SensorID = map.SensorID INNER JOIN ChannelMatrix{0} as mtrx
