@@ -23,13 +23,15 @@ def DataSiPM(db_file, run_number=1e5, conf_label='P7R195Z140mm'):
 
     sql = '''select pos.SensorID, map.ElecID "ChannelID",
 case when msk.SensorID is NULL then 1 else 0 end "Active",
-X, Y, Z, Centroid "adc_to_pes", Sigma
+X, Y, Z, Centroid "adc_to_pes", Sigma, PhiNumber, ZNumber,
 from ChannelPosition{0} as pos INNER JOIN ChannelGain{0} as gain
 ON pos.SensorID = gain.SensorID INNER JOIN ChannelMapping{0} as map
-ON pos.SensorID = map.SensorID LEFT JOIN
+ON pos.SensorID = map.SensorID INNER JOIN ChannelMatrix{0} as mtrx
+ON pos.SensorID = mtrx.SensorID LEFT JOIN
 (select * from ChannelMask{0} where MinRun <= {1} and {1} <= MaxRun) as msk
 where pos.MinRun <= {1} and {1} <= pos.MaxRun
 and gain.MinRun <= {1} and {1} <= gain.MaxRun
+and mtrx.MinRun <= {1} and {1} <= mtrx.MaxRun
 order by pos.SensorID
 '''.format(conf_label, abs(run_number))
     data = pd.read_sql_query(sql, conn)
@@ -38,5 +40,5 @@ order by pos.SensorID
     ## Add default value to Sigma for runs without measurement
     if not data.Sigma.values.any():
         data.Sigma = 2.24
-        
+
     return data
