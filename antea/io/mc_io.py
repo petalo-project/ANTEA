@@ -1,119 +1,97 @@
 import tables as tb
-import numpy  as np
-
-from invisible_cities.core            import system_of_units as units
-from invisible_cities.evm.event_model import Waveform
-from invisible_cities.io.mcinfo_io    import units_dict
+import pandas as pd
 
 from typing import Mapping
 
+str_length = 20
 
-def read_SiPM_bin_width_from_conf(h5f):
 
-    h5config = h5f.root.MC.configuration
-    bin_width = None
-    for row in h5config:
-        param_name = row['param_key'].decode('utf-8','ignore')
-        if param_name.find('time_binning') >= 0:
-            param_value = row['param_value'].decode('utf-8','ignore')
-            numb, unit  = param_value.split()
-            if param_name.find('SiPM') >= 0:
-                bin_width = float(numb) * units_dict[unit]
+class mc_sns_response_writer:
+    """Add MC sensor response info to existing file."""
+    def __init__(self, filename: str, sns_df_name: str = 'waveforms_lut'):
 
-    if bin_width is None:
-        bin_width = 1 * units.microsecond
+        self.filename = filename
+        self.sns_df_name = sns_df_name
 
-    return bin_width
-    
+        with tb.open_file(filename, 'r+') as h5in:
+            if self.sns_df_name in h5in.root.MC:
+                h5in.remove_node('/MC/'+self.sns_df_name, recursive=True)
 
-def read_mcsns_response_evt (mctables: (tb.Table, tb.Table),
-                             event_number: int, last_line_of_event,
-                             bin_width, last_row=0) -> [tb.Table]:
+        self.store = pd.HDFStore(filename, "a", complib=str("zlib"), complevel=4)
 
-    h5extents   = mctables[0]
-    h5waveforms = mctables[1]
 
-    current_event = {}
-    event_range   = (last_row, int(1e9))
+    def close_file(self):
+        self.store.close()
 
-    iwvf = int(0)
-    if event_range[0] > 0:
-        iwvf = int(h5extents[event_range[0]-1][last_line_of_event]) + 1
 
-    for iext in range(*event_range):
-        this_row = h5extents[iext]
-        if this_row['evt_number'] == event_number:
-            # the index of the first waveform is 0 unless the first event
-            #  written is to be skipped: in this case they must be read from the extents
-            iwvf_end          = int(h5extents[iext][last_line_of_event])
-            if iwvf_end < iwvf: break
-            current_sensor_id = h5waveforms[iwvf]['sensor_id']
-            time_bins         = []
-            charges           = []
-            while iwvf <= iwvf_end:
-                wvf_row   = h5waveforms[iwvf]
-                sensor_id = wvf_row['sensor_id']
+    def __call__(self, sns_response: Mapping[int, Mapping[int, float]], evt_number: int):
 
-                if sensor_id == current_sensor_id:
-                    time_bins.append(wvf_row['time_bin'])
-                    charges.  append(wvf_row['charge'])
-                else:
-                    times = np.array(time_bins) * bin_width
-                    current_event[current_sensor_id] = Waveform(times, charges, bin_width)
+        waveforms_dict = sns_response[evt_number]
+        waveforms = pd.DataFrame({'event_id':  [evt_number for i in range(len(waveforms_dict))],
+                                  'sensor_id': list(waveforms_dict.keys()),
+                                  'time_bin':  [0 for i in range(len(waveforms_dict))],
+                                  'charge':    list(waveforms_dict.values())})
+        self.store.append('MC/'+self.sns_df_name, waveforms, format='t', data_columns=True)
 
-                    time_bins = []
-                    charges   = []
-                    time_bins.append(wvf_row['time_bin'])
-                    charges.append(wvf_row['charge'])
 
-                    current_sensor_id = sensor_id
+class mc_writer:
+    """Copy MC true info to output file."""
+    def __init__(self, filename_in: str, filename_out: str):
 
-                iwvf += 1
+        self.store = pd.HDFStore(filename_out, "a", complib=str("zlib"), complevel=4)
+        conf = load_configuration(filename_in)
+        self.store.append('MC/configuration', conf, format='t', data_columns=True)
 
-            times     = np.array(time_bins) * bin_width
-            current_event[current_sensor_id] = Waveform(times, charges, bin_width)
-            break
+        self.hits      = load_mchits(filename_in)
+        self.particles = load_mcparticles(filename_in)
 
-    return current_event
 
-def go_through_file(h5f, h5waveforms, event_range=(0, int(1e9)), bin_width=1.*units.microsecond, kind_of_waveform='data'):
+    def close_file(self):
+        self.store.close()
 
-    h5extents   = h5f.root.MC.extents
-    sns_info    = (h5extents, h5waveforms)
 
-    last_line_name = 'last_sns_' + kind_of_waveform     
-    events_in_file = len(h5extents)
-    
-    all_events     = {}
-    for iext in range(*event_range):
-        if iext >= events_in_file:
-            break
+    def __call__(self, evt_number: int):
 
-        evt_number = h5extents[iext]['evt_number']
-        wvf_rows = read_mcsns_response_evt(sns_info, evt_number, last_line_name, bin_width, iext)
-        all_events[evt_number] = wvf_rows
+        evt_hits      = self.hits[self.hits.event_id == evt_number]
+        evt_particles = self.particles[self.particles.event_id == evt_number]
+        self.store.append('MC/hits',      evt_hits,      format='t', data_columns=True,
+                          min_itemsize={'label' : str_length})
+        self.store.append('MC/particles', evt_particles, format='t', data_columns=True,
+                          min_itemsize={'name' : str_length, 'initial_volume' : str_length,
+                                        'final_volume' : str_length, 'creator_proc': str_length})
 
-    return all_events
 
-def read_mcsns_response(file_name, event_range=(0, int(1e9))) ->Mapping[int, Mapping[int, Waveform]]:
 
-    kind_of_waveform = 'data'
+def load_mchits(file_name: str) -> pd.DataFrame:
 
-    with tb.open_file(file_name, mode='r') as h5f:
-        bin_width   = read_SiPM_bin_width_from_conf(h5f)
-        h5waveforms = h5f.root.MC.waveforms
-        all_events  = go_through_file(h5f, h5waveforms, event_range, bin_width, kind_of_waveform)
+    hits = pd.read_hdf(file_name, 'MC/hits')
 
-        return all_events
+    return hits
 
-def read_mcTOFsns_response(file_name, event_range=(0, int(1e9))) ->Mapping[int, Mapping[int, Waveform]]:
 
-    kind_of_waveform = 'tof'
-    bin_width        = 5 * units.picosecond
+def load_mcparticles(file_name: str) -> pd.DataFrame:
 
-    with tb.open_file(file_name, mode='r') as h5f:
-        h5waveforms = h5f.root.MC.tof_waveforms
-        all_events = go_through_file(h5f, h5waveforms, event_range, bin_width, kind_of_waveform)
+    particles = pd.read_hdf(file_name, 'MC/particles')
 
-        return all_events
+    return particles
 
+
+def load_mcsns_response(file_name: str) -> pd.DataFrame:
+
+    sns_response = pd.read_hdf(file_name, 'MC/waveforms')
+
+    return sns_response
+
+
+def load_mcTOFsns_response(file_name: str) -> pd.DataFrame:
+
+    sns_response = pd.read_hdf(file_name, 'MC/tof_waveforms')
+
+    return sns_response
+
+
+def load_configuration(file_name: str) -> pd.DataFrame:
+
+    conf = pd.read_hdf(file_name, 'MC/configuration')
+
+    return conf
