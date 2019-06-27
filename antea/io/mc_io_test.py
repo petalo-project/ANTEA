@@ -2,45 +2,39 @@ import os
 import numpy  as np
 import tables as tb
 
-from . mc_io import read_mcsns_response
-from . mc_io import read_mcTOFsns_response
+from invisible_cities.core import system_of_units as units
+
+from . mc_io import load_mcsns_response
+from . mc_io import load_mcTOFsns_response
 
 
 def test_read_sensor_response():
-    test_file = os.environ['ANTEADIR'] + '/testdata/full_ring_test.pet.h5'
+    test_file = os.environ['ANTEADIR'] + '/testdata/ring_test.h5'
 
-    mc_sensor_dict = read_mcsns_response(test_file)
-    waveforms = mc_sensor_dict[0]
+    waveforms = load_mcsns_response(test_file)
 
-    n_of_sensors = 796
-    sensor_id    = 4162
-    
-    assert len(waveforms) == n_of_sensors
-    assert waveforms[sensor_id].times == np.array([0.])
-    assert waveforms[sensor_id].charges == np.array([8.])
+    evt_id       = 16
+    n_of_sensors = 90
+    sensor_id, charge = 2945, 3
+
+    evt_waveforms = waveforms[waveforms.event_id == evt_id]
+    sns_charge    = evt_waveforms[evt_waveforms.sensor_id == sensor_id].charge.sum()
+
+    assert len(evt_waveforms.sensor_id.unique()) == n_of_sensors
+    assert sns_charge == charge
 
 def test_read_sensor_tof_response():
-    test_file = os.environ['ANTEADIR'] + '/testdata/full_ring_test.pet.h5'
+    test_file = os.environ['ANTEADIR'] + '/testdata/ring_test.h5'
 
-    mc_sensor_dict = read_mcTOFsns_response(test_file)
-    waveforms = mc_sensor_dict[0]
+    waveforms = load_mcTOFsns_response(test_file)
 
-    sensor_id = 4371
-    bin_width = waveforms[-sensor_id].bin_width
-    times = np.array([358, 1562, 5045, 5229, 5960, 6311, 14192]) * bin_width
-    charges = np.array([1, 1, 1, 1, 1, 1, 1])
+    evt_id    = 16
+    sensor_id = -2945
+    times     = np.array([200, 1025, 3271])
+    charges   = np.array([1, 1, 1])
 
-    assert np.allclose(waveforms[-sensor_id].times, times)
-    assert np.allclose(waveforms[-sensor_id].charges, charges)
+    evt_waveforms = waveforms[waveforms.event_id == evt_id]
+    evt_sns_waveforms = evt_waveforms[evt_waveforms.sensor_id == sensor_id]
 
-def test_read_last_sensor_response():
-    test_file = os.environ['ANTEADIR'] + '/testdata/full_ring_test.pet.h5'
-
-    mc_sensor_dict = read_mcsns_response(test_file)
-    waveforms = mc_sensor_dict[0]
-
-    with tb.open_file(test_file, mode='r') as h5in:
-        last_written_id = h5in.root.MC.sensor_positions[-1][0]
-        last_read_id = list(waveforms.keys())[-1]
-
-        assert last_read_id == last_written_id
+    assert np.allclose(evt_sns_waveforms.time_bin, times)
+    assert np.allclose(evt_sns_waveforms.charge, charges)
