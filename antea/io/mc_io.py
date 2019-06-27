@@ -1,12 +1,14 @@
 import tables as tb
 import pandas as pd
 
+from typing import Mapping
+
 str_length = 20
 
 
 class mc_sns_response_writer:
     """Add MC sensor response info to existing file."""
-    def __init__(self, filename, sns_df_name='waveforms_lut'):
+    def __init__(self, filename: str, sns_df_name: str = 'waveforms_lut'):
 
         self.filename = filename
         self.sns_df_name = sns_df_name
@@ -22,7 +24,7 @@ class mc_sns_response_writer:
         self.store.close()
 
 
-    def __call__(self, sns_response, evt_number):
+    def __call__(self, sns_response: Mapping[int, Mapping[int, float]], evt_number: int):
 
         waveforms_dict = sns_response[evt_number]
         waveforms = pd.DataFrame({'event_id':  [evt_number for i in range(len(waveforms_dict))],
@@ -34,7 +36,7 @@ class mc_sns_response_writer:
 
 class mc_writer:
     """Copy MC true info to output file."""
-    def __init__(self, filename_in, filename_out):
+    def __init__(self, filename_in: str, filename_out: str):
 
         self.store = pd.HDFStore(filename_out, "a", complib=str("zlib"), complevel=4)
         conf = load_configuration(filename_in)
@@ -48,7 +50,7 @@ class mc_writer:
         self.store.close()
 
 
-    def __call__(self, evt_number):
+    def __call__(self, evt_number: int):
 
         evt_hits      = self.hits[self.hits.event_id == evt_number]
         evt_particles = self.particles[self.particles.event_id == evt_number]
