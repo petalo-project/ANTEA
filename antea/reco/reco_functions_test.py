@@ -24,11 +24,6 @@ def test_greater_or_equal(f1, f2):
 
 @given(f, allowed_error)
 def test_allowed_error_in_inequality(f1, err):
-    f2 = f1 + err
-    assert greater_or_equal(f1, f2, err)
-
-    f2 = f1 - err
-    assert lower_or_equal(f1, f2, err)
 
     f2 = f1 + 2*err
     assert not greater_or_equal(f1, f2, err)
