@@ -21,7 +21,7 @@ def select_photoelectric(evt_parts: pd.DataFrame, evt_hits: pd.DataFrame) -> boo
     sel_vol_name = evt_parts[sel_volume & sel_name]
     ids          = sel_vol_name.particle_id.values
 
-    sel_hits   = mcf.find_hits_of_given_particles(ids, evt_hits)
+    sel_hits   = find_hits_of_given_particles(ids, evt_hits)
     energies   = sel_hits.groupby(['particle_id'])[['energy']].sum()
     energies   = energies.reset_index()
     energy_sel = energies[rf.greater_or_equal(energies.energy, 0.476443, allowed_error=1.e-6)]
@@ -35,7 +35,7 @@ def select_photoelectric(evt_parts: pd.DataFrame, evt_hits: pd.DataFrame) -> boo
 
     ### Once the event has passed the selection, let's calculate the true position(s)
     ids      = sel_all.particle_id.values
-    sel_hits = mcf.find_hits_of_given_particles(ids, evt_hits)
+    sel_hits = find_hits_of_given_particles(ids, evt_hits)
 
     sel_hits = sel_hits.groupby(['particle_id'])
     true_pos = []
@@ -47,4 +47,4 @@ def select_photoelectric(evt_parts: pd.DataFrame, evt_hits: pd.DataFrame) -> boo
     if (len(true_pos) == 1) & (evt_hits.energy.sum() > 0.513):
        return False
 
-   return True
+    return True
