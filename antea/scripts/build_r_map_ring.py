@@ -41,7 +41,7 @@ for ifile in range(start, start+numb):
         continue
     print('Analyzing file {0}'.format(file_name))
 
-    sel_df = rf.find_SiPMs_over_thresholds(sns_response, threshold)
+    sel_df = rf.find_SiPMs_over_threshold(sns_response, threshold)
 
     particles = pd.read_hdf(file_name, 'MC/particles')
     hits      = pd.read_hdf(file_name, 'MC/hits')
