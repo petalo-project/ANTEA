@@ -27,7 +27,7 @@ rpos_file = '/map_folder_path/r_table_name.h5'
 
 Rpos = load_rpos(rpos_file,
                  group = "Radius",
-                 node  = "f{}pes200bins".format(rpos_threshold))
+                 node  = "f{}pes200bins".format(thr_r))
 
 true_r1, true_phi1, true_z1 = [], [], []
 reco_r1, reco_phi1, reco_z1 = [], [], []
