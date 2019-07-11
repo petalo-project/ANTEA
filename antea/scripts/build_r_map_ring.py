@@ -61,7 +61,7 @@ for ifile in range(start, start+numb):
         q1, q2, pos1, pos2 = rf.assign_sipms_to_gammas(waveforms, true_pos, DataSiPM_idx)
 
         if len(pos1) > 0:
-            pos_phi    = rf.from_cartesian_to_cyl_(np.array(pos1))[:,1]
+            pos_phi    = rf.from_cartesian_to_cyl(np.array(pos1))[:,1]
             _, var_phi = rf.phi_mean_var(pos_phi, q1)
 
             pos_z  = np.array(pos1)[:,2]
