@@ -45,6 +45,6 @@ def select_photoelectric(evt_parts: pd.DataFrame, evt_hits: pd.DataFrame) -> boo
 
     ### Reject events where the two gammas have interacted in the same emisphere.
     if (len(true_pos) == 1) & (evt_hits.energy.sum() > 0.513):
-       return False
+       return False, []
 
-    return True
+    return True, true_pos
