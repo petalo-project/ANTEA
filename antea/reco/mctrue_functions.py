@@ -12,7 +12,7 @@ def find_hits_of_given_particles(p_ids: Sequence[int], hits: pd.DataFrame) -> pd
     """
     return hits[hits.particle_id.isin(p_ids)]
 
-def select_photoelectric(evt_parts: pd.DataFrame, evt_hits: pd.DataFrame) -> bool:
+def select_photoelectric(evt_parts: pd.DataFrame, evt_hits: pd.DataFrame) -> Tuple[bool, Sequence[Tuple[float, float, float]]]:
     """
     Select only the events where one or two photoelectric events occur, and nothing else.
     """
@@ -45,6 +45,6 @@ def select_photoelectric(evt_parts: pd.DataFrame, evt_hits: pd.DataFrame) -> boo
 
     ### Reject events where the two gammas have interacted in the same emisphere.
     if (len(true_pos) == 1) & (evt_hits.energy.sum() > 0.513):
-       return False, []
+       return (False, [])
 
-    return True, true_pos
+    return (True, true_pos)
