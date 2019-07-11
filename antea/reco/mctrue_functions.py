@@ -31,7 +31,7 @@ def select_photoelectric(evt_parts: pd.DataFrame, evt_hits: pd.DataFrame) -> Tup
     primaries = evt_parts[evt_parts.primary == True]
     sel_all   = sel_vol_name_e[sel_vol_name_e.mother_id.isin(primaries.particle_id.values)]
     if len(sel_all) == 0:
-        return False
+        return (False, [])
 
     ### Once the event has passed the selection, let's calculate the true position(s)
     ids      = sel_all.particle_id.values
