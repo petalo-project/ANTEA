@@ -63,8 +63,9 @@ def assign_sipms_to_gammas(waveforms: pd.DataFrame, true_pos: Sequence[Tuple[flo
     q1, q2     = [], []
     pos1, pos2 = [], []
 
-    sns_charges = waveforms.charge
-    closest_pos = sns_closest_pos[0] ## Look at the first one, which always exists.
+    sns_positions = np.array([sipms.X.values, sipms.Y.values, sipms.Z.values]).transpose()
+    sns_charges   = waveforms.charge
+    closest_pos   = sns_closest_pos[0] ## Look at the first one, which always exists.
     ### The sensors on the same semisphere are grouped together,
     ### and those on the opposite side, too, only
     ### if two interactions have been detected.
