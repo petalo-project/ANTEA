@@ -161,6 +161,28 @@ for ifile in range(start, start+numb):
             touched_sipms2.append(1.e9)
 
 
+a_true_r1   = np.array(true_r1)
+a_true_phi1 = np.array(true_phi1)
+a_true_z1   = np.array(true_z1)
+a_reco_r1   = np.array(reco_r1)
+a_reco_phi1 = np.array(reco_phi1)
+a_reco_z1   = np.array(reco_z1)
+a_photo_response1 = np.array(photo_response1)
+a_touched_sipms1  = np.array(touched_sipms1)
+
+
+a_true_r2   = np.array(true_r2)
+a_true_phi2 = np.array(true_phi2)
+a_true_z2   = np.array(true_z2)
+a_reco_r2   = np.array(reco_r2)
+a_reco_phi2 = np.array(reco_phi2)
+a_reco_z2   = np.array(reco_z2)
+a_photo_response2 = np.array(photo_response2)
+a_touched_sipms2  = np.array(touched_sipms2)
+
+a_event_ids = np.array(event_ids)
+
+
 np.savez(evt_file, a_true_r1=a_true_r1, a_true_phi1=a_true_phi1, a_true_z1=a_true_z1, a_true_r2=a_true_r2, a_true_phi2=a_true_phi2, a_true_z2=a_true_z2, a_reco_r1=a_reco_r1, a_reco_phi1=a_reco_phi1, a_reco_z1=a_reco_z1, a_reco_r2=a_reco_r2, a_reco_phi2=a_reco_phi2, a_reco_z2=a_reco_z2,  a_touched_sipms1=a_touched_sipms1, a_touched_sipms2=a_touched_sipms2, a_photo_response1=a_photo_response1, a_photo_response2=a_photo_response2, a_event_ids=a_event_ids)
             
 
