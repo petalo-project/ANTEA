@@ -75,7 +75,7 @@ for ifile in range(start, start+numb):
         sns_resp_r   = rf.find_SiPMs_over_threshold(sns_evt, threshold=thr_r)
         sns_resp_phi = rf.find_SiPMs_over_threshold(sns_evt, threshold=thr_phi)
         sns_resp_z   = rf.find_SiPMs_over_threshold(sns_evt, threshold=thr_z)
-        sel_resp_e   = rf.find_SiPMs_over_threshold(sns_evt, threshold=thr_e)
+        sns_resp_e   = rf.find_SiPMs_over_threshold(sns_evt, threshold=thr_e)
                
         q1, q2, pos1, pos2 = rf.assign_sipms_to_gammas(sns_resp_r, true_pos, DataSiPM_idx)
         r1 = r2 = None
