@@ -21,13 +21,13 @@ thr_e   = float(sys.argv[6])
 
 folder    = '/folder_path/'
 file_full = folder + 'input_file_name.{0:03d}.pet.h5'
-evt_file  = '/folder_path/output_file_name.{0}_{1}_{2}_{3}_{4}_{5}'.format(start, numb, thr_r, thr_phi, thr_z, thr_e)
+evt_file  = '/folder_path/output_file_name.{0}_{1}_{2}_{3}_{4}_{5}'.format(start, numb, int(thr_r), int(thr_phi), int(thr_z), int(thr_e))
 
 rpos_file = '/map_folder_path/r_table_name.h5'
 
 Rpos = load_rpos(rpos_file,
                  group = "Radius",
-                 node  = "f{}pes200bins".format(thr_r))
+                 node  = "f4pes200bins")
 
 true_r1, true_phi1, true_z1 = [], [], []
 reco_r1, reco_phi1, reco_z1 = [], [], []
@@ -72,10 +72,10 @@ for ifile in range(start, start+numb):
 
         sns_evt = sns_response[sns_response.event_id == evt]
 
-        sns_resp_r   = rf.find_SiPMs_over_thresholds(sns_evt, threshold=thr_r)
-        sns_resp_phi = rf.find_SiPMs_over_thresholds(sns_evt, threshold=thr_phi)
-        sns_resp_z   = rf.find_SiPMs_over_thresholds(sns_evt, threshold=thr_z)
-        sel_resp_e   = rf.find_SiPMs_over_thresholds(sns_evt, threshold=thr_e)
+        sns_resp_r   = rf.find_SiPMs_over_threshold(sns_evt, threshold=thr_r)
+        sns_resp_phi = rf.find_SiPMs_over_threshold(sns_evt, threshold=thr_phi)
+        sns_resp_z   = rf.find_SiPMs_over_threshold(sns_evt, threshold=thr_z)
+        sel_resp_e   = rf.find_SiPMs_over_threshold(sns_evt, threshold=thr_e)
                
         q1, q2, pos1, pos2 = rf.assign_sipms_to_gammas(sns_resp_r, true_pos, DataSiPM_idx)
         r1 = r2 = None
