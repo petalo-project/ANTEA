@@ -24,3 +24,7 @@ install:
 
 script:
   - HYPOTHESIS_PROFILE=hard pytest -v --instafail --no-success-flaky-report
+
+git:
+  depth: 25
+  quiet: true
