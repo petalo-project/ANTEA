@@ -19,5 +19,13 @@ def test_sipm_pd(db):
     assert sipms.shape[0] == db.nsipms
 
 
+#def test_sipm_pd_full_body(db):
+#    """Check that we retrieve the correct number of SiPMs for the full-body configuration."""
+#    sipms = DB.DataSiPMfull_body(db.detector)
+#    columns = ['SensorID', 'X', 'Y', 'Z', 'PhiNumber', 'ZNumber']
+#    assert columns == list(sipms)
+#    assert sipms.shape[0] == db.nsipms
+
+
 def test_mc_runs_equal_data_runs(db):
     assert (DB.DataSiPM(db.detector, -3550).values == DB.DataSiPM(db.detector, 3550).values).all()
