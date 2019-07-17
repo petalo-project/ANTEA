@@ -45,7 +45,7 @@ order by pos.SensorID
 
 
 @lru_cache(maxsize=10)
-def DataSiPMfull_body(db_file, run_number=1e5, conf_label='P7R410Z1950mm'):
+def DataSiPMsim_only(db_file, run_number=1e5, conf_label='P7R410Z1950mm'):
 
     conn = sqlite3.connect(get_db(db_file))
 
