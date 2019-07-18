@@ -97,7 +97,7 @@ for ifile in range(start, start+numb):
             r2  = Rpos(np.sqrt(var_phi2)).value
 
 
-        _, _, pos1, pos2 = rf.assign_sipms_to_gammas(sns_resp_phi, true_pos, DataSiPM_idx)
+        q1, q2, pos1, pos2 = rf.assign_sipms_to_gammas(sns_resp_phi, true_pos, DataSiPM_idx)
         phi1 = phi2 = None
         if len(pos1) > 0:
             reco_cart_pos = np.average(pos1, weights=q1, axis=0)
@@ -107,7 +107,7 @@ for ifile in range(start, start+numb):
             phi2 = np.arctan2(reco_cart_pos[1], reco_cart_pos[0])
 
 
-        _, _, pos1, pos2 = rf.assign_sipms_to_gammas(sns_resp_z, true_pos, DataSiPM_idx)
+        q1, q2, pos1, pos2 = rf.assign_sipms_to_gammas(sns_resp_z, true_pos, DataSiPM_idx)
         z1 = z2 = None
         if len(pos1) > 0:
             reco_cart_pos = np.average(pos1, weights=q1, axis=0)
