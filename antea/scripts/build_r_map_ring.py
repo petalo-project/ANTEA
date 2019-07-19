@@ -55,7 +55,7 @@ for ifile in range(start, start+numb):
         select, true_pos = mcf.select_photoelectric(evt_parts, evt_hits)
         if not select: continue
 
-        if (len(true_pos) == 1) & (evt_hits.energy.sum() > 0.513):
+        if (len(true_pos) == 1) & (evt_hits.energy.sum() > 0.511):
             continue
 
         waveforms = sel_df[sel_df.event_id == evt]
