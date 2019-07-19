@@ -67,9 +67,6 @@ for ifile in range(start, start+numb):
         select, true_pos = mcf.select_photoelectric(evt_parts, evt_hits)
         if not select: continue
 
-        if (len(true_pos) == 1) & (evt_hits.energy.sum() > 0.511):
-            continue
-
         sns_evt = sns_response[sns_response.event_id == evt]
 
         sns_resp_r   = rf.find_SiPMs_over_threshold(sns_evt, threshold=thr_r)
