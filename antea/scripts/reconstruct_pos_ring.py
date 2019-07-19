@@ -145,9 +145,9 @@ for ifile in range(start, start+numb):
             reco_r2.append(r2)
             reco_phi2.append(phi2)
             reco_z2.append(z2)
-            true_r2.append(np.sqrt(true_pos[0][0]**2 + true_pos[0][1]**2))
-            true_phi2.append(np.arctan2(true_pos[0][1], true_pos[0][0]))
-            true_z2.append(true_pos[0][2])
+            true_r2.append(np.sqrt(true_pos[1][0]**2 + true_pos[1][1]**2))
+            true_phi2.append(np.arctan2(true_pos[1][1], true_pos[1][0]))
+            true_z2.append(true_pos[1][2])
             photo_response2.append(sum(q1))
             touched_sipms2.append(len(q1))
         else:
