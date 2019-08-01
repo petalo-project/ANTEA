@@ -1,6 +1,8 @@
 import numpy  as np
 import pandas as pd
 
+from . mctrue_functions import find_hits_of_given_particles
+
 from typing import Sequence, Tuple
 
 
@@ -149,17 +151,19 @@ def select_coincidences(sns_response: pd.DataFrame, charge_range: Tuple[float, f
     min_t1 = min_t2 = -1
     gamma_pos1, gamma_pos2 = None, None
     if len(sel_all[sel_all.mother_id == 1]) > 0:
-        min_t1 = sel_all[sel_all.mother_id == 1].initial_t.min()
-        part_id = sel_all[(sel_all.mother_id == 1) & (sel_all.initial_t == min1)].particle_id.values
-        sel_hits = mcf.find_hits_of_given_particles(part_id, hits)
+        min_t1   = sel_all[sel_all.mother_id == 1].initial_t.min()
+        part_id  = sel_all[(sel_all.mother_id == 1) & (sel_all.initial_t == min_t1)].particle_id.values
+
+        sel_hits      = find_hits_of_given_particles(part_id, hits)
         hit_positions = np.array([sel_hits.x.values, sel_hits.y.values, sel_hits.z.values]).transpose()
-        gamma_pos1 = np.average(hit_positions, axis=0, weights=sel_hits.energy)
+        gamma_pos1    = np.average(hit_positions, axis=0, weights=sel_hits.energy)
     if len(sel_all[sel_all.mother_id == 2]) > 0:
-        min_t2 = sel_all[sel_all.mother_id == 2].initial_t.min()
-        part_id = sel_all[(sel_all.mother_id == 1) & (sel_all.initial_t == min2)].particle_id.values
-        sel_hits = mcf.find_hits_of_given_particles(part_id, hits)
+        min_t2  = sel_all[sel_all.mother_id == 2].initial_t.min()
+        part_id = sel_all[(sel_all.mother_id == 2) & (sel_all.initial_t == min_t2)].particle_id.values
+
+        sel_hits      = find_hits_of_given_particles(part_id, hits)
         hit_positions = np.array([sel_hits.x.values, sel_hits.y.values, sel_hits.z.values]).transpose()
-        gamma_pos2 = np.average(hit_positions, axis=0, weights=sel_hits.energy)
+        gamma_pos2    = np.average(hit_positions, axis=0, weights=sel_hits.energy)
 
     ### Calculate the minimum time among the hits of a given primary gamma
     if len(hits[hits.particle_id == 1]) > 0:
