@@ -213,12 +213,15 @@ def initial_coord_first_daughter(ANTEADATADIR, part_id):
     for evt in events:
         particles_sel  = particles[particles.event_id==evt]
         pos, tmin, vol = rf.initial_coord_first_daughter(particles_sel, part_id)
-        min_ts         = particles_sel[particles_sel.mother_id == part_id].initial_t.sort_values()
-        vols           = ['ACTIVE', 'CRYOSTAT', 'LAB', 'LXE', 'KAPTON', 'PHANTOM', 'PHOTODIODES', 'SiPMpetFBK', 'WORLD']
+        daughters      = particles_sel[particles_sel.mother_id == part_id]
+        tmin_from_vol  = daughters[daughters.initial_volume == vol].initial_t.min()
+        min_ts         = daughters.initial_t
+        vols           = daughters.initial_volume
         if len(min_ts) and len(pos):
-            assert vol in vols
-            for ts in min_ts[1:]:
-                assert tmin < ts
+            assert vol in vols.values
+            for ts in min_ts:
+                assert tmin <= ts
+                assert tmin_from_vol <= ts
 
 
 @given(part_id)
@@ -231,6 +234,7 @@ def test_part_first_hit(ANTEADATADIR, part_id):
     hits    = load_mchits(PATH_IN)
     if len(hits[hits.particle_id == part_id]):
         t_min1  = hits[ hits.particle_id == part_id].time.sort_values().iloc[0]
+        #t_min1  = hits[ hits.particle_id == part_id].time.min()
         sel_hit = hits[(hits.particle_id == part_id) & (hits.time == t_min1)]
         pos1    = np.array([sel_hit.x.values, sel_hit.y.values, sel_hit.z.values]).transpose()[0]
         result  = rf.part_first_hit(hits, part_id)
@@ -254,7 +258,7 @@ def test_find_first_time_of_sensors(ANTEADATADIR):
         times   = tof.time_bin
         result  = rf.find_first_time_of_sensors(tof, sns_ids)
         time_from_id = tof[tof.sensor_id == -result[0]].time_bin.min()
-
+   
         assert result[0] > 0
         for t in times:
             assert rf.lower_or_equal(result[1], t)
