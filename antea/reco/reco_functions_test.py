@@ -201,22 +201,24 @@ def test_assign_sipms_to_gammas(ANTEADATADIR):
 part_id = st.integers(min_value=1, max_value=1000)
 
 @given(part_id)
-def initial_coord_first_daughter(ANTEADATADIR, part_id):
+def test_initial_coord_first_daughter(ANTEADATADIR, part_id):
     """
     This test checks that the function initial_coord_first_daughter returns the position,
     time and volume of the initial vertex of the first daughter of a particle.
     """
-    PATH_IN   = os.path.join(ANTEADATADIR, 'ring_test_1000ev.h5')
+    PATH_IN   = os.path.join(ANTEADATADIR, 'ring_test.h5')
     particles = load_mcparticles(PATH_IN)
     events    = particles.event_id.unique()
 
     for evt in events:
         particles_sel  = particles[particles.event_id==evt]
         pos, tmin, vol = rf.initial_coord_first_daughter(particles_sel, part_id)
+
         daughters      = particles_sel[particles_sel.mother_id == part_id]
         tmin_from_vol  = daughters[daughters.initial_volume == vol].initial_t.min()
         min_ts         = daughters.initial_t
         vols           = daughters.initial_volume
+
         if len(min_ts) and len(pos):
             assert vol in vols.values
             for ts in min_ts:
@@ -230,17 +232,22 @@ def test_part_first_hit(ANTEADATADIR, part_id):
     This test checks that the position and time of the first hit of
     a given particle is returned.
     """
-    PATH_IN = os.path.join(ANTEADATADIR, 'ring_test_1000ev.h5')
-    hits    = load_mchits(PATH_IN)
-    if len(hits[hits.particle_id == part_id]):
-        t_min1  = hits[ hits.particle_id == part_id].time.sort_values().iloc[0]
-        #t_min1  = hits[ hits.particle_id == part_id].time.min()
-        sel_hit = hits[(hits.particle_id == part_id) & (hits.time == t_min1)]
-        pos1    = np.array([sel_hit.x.values, sel_hit.y.values, sel_hit.z.values]).transpose()[0]
-        result  = rf.part_first_hit(hits, part_id)
-        assert np.isclose(result[1], t_min1)
-        for i, j in zip(result[0], pos1):
-            assert np.isclose(i,j)
+    PATH_IN   = os.path.join(ANTEADATADIR, 'ring_test.h5')
+    hits      = load_mchits(PATH_IN)
+    events    = hits.event_id.unique()
+
+    for evt in events:
+        hits_sel  = hits[hits.event_id == evt]
+        part_hits = hits_sel[hits_sel.particle_id == part_id]
+        pos, tmin = rf.part_first_hit(part_hits, part_id)
+        if not len(pos): continue
+
+        hit_times = part_hits.time
+        tmin_from_pos = hits_sel[np.isclose(hits_sel.x, pos[0]) & np.isclose(hits_sel.y, pos[1]) & np.isclose(hits_sel.z, pos[2])].time.min()
+
+        for t in hit_times:
+           assert tmin <= t
+           assert tmin_from_pos <= t
 
 
 def test_find_first_time_of_sensors(ANTEADATADIR):
@@ -258,7 +265,7 @@ def test_find_first_time_of_sensors(ANTEADATADIR):
         times   = tof.time_bin
         result  = rf.find_first_time_of_sensors(tof, sns_ids)
         time_from_id = tof[tof.sensor_id == -result[0]].time_bin.min()
-   
+
         assert result[0] > 0
         for t in times:
             assert rf.lower_or_equal(result[1], t)
