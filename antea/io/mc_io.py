@@ -1,6 +1,9 @@
 import tables as tb
 import pandas as pd
 
+from invisible_cities.core         import system_of_units as units
+from invisible_cities.io.mcinfo_io import units_dict
+
 from typing import Mapping
 
 str_length = 20
@@ -60,6 +63,25 @@ class mc_writer:
                           min_itemsize={'name' : str_length, 'initial_volume' : str_length,
                                         'final_volume' : str_length, 'creator_proc': str_length})
 
+
+def read_sensor_bin_width_from_conf(h5f, tof=False):
+    """
+    Return the time bin width (either TOF or no TOF) with units.
+    """
+
+    h5config = h5f.root.MC.configuration
+    bin_width = None
+    binning = 'bin_size'
+    if tof:
+        binning = 'tof_bin_size'
+    for row in h5config:
+        param_name = row['param_key'].decode('utf-8','ignore')
+        if param_name.find(binning) >= 0:
+            param_value = row['param_value'].decode('utf-8','ignore')
+            numb, unit  = param_value.split()
+            bin_width = float(numb) * units_dict[unit]
+
+    return bin_width
 
 
 def load_mchits(file_name: str) -> pd.DataFrame:
