@@ -153,7 +153,7 @@ def find_first_time_of_sensors(tof_response: pd.DataFrame, sns_ids: Sequence[int
     else:
         min_id = min_df.sensor_id.values[0]
 
-    return -min_id, min_t
+    return np.abs(min_id), min_t
 
 
 def reconstruct_coincidences(sns_response: pd.DataFrame, tof_response: pd.DataFrame,
