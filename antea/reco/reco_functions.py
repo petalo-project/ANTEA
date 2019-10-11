@@ -113,9 +113,9 @@ def initial_coord_first_daughter(particles: pd.DataFrame, mother_id: int) -> Tup
     """
     Returns the position, time and volume of the initial vertex of the first daughter of a given particle.
     """
-    min_ts = particles[particles.mother_id == mother_id].initial_t.sort_values()
-    if len(min_ts):
-        min_t    = min_ts.iloc[0]
+    daughters = particles[particles.mother_id == mother_id]
+    if len(daughters):
+        min_t    = daughters.initial_t.min()
         daughter = particles[(particles.mother_id == mother_id) & (particles.initial_t == min_t)].iloc[0]
         vtx_pos  = np.array([daughter.initial_x, daughter.initial_y, daughter.initial_z])
         init_vol = daughter.initial_volume
