@@ -86,7 +86,7 @@ def assign_sipms_to_gammas(sns_response: pd.DataFrame, true_pos: Sequence[Tuple[
     """
     sipms           = DataSiPM_idx.loc[sns_response.sensor_id]
     sns_ids         = sipms.index.values
-    sns_closest_pos = np.array([find_closest_sipm(true_pos[0], sipms).X, find_closest_sipm(true_pos[0], sipms).Y, find_closest_sipm(true_pos[0], sipms).Z])
+    sns_closest_pos = [np.array([find_closest_sipm(pos, sipms).X, find_closest_sipm(pos, sipms).Y, find_closest_sipm(pos, sipms).Z]) for pos in true_pos]
 
     q1,   q2   = [], []
     pos1, pos2 = [], []
@@ -94,14 +94,18 @@ def assign_sipms_to_gammas(sns_response: pd.DataFrame, true_pos: Sequence[Tuple[
 
     sns_positions = np.array([sipms.X.values, sipms.Y.values, sipms.Z.values]).transpose()
     sns_charges   = sns_response.charge
+    closest_pos   = sns_closest_pos[0] ## Look at the first one, which always exists.
+    ### The sensors on the same semisphere are grouped together,
+    ### and those on the opposite side, too, only
+    ### if two interactions have been detected.
 
     for sns_id, sns_pos, charge in zip(sns_ids, sns_positions, sns_charges):
-        scalar_prod = sns_pos.dot(sns_closest_pos)
+        scalar_prod = sns_pos.dot(closest_pos)
         if scalar_prod > 0.:
             q1  .append(charge)
             pos1.append(sns_pos)
             id1.append(sns_id)
-        else:
+        elif len(sns_closest_pos) == 2:
             q2  .append(charge)
             pos2.append(sns_pos)
             id2.append(sns_id)
