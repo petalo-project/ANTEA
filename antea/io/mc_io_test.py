@@ -2,6 +2,7 @@ import os
 import numpy  as np
 import tables as tb
 import pandas as pd
+import shutil as utils
 
 from invisible_cities.core import system_of_units as units
 
@@ -71,17 +72,19 @@ def test_write_mc_info(output_tmpdir):
     assert conf_out.equals(conf_in)
 
 
-def test_write_sns_info(output_tmpdir):
-    test_file_in  = os.environ['ANTEADIR'] + '/testdata/ring_test.h5'
+def test_write_sns_info(tmpdir):
+    test_file_in    = os.environ['ANTEADIR'] + '/testdata/ring_test.h5'
+    test_file_in_cp = os.path.join(tmpdir, 'test.h5')
+    utils.copy(test_file_in, test_file_in_cp)
 
     event_id = 0
     sns_response = {event_id : {1000: 1, 1001: 3}}
 
-    writer = mc_sns_response_writer(test_file_in, 'test_sns_response')
+    writer = mc_sns_response_writer(test_file_in_cp, 'test_sns_response')
     writer(sns_response, 0)
     writer.close_file()
 
-    sns_response_written = pd.read_hdf(test_file_in, 'MC/test_sns_response')
+    sns_response_written = pd.read_hdf(test_file_in_cp, 'MC/test_sns_response')
 
     events = sns_response_written.event_id.unique()
     sns    = sns_response_written.sensor_id

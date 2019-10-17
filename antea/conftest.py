@@ -36,3 +36,10 @@ def output_tmpdir(tmpdir_factory):
                 ids=["petit"])
 def db(request):
     return request.param
+
+
+@pytest.fixture(scope='session',
+                params=[db_data('petalo' ,  102304)],
+                ids=["sim-only"])
+def db_sim_only(request):
+    return request.param

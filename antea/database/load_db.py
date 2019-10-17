@@ -42,3 +42,20 @@ order by pos.SensorID
         data.Sigma = 2.24
 
     return data
+
+
+@lru_cache(maxsize=10)
+def DataSiPMsim_only(db_file, run_number=1e5, conf_label='P7R410Z1950mm'):
+
+    conn = sqlite3.connect(get_db(db_file))
+
+    sql = '''select pos.SensorID, pos.X, pos.Y, pos.Z, mtrx.PhiNumber, mtrx.ZNumber
+from ChannelPosition{0} as pos INNER JOIN ChannelMatrix{0} as mtrx
+ON pos.SensorID = mtrx.SensorID
+where mtrx.MinRun <= {1} and {1} <= mtrx.MaxRun
+order by pos.SensorID
+'''.format(conf_label, abs(run_number))
+    data = pd.read_sql_query(sql, conn)
+    conn.close()
+
+    return data
