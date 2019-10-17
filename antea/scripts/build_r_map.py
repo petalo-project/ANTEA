@@ -8,16 +8,17 @@ import antea.reco.mctrue_functions as mcf
 
 
 ### read sensor positions from database
-DataSiPM     = db.DataSiPM('petalo', 0)
+#DataSiPM     = db.DataSiPM('petalo', 0) # ring
+DataSiPM     = db.DataSiPMsim_only('petalo', 0) # full body PET
 DataSiPM_idx = DataSiPM.set_index('SensorID')
 
 start     = int(sys.argv[1])
 numb      = int(sys.argv[2])
 threshold = int(sys.argv[3])
 
-folder = '/folder_path/'
-file_full = folder + 'input_file_name.{0:03d}.pet.h5'
-evt_file = '/folder_path/output_file_name.{0}_{1}_{2}'.format(start, numb, threshold)
+folder = 'in_folder_name'
+file_full = folder + 'full_body_195cm.{0:03d}.pet.h5'
+evt_file = 'out_folder_name/full_body_195cm_r_map.{0}_{1}_{2}'.format(start, numb, threshold)
 
 true_r1, true_r2   = [], []
 var_phi1, var_phi2 = [], []
@@ -55,13 +56,10 @@ for ifile in range(start, start+numb):
         select, true_pos = mcf.select_photoelectric(evt_parts, evt_hits)
         if not select: continue
 
-        if (len(true_pos) == 1) & (evt_hits.energy.sum() > 0.511):
-            continue
-
         waveforms = sel_df[sel_df.event_id == evt]
         if len(waveforms) == 0: continue
 
-        q1, q2, pos1, pos2 = rf.assign_sipms_to_gammas(waveforms, true_pos, DataSiPM_idx)
+        _, _, pos1, pos2, q1, q2 = rf.assign_sipms_to_gammas(waveforms, true_pos, DataSiPM_idx)
 
         if len(pos1) > 0:
             pos_phi    = rf.from_cartesian_to_cyl(np.array(pos1))[:,1]
