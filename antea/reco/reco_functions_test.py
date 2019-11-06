@@ -305,7 +305,7 @@ def test_select_coincidences(ANTEADATADIR):
         if len(sns) == 0: continue
         tof = tof_response[tof_response.event_id == evt]
 
-        pos1, pos2, q1, q2, true_pos1, true_pos2 = rf.select_coincidences(sns, tof, charge_range, DataSiPM_idx, evt_parts, evt_hits)
+        pos1, pos2, q1, q2, true_pos1, true_pos2, _, _ = rf.select_coincidences(sns, tof, charge_range, DataSiPM_idx, evt_parts, evt_hits)
 
         if len(true_pos) == 2:
             scalar_prod1 = np.array([np.dot(true_pos1, p1) for p1 in pos1])

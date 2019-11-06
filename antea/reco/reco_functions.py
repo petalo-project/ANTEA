@@ -268,9 +268,9 @@ def select_coincidences(sns_response: pd.DataFrame, tof_response: pd.DataFrame,
                                                     Tuple[float, float, float],
                                                     Tuple[float, float, float]]:
 
-    pos1, pos2, q1, q2, true_pos1, true_pos2, _, _, _, _, _, _, _, _ = reconstruct_coincidences(sns_response, tof_response, charge_range, DataSiPM_idx, particles, hits)
+    pos1, pos2, q1, q2, true_pos1, true_pos2, true_t1, true_t2, _, _, _, _, _, _ = reconstruct_coincidences(sns_response, tof_response, charge_range, DataSiPM_idx, particles, hits)
 
-    return pos1, pos2, q1, q2, true_pos1, true_pos2
+    return pos1, pos2, q1, q2, true_pos1, true_pos2, true_t1, true_t2
 
 
 def find_first_times_of_coincidences(sns_response: pd.DataFrame, tof_response: pd.DataFrame,
