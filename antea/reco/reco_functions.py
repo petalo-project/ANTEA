@@ -239,19 +239,24 @@ def reconstruct_coincidences(sns_response: pd.DataFrame, tof_response: pd.DataFr
         return [], [], [], [], None, None, None, None, None, None, None, None, None, None
 
     true_pos1, true_pos2 = [], []
+    true_t1 = true_t2 = -1
     scalar_prod = gamma_pos1.dot(max_pos)
     if scalar_prod > 0:
         true_pos1 = gamma_pos1
         true_pos2 = gamma_pos2
+        true_t1   = min_t1
+        true_t2   = min_t2
     else:
         true_pos1 = gamma_pos2
         true_pos2 = gamma_pos1
+        true_t1   = min_t2
+        true_t2   = min_t1
 
     ### TOF
     min1, min_tof1 = find_first_time_of_sensors(tof_response, sns1)
     min2, min_tof2 = find_first_time_of_sensors(tof_response, sns2)
 
-    return pos1, pos2, q1, q2, true_pos1, true_pos2, min_t1, min_t2, vol1, vol2, min1, min2, min_tof1, min_tof2
+    return pos1, pos2, q1, q2, true_pos1, true_pos2, true_t1, true_t2, vol1, vol2, min1, min2, min_tof1, min_tof2
 
 
 def select_coincidences(sns_response: pd.DataFrame, tof_response: pd.DataFrame,
