@@ -333,3 +333,44 @@ def test_select_coincidences(ANTEADATADIR):
             assert not true_pos1 and not true_pos2
             assert not len(pos1) and not len(pos2)
             assert not len(q1)   and not len(q2)
+
+
+def test_only_gamma_hits_interaction():
+   """
+    This test uses an event where one primary gamma interacts in the cryostat first, then creates an
+    electron in the ACTIVE volume, while the other primary gamma interacts directly in the active volume.
+    and deposits only true energy hits, without creating an electron. This test is supposed to fail
+    if the true position of the second gamma is miscalculated.
+    """
+
+   data = {'event_id': [0, 0, 0, 0], 'particle_id': [1, 2, 3, 4],
+           'name': ['gamma', 'gamma', 'e-', 'e-'], 'primary': [1, 1, 0, 0],
+           'mother_id': [0, 0, 1, 1], 'initial_x': [0.0, 0.0, -162.5, -181.8],
+           'initial_y': [0.0, 0.0, 6.4, 20.2], 'initial_z': [0.0, 0.0, -46.7, -69.2],
+           'initial_t': [0.0, 0.0, 0.61, 0.63], 'final_x': [-181.8, 181.8, -161.5, -182.8],
+           'final_y': [20.2, -20.2, 6.5, 21.2], 'final_z': [-69.2, 69.2, -45.7, -70.2],
+           'final_t': [0.61, 0.67, 0.62, 0.64],
+           'initial_volume': ['PHANTOM', 'PHANTOM', 'CRYOSTAT', 'ACTIVE'],
+           'final_volume': ['ACTIVE', 'ACTIVE', 'CRYOSTAT', 'ACTIVE']}
+   particles = pd.DataFrame(data)
+
+   hits_data = {'event_id': [0, 0], 'x': [-181.8, 181.8], 'y': [20.2, -20.2], 'z': [-69.2, 69.2], 'time': [0.63, 0.67], 'energy': [1, 1], 'particle_id': [4, 2]}
+   hits = pd.DataFrame(hits_data)
+
+   sns_data = {'event_id': [0, 0], 'sensor_id': [2021, 3503], 'time_bin': [0, 0], 'charge': [1100, 1200]}
+   sns = pd.DataFrame(sns_data)
+
+   tof_data = {'event_id': [0, 0], 'sensor_id': [-2021, -3503], 'time_bin': [151, 200],
+                'charge': [1100, 1200]}
+   tof = pd.DataFrame(tof_data)
+
+   DataSiPM     = db.DataSiPM('petalo', 0)
+   DataSiPM_idx = DataSiPM.set_index('SensorID')
+   charge_range = (1000, 1400)
+   pos1, pos2, q1, q2, true_pos1, true_pos2, _, _ = rf.select_coincidences(sns, tof, charge_range, DataSiPM_idx, particles, hits)
+
+   assert len(pos1) != 0
+   assert len(pos2) != 0
+
+   true_pos2 = np.array([181.8, -20.2, 69.2])
+   assert np.allclose(pos2, true_pos2)
