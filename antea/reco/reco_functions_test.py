@@ -372,5 +372,5 @@ def test_only_gamma_hits_interaction():
    assert len(pos1) != 0
    assert len(pos2) != 0
 
-   true_pos2 = np.array([181.8, -20.2, 69.2])
-   assert np.allclose(pos2, true_pos2)
+   ref_pos2 = np.array([181.8, -20.2, 69.2])
+   assert np.allclose(true_pos2, ref_pos2)

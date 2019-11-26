@@ -172,7 +172,7 @@ def reconstruct_coincidences(sns_response: pd.DataFrame, tof_response: pd.DataFr
     """
     Finds the SiPM with maximum charge. The set of sensors around it are labelled as 1.
     The sensors on the opposite hemisphere are labelled as 2.
-    The true position of the first gamma interaction is also returned for each hemisphere.
+    The true position of the first gamma interaction in ACTIVE is also returned for each hemisphere.
     A range of charge is given to select singles in the photoelectric peak.
     """
     max_sns = sns_response[sns_response.charge == sns_response.charge.max()]
@@ -199,27 +199,23 @@ def reconstruct_coincidences(sns_response: pd.DataFrame, tof_response: pd.DataFr
     if not sel1 or not sel2:
         return [], [], [], [], None, None, None, None, None, None, None, None, None, None
 
-    ### select electrons, primary gammas daughters
+    ### select electrons, primary gammas daughters in ACTIVE
     sel_volume   = (particles.initial_volume == 'ACTIVE') & (particles.final_volume == 'ACTIVE')
     sel_name     = particles.name == 'e-'
     sel_vol_name = particles[sel_volume & sel_name]
-
     primaries = particles[particles.primary == True]
     sel_all   = sel_vol_name[sel_vol_name.mother_id.isin(primaries.particle_id.values)]
-    if len(sel_all) == 0:
-        return [], [], [], [], None, None, None, None, None, None, None, None, None, None
-
-    ### Calculate the initial vertex of the first daughters of a given primary gamma
+    ### Calculate the initial vertex.
     gamma_pos1, gamma_pos2 = [], []
     vol1      , vol2       = [], []
-    min_t1    , min_t2     = -1, -1
+    min_t1    , min_t2     = float('inf'), float('inf')
     if len(sel_all[sel_all.mother_id == 1]) > 0:
         gamma_pos1, min_t1, vol1 = initial_coord_first_daughter(sel_all, 1)
 
     if len(sel_all[sel_all.mother_id == 2]) > 0:
         gamma_pos2, min_t2, vol2 = initial_coord_first_daughter(sel_all, 2)
 
-    ### Calculate the minimum time among the hits of a given primary gamma
+    ### Calculate the minimum time among the hits of a given primary gamma, if any.
     if len(hits[hits.particle_id == 1]) > 0:
         g_pos1, g_min_t1 = part_first_hit(hits, 1)
         if g_min_t1 < min_t1:
