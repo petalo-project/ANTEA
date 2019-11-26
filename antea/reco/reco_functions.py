@@ -160,6 +160,49 @@ def find_first_time_of_sensors(tof_response: pd.DataFrame, sns_ids: Sequence[int
     return np.abs(min_id), min_t
 
 
+def find_first_interactions_in_active(particles: pd.DataFrame,
+                                      hits: pd.DataFrame) -> Tuple[Tuple[float, float, float],
+                                                                   Tuple[float, float, float],
+                                                                   float, float]:
+    """
+    Looks for the first interaction of primary gammas in the active volume.
+    """
+    ### select electrons, primary gammas daughters in ACTIVE
+    sel_volume   = (particles.initial_volume == 'ACTIVE') & (particles.final_volume == 'ACTIVE')
+    sel_name     = particles.name == 'e-'
+    sel_vol_name = particles[sel_volume & sel_name]
+    primaries = particles[particles.primary == True]
+    sel_all   = sel_vol_name[sel_vol_name.mother_id.isin(primaries.particle_id.values)]
+    ### Calculate the initial vertex.
+    gamma_pos1, gamma_pos2 = [], []
+    vol1      , vol2       = [], []
+    min_t1    , min_t2     = float('inf'), float('inf')
+    if len(sel_all[sel_all.mother_id == 1]) > 0:
+        gamma_pos1, min_t1, _ = initial_coord_first_daughter(sel_all, 1)
+
+    if len(sel_all[sel_all.mother_id == 2]) > 0:
+        gamma_pos2, min_t2, _ = initial_coord_first_daughter(sel_all, 2)
+
+    ### Calculate the minimum time among the hits of a given primary gamma, if any.
+    if len(hits[hits.particle_id == 1]) > 0:
+        g_pos1, g_min_t1 = part_first_hit(hits, 1)
+        if g_min_t1 < min_t1:
+            min_t1     = g_min_t1
+            gamma_pos1 = g_pos1
+
+    if len(hits[hits.particle_id == 2]) > 0:
+        g_pos2, g_min_t2 = part_first_hit(hits, 2)
+        if g_min_t2 < min_t2:
+            min_t2     = g_min_t2
+            gamma_pos2 = g_pos2
+
+    if not len(gamma_pos1) or not len(gamma_pos2):
+        print("Cannot find two true gamma interactions for this event")
+        return [], [], None, None
+
+    return gamma_pos1, gamma_pos2, min_t1, min_t2
+
+
 def reconstruct_coincidences(sns_response: pd.DataFrame, tof_response: pd.DataFrame,
                              charge_range: Tuple[float, float], DataSiPM_idx: pd.DataFrame,
                              particles: pd.DataFrame,
@@ -199,34 +242,7 @@ def reconstruct_coincidences(sns_response: pd.DataFrame, tof_response: pd.DataFr
     if not sel1 or not sel2:
         return [], [], [], [], None, None, None, None, None, None, None, None
 
-    ### select electrons, primary gammas daughters in ACTIVE
-    sel_volume   = (particles.initial_volume == 'ACTIVE') & (particles.final_volume == 'ACTIVE')
-    sel_name     = particles.name == 'e-'
-    sel_vol_name = particles[sel_volume & sel_name]
-    primaries = particles[particles.primary == True]
-    sel_all   = sel_vol_name[sel_vol_name.mother_id.isin(primaries.particle_id.values)]
-    ### Calculate the initial vertex.
-    gamma_pos1, gamma_pos2 = [], []
-    vol1      , vol2       = [], []
-    min_t1    , min_t2     = float('inf'), float('inf')
-    if len(sel_all[sel_all.mother_id == 1]) > 0:
-        gamma_pos1, min_t1, _ = initial_coord_first_daughter(sel_all, 1)
-
-    if len(sel_all[sel_all.mother_id == 2]) > 0:
-        gamma_pos2, min_t2, _ = initial_coord_first_daughter(sel_all, 2)
-
-    ### Calculate the minimum time among the hits of a given primary gamma, if any.
-    if len(hits[hits.particle_id == 1]) > 0:
-        g_pos1, g_min_t1 = part_first_hit(hits, 1)
-        if g_min_t1 < min_t1:
-            min_t1     = g_min_t1
-            gamma_pos1 = g_pos1
-
-    if len(hits[hits.particle_id == 2]) > 0:
-        g_pos2, g_min_t2 = part_first_hit(hits, 2)
-        if g_min_t2 < min_t2:
-            min_t2     = g_min_t2
-            gamma_pos2 = g_pos2
+    gamma_pos1, gamma_pos2, min_t1, min_t2 = find_first_interactions_in_active(particles, hits)
 
     if not len(gamma_pos1) or not len(gamma_pos2):
         print("Cannot find two true gamma interactions for this event")
