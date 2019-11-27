@@ -1,5 +1,5 @@
 #
-# The fast MC generates pairs of interaction points based on
+#  The fast MC generates pairs of interaction points based on
 #  pre-determined matrices of true r, phi, and z coordinates vs. their
 #  reconstructed error. It uses the true information coming from GEANT4 simulations
 #
@@ -22,7 +22,22 @@ def simulate_reco_event(evt_id: int, hits: pd.DataFrame, particles: pd.DataFrame
     pos1, pos2, t1, t2 = rf.find_first_interactions_in_active(evt_parts, evt_hits)
 
     if len(pos1) == 0 or len(pos2) == 0:
-        return None
+        events = pd.DataFrame({'event_id':  [-1],
+                               'true_r1':   [0],
+                               'true_phi1': [0],
+                               'true_z1':   [0],
+                               #  'true_t1':   [0],
+                               'true_r2':   [0],
+                               'true_phi2': [0],
+                               'true_z2':   [0],
+                               #    'true_t2':   [0],
+                               'reco_r1':   [0],
+                               'reco_phi1': [0],
+                               'reco_z1':   [0],
+                               'reco_r2':   [0],
+                               'reco_phi2': [0],
+                               'reco_z2':   [0]})
+        return events
 
     # Transform in cylindrical coordinates
     cyl_pos = rf.from_cartesian_to_cyl(np.array([pos1, pos2]))
@@ -50,7 +65,7 @@ def simulate_reco_event(evt_id: int, hits: pd.DataFrame, particles: pd.DataFrame
     z1_reco = z1 - ez1
     z2_reco = z2 - ez2
 
-    events    = [evt_id]
+    event_ids = [evt_id]
 
     true_r1   = [r1]
     true_phi1 = [phi1]
@@ -66,7 +81,7 @@ def simulate_reco_event(evt_id: int, hits: pd.DataFrame, particles: pd.DataFrame
     reco_phi2 = [phi2_reco]
     reco_z2   = [z2_reco]
 
-    events = pd.DataFrame({'event_id':  events,
+    events = pd.DataFrame({'event_id':  event_ids,
                            'true_r1':   true_r1,
                            'true_phi1': true_phi1,
                            'true_z1':   true_z1,
