@@ -18,11 +18,13 @@ def simulate_reco_event(evt_id: int, hits: pd.DataFrame, particles: pd.DataFrame
 
     evt_parts = particles[particles.event_id == evt_id]
     evt_hits  = hits     [hits.event_id      == evt_id]
+    energy    = evt_hits.energy.sum()
 
     pos1, pos2, t1, t2 = rf.find_first_interactions_in_active(evt_parts, evt_hits)
 
     if len(pos1) == 0 or len(pos2) == 0:
         events = pd.DataFrame({'event_id':  [float(evt_id)],
+                               'true_energy': [energy],
                                'true_r1':   [0],
                                'true_phi1': [0],
                                'true_z1':   [0],
@@ -66,6 +68,7 @@ def simulate_reco_event(evt_id: int, hits: pd.DataFrame, particles: pd.DataFrame
     z2_reco = z2 - ez2
 
     event_ids = [float(evt_id)]
+    energies  = [energy]
 
     true_r1   = [r1]
     true_phi1 = [phi1]
@@ -82,6 +85,7 @@ def simulate_reco_event(evt_id: int, hits: pd.DataFrame, particles: pd.DataFrame
     reco_z2   = [z2_reco]
 
     events = pd.DataFrame({'event_id':  event_ids,
+                           'true_energy': energies,
                            'true_r1':   true_r1,
                            'true_phi1': true_phi1,
                            'true_z1':   true_z1,
