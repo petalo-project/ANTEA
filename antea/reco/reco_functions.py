@@ -232,8 +232,6 @@ def reconstruct_coincidences(sns_response: pd.DataFrame, tof_response: pd.DataFr
 
     sns1, sns2, pos1, pos2, q1, q2 = divide_sipms_in_two_hemispheres(sns_ids, sns_positions, sns_charges, max_pos)
 
-    sns1 = -np.array(sns1)
-    sns2 = -np.array(sns2)
     tot_q1 = sum(q1)
     tot_q2 = sum(q2)
 
@@ -242,31 +240,40 @@ def reconstruct_coincidences(sns_response: pd.DataFrame, tof_response: pd.DataFr
     if not sel1 or not sel2:
         return [], [], [], [], None, None, None, None, None, None, None, None
 
-    gamma_pos1, gamma_pos2, min_t1, min_t2 = find_first_interactions_in_active(particles, hits)
-
-    if not len(gamma_pos1) or not len(gamma_pos2):
-        print("Cannot find two true gamma interactions for this event")
-        return [], [], [], [], None, None, None, None, None, None, None, None
-
-    true_pos1, true_pos2 = [], []
-    true_t1 = true_t2 = -1
-    scalar_prod = gamma_pos1.dot(max_pos)
-    if scalar_prod > 0:
-        true_pos1 = gamma_pos1
-        true_pos2 = gamma_pos2
-        true_t1   = min_t1
-        true_t2   = min_t2
-    else:
-        true_pos1 = gamma_pos2
-        true_pos2 = gamma_pos1
-        true_t1   = min_t2
-        true_t2   = min_t1
-
     ### TOF
+    sns1 = -np.array(sns1)
+    sns2 = -np.array(sns2)
     min1, min_tof1 = find_first_time_of_sensors(tof_response, sns1)
     min2, min_tof2 = find_first_time_of_sensors(tof_response, sns2)
 
-    return pos1, pos2, q1, q2, true_pos1, true_pos2, true_t1, true_t2, min1, min2, min_tof1, min_tof2
+    true_pos1, true_pos2, true_t1, true_t2 = find_first_interactions_in_active(particles,
+                                                                               hits)
+
+    if not len(true_pos1) or not len(true_pos2):
+        print("Cannot find two true gamma interactions for this event")
+        return [], [], [], [], None, None, None, None, None, None, None, None
+
+    scalar_prod = true_pos1.dot(max_pos)
+    if scalar_prod > 0:
+        int_pos1 = pos1
+        int_pos2 = pos2
+        int_q1   = q1
+        int_q2   = q2
+        int_min1 = min1
+        int_min2 = min2
+        int_tof1 = min_tof1
+        int_tof2 = min_tof2
+    else:
+        int_pos1 = pos2
+        int_pos2 = pos1
+        int_q1   = q2
+        int_q2   = q1
+        int_min1 = min2
+        int_min2 = min1
+        int_tof1 = min_tof2
+        int_tof2 = min_tof1
+
+    return int_pos1, int_pos2, int_q1, int_q2, true_pos1, true_pos2, true_t1, true_t2, int_min1, int_min2, int_tof1, int_tof2
 
 
 def select_coincidences(sns_response: pd.DataFrame, tof_response: pd.DataFrame,
