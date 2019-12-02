@@ -6,14 +6,22 @@
 import numpy  as np
 import pandas as pd
 
-from errmat import errmat
-from phantom import phantom
+from . errmat import errmat
+from . phantom import phantom
 
 def run_fastfastmc(Nevts: int, phtm: phantom, errmat_r: errmat, errmat_phi: errmat,
-                    errmat_z: errmat, rmin: float = 380.0, rmax: float = 410.0,
-                    zmin: float = -450.0, zmax: float = 450.0, coslim: float = 0.309) -> pd.DataFrame:
+                    errmat_z: errmat, rmin: float = 380.0, zmin: float = -450.0,
+                    zmax: float = 450.0, coslim: float = 0.309) -> pd.DataFrame:
     """
-    Runs the fast fast MC
+    Runs the fast fast MC.
+    Note that there are two ways to restrict the z-extent of the generated coincidences:
+        1. direct restriction of the opening angle: this is done by specifying
+            coslim > 0. In this case the gammas emitted from each point will be
+            restricted to opening angle with cosine from (-coslim, coslim)
+        2. restriction of the z-extent of the gamma interactions: this is done
+            by specifying coslim < 0 and meaningful values for rmin, zmin, and
+            zmax. In this case gammas will be generated so that they interact
+            only within (zmin, zmax).
     """
 
     # Pick a random number for the location of the emission point.
@@ -38,6 +46,10 @@ def run_fastfastmc(Nevts: int, phtm: phantom, errmat_r: errmat, errmat_phi: errm
         nnx = int(ii / phtm.NyNz)
         nny = int(ii/phtm.Nz) % phtm.Ny
         nnz = int(ii) % phtm.Nz
+
+        # Convert to world coordinates:
+        #  By convention (x, y, z) = (0.0, 0.0, 0.0) cooresponds to the center
+        #  of the modeled volume.
         xpt = phtm.Lx*(1.0*nnx/phtm.Nx - 0.5)
         ypt = phtm.Ly*(1.0*nny/phtm.Ny - 0.5)
         zpt = phtm.Lz*(1.0*nnz/phtm.Nz - 0.5)
