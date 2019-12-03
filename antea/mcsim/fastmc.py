@@ -7,11 +7,12 @@
 import numpy  as np
 import pandas as pd
 
-from antea.fastfastmc.errmat import errmat
+from antea.mcsim.errmat import errmat
 import antea.reco.reco_functions as rf
 
 def simulate_reco_event(evt_id: int, hits: pd.DataFrame, particles: pd.DataFrame,
-                        errmat_r: errmat, errmat_phi: errmat, errmat_z: errmat) -> pd.DataFrame:
+                        errmat_r: errmat, errmat_phi: errmat, errmat_z: errmat,
+                        errmat_t: errmat, true_e_threshold: float = 0.) -> pd.DataFrame:
     """
     Simulate the reconstructed coordinates for 1 coincidence from true GEANT4 dataframes.
     """
@@ -19,6 +20,26 @@ def simulate_reco_event(evt_id: int, hits: pd.DataFrame, particles: pd.DataFrame
     evt_parts = particles[particles.event_id == evt_id]
     evt_hits  = hits     [hits.event_id      == evt_id]
     energy    = evt_hits.energy.sum()
+    if energy < true_e_threshold:
+        events = pd.DataFrame({'event_id':  [float(evt_id)],
+                               'true_energy': [energy],
+                               'true_r1':   [0],
+                               'true_phi1': [0],
+                               'true_z1':   [0],
+                               'true_t1':   [0],
+                               'true_r2':   [0],
+                               'true_phi2': [0],
+                               'true_z2':   [0],
+                               'true_t2':   [0],
+                               'reco_r1':   [0],
+                               'reco_phi1': [0],
+                               'reco_z1':   [0],
+                               'reco_t1':   [0],
+                               'reco_r2':   [0],
+                               'reco_phi2': [0],
+                               'reco_z2':   [0],
+                               'reco_t2':   [0]})
+        return events
 
     pos1, pos2, t1, t2 = rf.find_first_interactions_in_active(evt_parts, evt_hits)
 
@@ -28,17 +49,19 @@ def simulate_reco_event(evt_id: int, hits: pd.DataFrame, particles: pd.DataFrame
                                'true_r1':   [0],
                                'true_phi1': [0],
                                'true_z1':   [0],
-                               #  'true_t1':   [0],
+                               'true_t1':   [0],
                                'true_r2':   [0],
                                'true_phi2': [0],
                                'true_z2':   [0],
-                               #    'true_t2':   [0],
+                               'true_t2':   [0],
                                'reco_r1':   [0],
                                'reco_phi1': [0],
                                'reco_z1':   [0],
+                               'reco_t1':   [0],
                                'reco_r2':   [0],
                                'reco_phi2': [0],
-                               'reco_z2':   [0]})
+                               'reco_z2':   [0],
+                               'reco_t2':   [0]})
         return events
 
     # Transform in cylindrical coordinates
@@ -58,6 +81,8 @@ def simulate_reco_event(evt_id: int, hits: pd.DataFrame, particles: pd.DataFrame
     ephi2 = errmat_phi.get_random_error(phi2)
     ez1 = errmat_z.get_random_error(z1)
     ez2 = errmat_z.get_random_error(z2)
+    et1 = errmat_t.get_random_error(t1)
+    et2 = errmat_t.get_random_error(t2)
     
     # Compute reconstructed quantities.
     r1_reco = r1 - er1
@@ -66,6 +91,8 @@ def simulate_reco_event(evt_id: int, hits: pd.DataFrame, particles: pd.DataFrame
     phi2_reco = phi2 - ephi2
     z1_reco = z1 - ez1
     z2_reco = z2 - ez2
+    t1_reco = t1 - et1
+    t2_reco = t2 - et2
 
     event_ids = [float(evt_id)]
     energies  = [energy]
@@ -73,31 +100,37 @@ def simulate_reco_event(evt_id: int, hits: pd.DataFrame, particles: pd.DataFrame
     true_r1   = [r1]
     true_phi1 = [phi1]
     true_z1   = [z1]
+    true_t1   = [t1]
     true_r2   = [r2]
     true_phi2 = [phi2]
     true_z2   = [z2]
+    true_t2   = [t2]
 
     reco_r1   = [r1_reco]
     reco_phi1 = [phi1_reco]
     reco_z1   = [z1_reco]
+    reco_t1   = [t1_reco]
     reco_r2   = [r2_reco]
     reco_phi2 = [phi2_reco]
     reco_z2   = [z2_reco]
+    reco_t2   = [t2_reco]
 
     events = pd.DataFrame({'event_id':  event_ids,
                            'true_energy': energies,
                            'true_r1':   true_r1,
                            'true_phi1': true_phi1,
                            'true_z1':   true_z1,
-                         #  'true_t1':   a_true_t1,
+                           'true_t1':   true_t1,
                            'true_r2':   true_r2,
                            'true_phi2': true_phi2,
                            'true_z2':   true_z2,
-                       #    'true_t2':   a_true_t2,
+                           'true_t2':   true_t2,
                            'reco_r1':   reco_r1,
                            'reco_phi1': reco_phi1,
                            'reco_z1':   reco_z1,
+                           'reco_t1':   reco_t1,
                            'reco_r2':   reco_r2,
                            'reco_phi2': reco_phi2,
-                           'reco_z2':   reco_z2})
+                           'reco_z2':   reco_z2,
+                           'reco_t2':   reco_t2})
     return events
