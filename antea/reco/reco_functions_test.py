@@ -107,7 +107,7 @@ def test_find_closest_sipm(x, y, z):
     sns_pos2   = np.array([random_sns.X.values, random_sns.Y.values, random_sns.Z.values]).transpose()
     dist2      = np.linalg.norm(np.subtract(point, sns_pos2))
 
-    assert dist1 < dist2
+    assert dist1 <= dist2
     assert dist1 > 0
 
 
