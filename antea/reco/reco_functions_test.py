@@ -122,7 +122,8 @@ l = st.lists(elements, min_size=2, max_size=1000)
 def test_divide_sipms_in_two_hemispheres(x, y, z, l):
     """
     This test checks that given a point, all the positions of a list of sensor
-    positions and charges are divided in two hemispheres according to that point.
+    positions and charges are divided in two hemispheres according
+    to that point.
     The way of testing it is by checking that the scalar product of the position
     of the sensors in the same hemisphere as the point, is positive.
     Every point in the center of coordinates is neglected in order to avoid
@@ -150,10 +151,10 @@ def test_divide_sipms_in_two_hemispheres(x, y, z, l):
 
 def test_assign_sipms_to_gammas(ANTEADATADIR):
     """
-    Checks that the function assign_sipms_to_gammas divides the SiPMs with charge
-    between the two back-to-back gammas, or to one of the two if the other one hasn't
-    interacted by calculating the scalar product between the sensors and the closest
-    sensor to the interaction point.
+    Checks that the function assign_sipms_to_gammas divides the SiPMs
+    with charge between the two back-to-back gammas, or to one of the two
+    if the other one hasn't interacted by calculating the scalar product
+    between the sensors and the closest sensor to the interaction point.
     """
     PATH_IN      = os.path.join(ANTEADATADIR, 'ring_test_1000ev.h5')
     DataSiPM     = db.DataSiPM('petalo', 0)
@@ -203,7 +204,8 @@ part_id = st.integers(min_value=1, max_value=1000)
 @given(part_id)
 def test_initial_coord_first_daughter(ANTEADATADIR, part_id):
     """
-    This test checks that the function initial_coord_first_daughter returns the position,
+    This test checks that the function initial_coord_first_daughter returns
+    the position,
     time and volume of the initial vertex of the first daughter of a particle.
     """
     PATH_IN   = os.path.join(ANTEADATADIR, 'ring_test.h5')
@@ -252,9 +254,9 @@ def test_part_first_hit(ANTEADATADIR, part_id):
 
 def test_find_first_time_of_sensors(ANTEADATADIR):
     """
-    Checks that the function find_first_time_of_sensors returns the sensors id and
-    the time of the first photoelectron detected among all sensors per event.
-    The sensor id must be positive.
+    Checks that the function find_first_time_of_sensors returns the sensors id
+    and the time of the first photoelectron detected among all sensors
+    per event. The sensor id must be positive.
     """
     PATH_IN = os.path.join(ANTEADATADIR, 'ring_test.h5')
     tof_response = load_mcTOFsns_response(PATH_IN)
@@ -274,9 +276,9 @@ def test_find_first_time_of_sensors(ANTEADATADIR):
 
 def test_select_coincidences(ANTEADATADIR):
     """
-    This test checks that the function reconstruct_coincidences returns the position
-    of the true events and the position and charge of the sensors that detected
-    charge only when coincidences are produced.
+    This test checks that the function reconstruct_coincidences returns the
+    position of the true events and the position and charge of the sensors
+    that detected charge only when coincidences are produced.
     """
     PATH_IN      = os.path.join(ANTEADATADIR, 'ring_test_1000ev.h5')
     DataSiPM     = db.DataSiPM('petalo', 0)
@@ -305,7 +307,7 @@ def test_select_coincidences(ANTEADATADIR):
         if len(sns) == 0: continue
         tof = tof_response[tof_response.event_id == evt]
 
-        pos1, pos2, q1, q2, true_pos1, true_pos2, _, _ = rf.select_coincidences(sns, tof, charge_range, DataSiPM_idx, evt_parts, evt_hits)
+        pos1, pos2, q1, q2, true_pos1, true_pos2, true_t1, true_t2 = rf.select_coincidences(sns, tof, charge_range, DataSiPM_idx, evt_parts, evt_hits)
 
         if len(true_pos) == 2:
             scalar_prod1 = np.array([np.dot(true_pos1, p1) for p1 in pos1])
@@ -328,8 +330,60 @@ def test_select_coincidences(ANTEADATADIR):
             true_pos_cyl = rf.from_cartesian_to_cyl(np.array([true_pos1, true_pos2]))
             true_r       = np.array([i[0] for i in true_pos_cyl])
             assert (true_r > radius_range[0]).all() and (true_r < radius_range[1]).all()
+            assert true_t1 > 0
+            assert true_t2 > 0
 
         else:
             assert not true_pos1 and not true_pos2
             assert not len(pos1) and not len(pos2)
             assert not len(q1)   and not len(q2)
+
+
+def test_only_gamma_hits_interaction():
+   """
+    This test uses an event where one primary gamma interacts in the cryostat
+    first, then creates an electron in the ACTIVE volume, while the other
+    primary gamma interacts directly in the active volume and deposits
+    only true energy hits, without creating an electron.
+    This test is supposed to fail if the true position of the second gamma
+    is miscalculated.
+    """
+
+   data = {'event_id': [0, 0, 0, 0], 'particle_id': [1, 2, 3, 4],
+           'name': ['gamma', 'gamma', 'e-', 'e-'], 'primary': [1, 1, 0, 0],
+           'mother_id': [0, 0, 1, 1], 'initial_x': [0.0, 0.0, -162.5, -181.8],
+           'initial_y': [0.0, 0.0, 6.4, 20.2],
+           'initial_z': [0.0, 0.0, -46.7, -69.2],
+           'initial_t': [0.0, 0.0, 0.61, 0.63],
+           'final_x': [-181.8, 181.8, -161.5, -182.8],
+           'final_y': [20.2, -20.2, 6.5, 21.2],
+           'final_z': [-69.2, 69.2, -45.7, -70.2],
+           'final_t': [0.61, 0.67, 0.62, 0.64],
+           'initial_volume': ['PHANTOM', 'PHANTOM', 'CRYOSTAT', 'ACTIVE'],
+           'final_volume': ['ACTIVE', 'ACTIVE', 'CRYOSTAT', 'ACTIVE']}
+   particles = pd.DataFrame(data)
+
+   hits_data = {'event_id': [0, 0], 'x': [-181.8, 181.8], 'y': [20.2, -20.2],
+                'z': [-69.2, 69.2], 'time': [0.63, 0.67], 'energy': [1, 1],
+                'particle_id': [4, 2]}
+   hits = pd.DataFrame(hits_data)
+
+   sns_data = {'event_id': [0, 0], 'sensor_id': [2021, 3503],
+               'time_bin': [0, 0], 'charge': [1100, 1200]}
+   sns = pd.DataFrame(sns_data)
+
+   tof_data = {'event_id': [0, 0], 'sensor_id': [-2021, -3503],
+               'time_bin': [151, 200],
+               'charge': [1100, 1200]}
+   tof = pd.DataFrame(tof_data)
+
+   DataSiPM     = db.DataSiPM('petalo', 0)
+   DataSiPM_idx = DataSiPM.set_index('SensorID')
+   charge_range = (1000, 1400)
+   pos1, pos2, q1, q2, true_pos1, true_pos2, _, _ = rf.select_coincidences(sns, tof, charge_range, DataSiPM_idx, particles, hits)
+
+   assert len(pos1) != 0
+   assert len(pos2) != 0
+
+   ref_pos2 = np.array([181.8, -20.2, 69.2])
+   assert np.allclose(true_pos2, ref_pos2)
