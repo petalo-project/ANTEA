@@ -160,6 +160,18 @@ def find_first_time_of_sensors(tof_response: pd.DataFrame, sns_ids: Sequence[int
     return np.abs(min_id), min_t
 
 
+def find_hit_distances_from_true_pos(hits: pd.DataFrame,
+                                     true_pos: Tuple[float, float, float]) -> Sequence[float]:
+    positions        = np.array([hits.x, hits.y, hits.z]).transpose()
+    scalar_products = positions.dot(true_pos)
+    int_hits = hits[scalar_products >= 0]
+    pos_hits = np.array([int_hits.x.values, int_hits.y.values, int_hits.z.values]).transpose()
+
+    distances = np.linalg.norm(np.subtract(pos_hits, true_pos), axis=1)
+
+    return distances
+
+
 def find_first_interactions_in_active(particles: pd.DataFrame,
                                       hits: pd.DataFrame) -> Tuple[Tuple[float, float, float],
                                                                    Tuple[float, float, float],
@@ -200,7 +212,21 @@ def find_first_interactions_in_active(particles: pd.DataFrame,
         print("Cannot find two true gamma interactions for this event")
         return [], [], None, None
 
-    return gamma_pos1, gamma_pos2, min_t1, min_t2
+    ## find if the event is photoelectric-like
+
+    distances1 = find_hit_distances_from_true_pos(hits, gamma_pos1)
+    if max(distances1) > 1.: ## hits at <1 mm distance are considered of the same point
+        phot_like1 = False
+    else:
+        phot_like1 = True
+
+    distances2 = find_hit_distances_from_true_pos(hits, gamma_pos2)
+    if max(distances2) > 1.: ## hits at <1 mm distance are considered of the same point
+        phot_like2 = False
+    else:
+        phot_like2 = True
+
+    return gamma_pos1, gamma_pos2, min_t1, min_t2, phot_like1, phot_like2
 
 
 def reconstruct_coincidences(sns_response: pd.DataFrame, tof_response: pd.DataFrame,
@@ -246,8 +272,8 @@ def reconstruct_coincidences(sns_response: pd.DataFrame, tof_response: pd.DataFr
     min1, min_tof1 = find_first_time_of_sensors(tof_response, sns1)
     min2, min_tof2 = find_first_time_of_sensors(tof_response, sns2)
 
-    true_pos1, true_pos2, true_t1, true_t2 = find_first_interactions_in_active(particles,
-                                                                               hits)
+    true_pos1, true_pos2, true_t1, true_t2, _, _ = find_first_interactions_in_active(particles,
+                                                                                     hits)
 
     if not len(true_pos1) or not len(true_pos2):
         print("Cannot find two true gamma interactions for this event")

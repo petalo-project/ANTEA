@@ -11,8 +11,10 @@ from antea.mcsim.errmat import errmat
 import antea.reco.reco_functions as rf
 
 def simulate_reco_event(evt_id: int, hits: pd.DataFrame, particles: pd.DataFrame,
-                        errmat_r: errmat, errmat_phi: errmat, errmat_z: errmat,
-                        errmat_t: errmat, true_e_threshold: float = 0.) -> pd.DataFrame:
+                        errmat_p_r: errmat, errmat_p_phi: errmat, errmat_p_z: errmat,
+                        errmat_p_t: errmat, errmat_c_r: errmat, errmat_c_phi: errmat,
+                        errmat_c_z: errmat, errmat_c_t: errmat,
+                        true_e_threshold: float = 0.) -> pd.DataFrame:
     """
     Simulate the reconstructed coordinates for 1 coincidence from true GEANT4 dataframes.
     """
@@ -31,6 +33,8 @@ def simulate_reco_event(evt_id: int, hits: pd.DataFrame, particles: pd.DataFrame
                                'true_phi2': [0.],
                                'true_z2':   [0.],
                                'true_t2':   [0.],
+                               'phot_like1':[0.],
+                               'phot_like2':[0.],
                                'reco_r1':   [0.],
                                'reco_phi1': [0.],
                                'reco_z1':   [0.],
@@ -38,10 +42,11 @@ def simulate_reco_event(evt_id: int, hits: pd.DataFrame, particles: pd.DataFrame
                                'reco_r2':   [0.],
                                'reco_phi2': [0.],
                                'reco_z2':   [0.],
-                               'reco_t2':   [0.]})
+                               'reco_t2':   [0.]
+                               })
         return events
 
-    pos1, pos2, t1, t2 = rf.find_first_interactions_in_active(evt_parts, evt_hits)
+    pos1, pos2, t1, t2, phot1, phot2 = rf.find_first_interactions_in_active(evt_parts, evt_hits)
 
     if len(pos1) == 0 or len(pos2) == 0:
         events = pd.DataFrame({'event_id':  [float(evt_id)],
@@ -54,6 +59,8 @@ def simulate_reco_event(evt_id: int, hits: pd.DataFrame, particles: pd.DataFrame
                                'true_phi2': [0.],
                                'true_z2':   [0.],
                                'true_t2':   [0.],
+                               'phot_like1':[0.],
+                               'phot_like2':[0.],
                                'reco_r1':   [0.],
                                'reco_phi1': [0.],
                                'reco_z1':   [0.],
@@ -61,7 +68,8 @@ def simulate_reco_event(evt_id: int, hits: pd.DataFrame, particles: pd.DataFrame
                                'reco_r2':   [0.],
                                'reco_phi2': [0.],
                                'reco_z2':   [0.],
-                               'reco_t2':   [0.]})
+                               'reco_t2':   [0.],
+                               })
         return events
 
     # Transform in cylindrical coordinates
@@ -75,15 +83,28 @@ def simulate_reco_event(evt_id: int, hits: pd.DataFrame, particles: pd.DataFrame
     z2   = cyl_pos[1, 2]
 
     # Get all errors.
-    er1 = errmat_r.get_random_error(r1)
-    er2 = errmat_r.get_random_error(r2)
-    ephi1 = errmat_phi.get_random_error(phi1)
-    ephi2 = errmat_phi.get_random_error(phi2)
-    ez1 = errmat_z.get_random_error(z1)
-    ez2 = errmat_z.get_random_error(z2)
-    et1 = errmat_t.get_random_error(t1)
-    et2 = errmat_t.get_random_error(t2)
-    
+    if phot1:
+        er1   = errmat_p_r.get_random_error(r1)
+        ephi1 = errmat_p_phi.get_random_error(phi1)
+        ez1   = errmat_p_z.get_random_error(z1)
+        et1   = errmat_p_t.get_random_error(t1)
+    else:
+        er1   = errmat_c_r.get_random_error(r1)
+        ephi1 = errmat_c_phi.get_random_error(phi1)
+        ez1   = errmat_c_z.get_random_error(z1)
+        et1   = errmat_c_t.get_random_error(t1)
+
+    if phot2:
+        er2   = errmat_p_r.get_random_error(r2)
+        ephi2 = errmat_p_phi.get_random_error(phi2)
+        ez2   = errmat_p_z.get_random_error(z2)
+        et2   = errmat_p_t.get_random_error(t2)
+    else:
+        er2   = errmat_c_r.get_random_error(r2)
+        ephi2 = errmat_c_phi.get_random_error(phi2)
+        ez2   = errmat_c_z.get_random_error(z2)
+        et2   = errmat_c_t.get_random_error(t2)
+
     # Compute reconstructed quantities.
     r1_reco = r1 - er1
     r2_reco = r2 - er2
@@ -106,6 +127,9 @@ def simulate_reco_event(evt_id: int, hits: pd.DataFrame, particles: pd.DataFrame
     true_z2   = [z2]
     true_t2   = [t2]
 
+    phot_like1 = [phot1]
+    phot_like2 = [phot2]
+
     reco_r1   = [r1_reco]
     reco_phi1 = [phi1_reco]
     reco_z1   = [z1_reco]
@@ -125,6 +149,8 @@ def simulate_reco_event(evt_id: int, hits: pd.DataFrame, particles: pd.DataFrame
                            'true_phi2': true_phi2,
                            'true_z2':   true_z2,
                            'true_t2':   true_t2,
+                           'phot_like1':phot_like1,
+                           'phot_like2':phot_like2,
                            'reco_r1':   reco_r1,
                            'reco_phi1': reco_phi1,
                            'reco_z1':   reco_z1,
