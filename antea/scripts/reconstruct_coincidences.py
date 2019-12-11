@@ -43,11 +43,11 @@ true_r1, true_phi1, true_z1 = [], [], []
 reco_r1, reco_phi1, reco_z1 = [], [], []
 true_r2, true_phi2, true_z2 = [], [], []
 reco_r2, reco_phi2, reco_z2 = [], [], []
-volume1, volume2 = [], []
 
 sns_response1, sns_response2     = [], []
 first_sipm1, first_sipm2         = [], []
 first_time1, first_time2         = [], []
+true_time1, true_time2           = [], []
 touched_sipms1,  touched_sipms2  = [], []
 
 event_ids = []
@@ -78,7 +78,9 @@ for ifile in range(start, start+numb):
 
     events = particles.event_id.unique()
     print(len(events))
-    charge_range = (1050, 1300)
+
+    #charge_range = (1000, 1500) # for the ring
+    charge_range = (1050, 1300) # for full body PET
 
     for evt in events[:]:
 
@@ -91,7 +93,7 @@ for ifile in range(start, start+numb):
         evt_hits  = hits[hits.event_id                 == evt]
         evt_tof   = tof_response[tof_response.event_id == evt]
 
-        pos1, pos2, q1, q2, true_pos1, true_pos2, vol1, vol2, min_id1, min_id2, min_t1, min_t2 = rf.reconstruct_coincidences(evt_sns, evt_tof, charge_range, DataSiPM_idx, evt_parts, evt_hits)
+        pos1, pos2, q1, q2, true_pos1, true_pos2, true_t1, true_t2, min_id1, min_id2, min_t1, min_t2 = rf.reconstruct_coincidences(evt_sns, evt_tof, charge_range, DataSiPM_idx, evt_parts, evt_hits)
         if len(pos1) == 0 or len(pos2) == 0:
             c0 += 1
             continue
@@ -184,7 +186,7 @@ for ifile in range(start, start+numb):
         touched_sipms1.append(len(q1e))
         first_sipm1.append(min_id1)
         first_time1.append(min_t1*tof_bin_size/units.ps)
-        volume1.append(vol1)
+        true_time1.append(true_t1/units.ps)
 
         reco_r2.append(r2)
         reco_phi2.append(phi2)
@@ -196,7 +198,7 @@ for ifile in range(start, start+numb):
         touched_sipms2.append(len(q2e))
         first_sipm2.append(min_id2)
         first_time2.append(min_t2*tof_bin_size/units.ps)
-        volume2.append(vol2)
+        true_time2.append(true_t2/units.ps)
 
 
 a_true_r1   = np.array(true_r1)
@@ -209,7 +211,7 @@ a_sns_response1 = np.array(sns_response1)
 a_touched_sipms1  = np.array(touched_sipms1)
 a_first_sipm1 = np.array(first_sipm1)
 a_first_time1 = np.array(first_time1)
-a_volume1 = np.array(volume1)
+a_true_time1 = np.array(true_time1)
 
 a_true_r2   = np.array(true_r2)
 a_true_phi2 = np.array(true_phi2)
@@ -221,11 +223,11 @@ a_sns_response2 = np.array(sns_response2)
 a_touched_sipms2  = np.array(touched_sipms2)
 a_first_sipm2 = np.array(first_sipm2)
 a_first_time2 = np.array(first_time2)
-a_volume2 = np.array(volume2)
+a_true_time1 = np.array(true_time1)
 
 a_event_ids = np.array(event_ids)
 
-np.savez(evt_file, a_true_r1=a_true_r1, a_true_phi1=a_true_phi1, a_true_z1=a_true_z1, a_true_r2=a_true_r2, a_true_phi2=a_true_phi2, a_true_z2=a_true_z2, a_reco_r1=a_reco_r1, a_reco_phi1=a_reco_phi1, a_reco_z1=a_reco_z1, a_reco_r2=a_reco_r2, a_reco_phi2=a_reco_phi2, a_reco_z2=a_reco_z2, a_touched_sipms1=a_touched_sipms1, a_touched_sipms2=a_touched_sipms2, a_sns_response1=a_sns_response1, a_sns_response2=a_sns_response2, a_first_sipm1=a_first_sipm1, a_first_time1=a_first_time1, a_first_sipm2=a_first_sipm2, a_first_time2=a_first_time2, a_volume1=a_volume1, a_volume2=a_volume2, a_event_ids=a_event_ids)
+np.savez(evt_file, a_true_r1=a_true_r1, a_true_phi1=a_true_phi1, a_true_z1=a_true_z1, a_true_r2=a_true_r2, a_true_phi2=a_true_phi2, a_true_z2=a_true_z2, a_reco_r1=a_reco_r1, a_reco_phi1=a_reco_phi1, a_reco_z1=a_reco_z1, a_reco_r2=a_reco_r2, a_reco_phi2=a_reco_phi2, a_reco_z2=a_reco_z2, a_touched_sipms1=a_touched_sipms1, a_touched_sipms2=a_touched_sipms2, a_sns_response1=a_sns_response1, a_sns_response2=a_sns_response2, a_first_sipm1=a_first_sipm1, a_first_time1=a_first_time1, a_first_sipm2=a_first_sipm2, a_first_time2=a_first_time2, a_true_time1=a_true_time1, a_true_time2=a_true_time2, a_event_ids=a_event_ids)
 
 print('Not a coincidence: {}'.format(c0))
 print('Not passing threshold r = {}, phi = {}, z = {}, E = {}'.format(c1, c2, c3, c4))
