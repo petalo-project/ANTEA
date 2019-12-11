@@ -127,8 +127,8 @@ def simulate_reco_event(evt_id: int, hits: pd.DataFrame, particles: pd.DataFrame
     true_z2   = [z2]
     true_t2   = [t2]
 
-    phot_like1 = [phot1]
-    phot_like2 = [phot2]
+    phot_like1 = [float(phot1)]
+    phot_like2 = [float(phot2)]
 
     reco_r1   = [r1_reco]
     reco_phi1 = [phi1_reco]
