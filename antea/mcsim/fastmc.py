@@ -68,7 +68,7 @@ def simulate_reco_event(evt_id: int, hits: pd.DataFrame, particles: pd.DataFrame
                                'reco_r2':   [0.],
                                'reco_phi2': [0.],
                                'reco_z2':   [0.],
-                               'reco_t2':   [0.],
+                               'reco_t2':   [0.]
                                })
         return events
 

@@ -210,7 +210,7 @@ def find_first_interactions_in_active(particles: pd.DataFrame,
 
     if not len(gamma_pos1) or not len(gamma_pos2):
         print("Cannot find two true gamma interactions for this event")
-        return [], [], None, None
+        return [], [], None, None, None, None
 
     ## find if the event is photoelectric-like
 
