@@ -1,6 +1,8 @@
 import numpy  as np
 import pandas as pd
 
+from typing import Sequence, Tuple
+
 
 def spe_dist(tau_sipm: Tuple[float, float], time: Sequence[float]) -> Sequence[float]:
     """
