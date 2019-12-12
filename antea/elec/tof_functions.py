@@ -30,10 +30,9 @@ def convolve_tof(spe_response: Sequence[float], signal: Sequence[float]) -> Sequ
     return conv_res
 
 
-def TDC_convolution(tof_response: pd.DataFrame, spe_response: Sequence[float], time_window: float, n_sipms: int, first_sipm: int, te_tdc: float) -> Sequence[float]:
+def tdc_convolution(tof_response: pd.DataFrame, spe_response: Sequence[float], time_window: float, n_sipms: int, first_sipm: int, te_tdc: float) -> Sequence[Sequence[float]]:
     """
-    Apply the spe_response distribution to every sipm and returns an array
-    with the first timestamp for every sensor.
+    Apply the spe_response distribution to every sipm and returns a charge matrix of time and n_sipms dimensions.
     """
     pe_table  = np.zeros((time_window, n_sipms))
     for i, wf in tof_response.iterrows():
@@ -45,15 +44,4 @@ def TDC_convolution(tof_response: pd.DataFrame, spe_response: Sequence[float], t
     for i in range(n_sipms):
         if np.count_nonzero(pe_table[:,i]):
             conv_table[:,i] = convolve_tof(spe_response, pe_table[0:time_window,i])
-
-    timestamp_v = []
-    for i in range(n_sipms):
-        timestamp  = np.argwhere(conv_table[0:time_window,i] > te_tdc)
-        # We take only the first part up to time_window to speed up the computation
-        if len(timestamp)==0:
-            timestamp = 0
-        else:
-            timestamp = np.min(timestamp)
-
-        timestamp_v.append(timestamp) ## List with the first time for each sensor
-    return np.array(timestamp_v)
+    return conv_table
