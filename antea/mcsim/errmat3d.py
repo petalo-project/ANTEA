@@ -23,7 +23,10 @@ class errmat3d:
         # Normalize the error matrix along the error dimension.
         for i in range(len(self.coordmat)):
             for j in range(len(self.coordmat[0])):
-                errmat[i,j,:] = errmat[i,j,:]/self.coordmat[i,j]
+                if self.coordmat[i,j] != 0:
+                    errmat[i,j,:] = errmat[i,j,:]/self.coordmat[i,j]
+                else:
+                    errmat[i,j,:] = 0
 
         # Normalize the coordinate matrix. Sum over both axes.
         self.coordmat /= np.sum(self.coordmat)
@@ -45,5 +48,7 @@ class errmat3d:
         if i >= len(self.errmat): i = len(self.errmat)-1
         if j >= len(self.errmat[0]): j = len(self.errmat[0])-1
         edist = self.errmat[i,j]
+        if all(p == 0 for p in edist):
+            return None
         k = np.random.choice(len(edist), p=edist)
         return self.zmin + (k + np.random.uniform())*self.dz

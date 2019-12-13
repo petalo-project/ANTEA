@@ -1,7 +1,8 @@
 #
 #  The fast MC generates pairs of interaction points based on
 #  pre-determined matrices of true r, phi, and z coordinates vs. their
-#  reconstructed error. It uses the true information coming from GEANT4 simulations
+#  reconstructed error. Some of these matrices have two independent variables
+#  It uses the true information coming from GEANT4 simulations
 #
 
 import numpy  as np
@@ -9,7 +10,8 @@ import pandas as pd
 
 from invisible_cities.core import system_of_units as units
 
-from antea.mcsim.errmat import errmat
+from antea.mcsim.errmat   import errmat
+from antea.mcsim.errmat3d import errmat3d
 import antea.reco.reco_functions as rf
 
 def simulate_reco_event(evt_id: int, hits: pd.DataFrame, particles: pd.DataFrame,
@@ -19,7 +21,6 @@ def simulate_reco_event(evt_id: int, hits: pd.DataFrame, particles: pd.DataFrame
                         true_e_threshold: float = 0.) -> pd.DataFrame:
     """
     Simulate the reconstructed coordinates for 1 coincidence from true GEANT4 dataframes.
-    Notice that the time binning must be provided in ps.
     """
 
     evt_parts = particles[particles.event_id == evt_id]
@@ -91,25 +92,50 @@ def simulate_reco_event(evt_id: int, hits: pd.DataFrame, particles: pd.DataFrame
     # Get all errors.
     if phot1:
         er1   = errmat_p_r.get_random_error(r1)
-        ephi1 = errmat_p_phi.get_random_error(phi1)
-        ez1   = errmat_p_z.get_random_error(z1)
+        ephi1 = errmat_p_phi.get_random_error(phi1, r1)
+        ez1   = errmat_p_z.get_random_error(z1, r1)
         et1   = errmat_p_t.get_random_error(t1)
     else:
         er1   = errmat_c_r.get_random_error(r1)
-        ephi1 = errmat_c_phi.get_random_error(phi1)
-        ez1   = errmat_c_z.get_random_error(z1)
+        ephi1 = errmat_c_phi.get_random_error(phi1, r1)
+        ez1   = errmat_c_z.get_random_error(z1, r1)
         et1   = errmat_c_t.get_random_error(t1)
 
     if phot2:
         er2   = errmat_p_r.get_random_error(r2)
-        ephi2 = errmat_p_phi.get_random_error(phi2)
-        ez2   = errmat_p_z.get_random_error(z2)
+        ephi2 = errmat_p_phi.get_random_error(phi2, r2)
+        ez2   = errmat_p_z.get_random_error(z2, r2)
         et2   = errmat_p_t.get_random_error(t2)
     else:
         er2   = errmat_c_r.get_random_error(r2)
-        ephi2 = errmat_c_phi.get_random_error(phi2)
-        ez2   = errmat_c_z.get_random_error(z2)
+        ephi2 = errmat_c_phi.get_random_error(phi2, r2)
+        ez2   = errmat_c_z.get_random_error(z2, r2)
         et2   = errmat_c_t.get_random_error(t2)
+
+    if er1 == None or ephi1 == None or ez1 == None or et1 == None or er2 == None or ephi2 == None or ez2 == None or et2 == None:
+        events = pd.DataFrame({'event_id':  [float(evt_id)],
+                               'true_energy': [energy],
+                               'true_r1':   [0.],
+                               'true_phi1': [0.],
+                               'true_z1':   [0.],
+                               'true_t1':   [0.],
+                               'true_r2':   [0.],
+                               'true_phi2': [0.],
+                               'true_z2':   [0.],
+                               'true_t2':   [0.],
+                               'phot_like1':[0.],
+                               'phot_like2':[0.],
+                               'reco_r1':   [0.],
+                               'reco_phi1': [0.],
+                               'reco_z1':   [0.],
+                               'reco_t1':   [0.],
+                               'reco_r2':   [0.],
+                               'reco_phi2': [0.],
+                               'reco_z2':   [0.],
+                               'reco_t2':   [0.]
+                               })
+        return events
+
 
     # Compute reconstructed quantities.
     r1_reco = r1 - er1
