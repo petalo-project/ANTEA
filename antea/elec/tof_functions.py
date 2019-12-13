@@ -45,3 +45,20 @@ def tdc_convolution(tof_response: pd.DataFrame, spe_response: Sequence[float], t
         if np.count_nonzero(pe_table[:,i]):
             conv_table[:,i] = convolve_tof(spe_response, pe_table[0:time_window,i])
     return conv_table
+
+
+def translate_charge_matrix_to_wf_df(conv_table: Sequence[Sequence[float]]) -> pd.DataFrame:
+    """
+    Transform the charge matrix into a tof dataframe.
+    """
+    list_wf = []
+    for t in range(len(conv_table)):
+        for s_id in range(conv_table.shape[1]):
+            charge = conv_table[t,s_id]
+            s_id = - s_id - first_sipm
+            if charge > 0.:
+                list_wf.append(np.array([evt, s_id, t, charge]))
+    a_wf  = np.array(list_wf)
+    keys  = np.array(['event_id', 'sensor_id', 'time_bin', 'charge'])
+    wf_df = pd.DataFrame(a_wf, columns = keys)
+    return wf_df
