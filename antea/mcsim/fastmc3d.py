@@ -15,9 +15,9 @@ from antea.mcsim.errmat3d import errmat3d
 import antea.reco.reco_functions as rf
 
 def simulate_reco_event(evt_id: int, hits: pd.DataFrame, particles: pd.DataFrame,
-                        errmat_p_r: errmat, errmat_p_phi: errmat, errmat_p_z: errmat,
-                        errmat_p_t: errmat, errmat_c_r: errmat, errmat_c_phi: errmat,
-                        errmat_c_z: errmat, errmat_c_t: errmat,
+                        errmat_p_r: errmat, errmat_p_phi: errmat3d, errmat_p_z: errmat3d,
+                        errmat_p_t: errmat, errmat_c_r: errmat, errmat_c_phi: errmat3d,
+                        errmat_c_z: errmat3d, errmat_c_t: errmat,
                         true_e_threshold: float = 0.) -> pd.DataFrame:
     """
     Simulate the reconstructed coordinates for 1 coincidence from true GEANT4 dataframes.
