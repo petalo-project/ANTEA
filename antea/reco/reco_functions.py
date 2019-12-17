@@ -172,10 +172,10 @@ def find_hit_distances_from_true_pos(hits: pd.DataFrame,
     return distances
 
 
-def find_first_interactions_in_active(particles: pd.DataFrame,
-                                      hits: pd.DataFrame) -> Tuple[Tuple[float, float, float],
-                                                                   Tuple[float, float, float],
-                                                                   float, float]:
+def find_first_interactions_in_active(particles: pd.DataFrame, hits: pd.DataFrame,
+                                      photo_range: float = 1.) -> Tuple[Tuple[float, float, float],
+                                                                  Tuple[float, float, float],
+                                                                  float, float]:
     """
     Looks for the first interaction of primary gammas in the active volume.
     """
@@ -215,13 +215,13 @@ def find_first_interactions_in_active(particles: pd.DataFrame,
     ## find if the event is photoelectric-like
 
     distances1 = find_hit_distances_from_true_pos(hits, gamma_pos1)
-    if max(distances1) > 1.: ## hits at <1 mm distance are considered of the same point
+    if max(distances1) > photo_range: ## hits at <1 mm distance are considered of the same point
         phot_like1 = False
     else:
         phot_like1 = True
 
     distances2 = find_hit_distances_from_true_pos(hits, gamma_pos2)
-    if max(distances2) > 1.: ## hits at <1 mm distance are considered of the same point
+    if max(distances2) > photo_range: ## hits at <1 mm distance are considered of the same point
         phot_like2 = False
     else:
         phot_like2 = True
