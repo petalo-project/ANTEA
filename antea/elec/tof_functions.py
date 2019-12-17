@@ -6,13 +6,16 @@ from typing import Sequence, Tuple
 
 def spe_dist(tau_sipm: Tuple[float, float], time: Sequence[float]) -> Sequence[float]:
     """
-    Double exponential decay for the sipm response.
+    Double exponential decay for the sipm response. Returns a normalized array.
     """
     alfa         = 1.0/tau_sipm[1]
     beta         = 1.0/tau_sipm[0]
+    if np.isclose(beta, alfa, atol=1e-2):
+        return np.zeros(len(time))
     t_p          = np.log(beta/alfa)/(beta-alfa)
     K            = (beta)*np.exp(alfa*t_p)/(beta-alfa)
-    spe_response = K*(np.exp(-time*alfa)-np.exp(-time*beta))
+    spe_response = K*(np.exp(-alfa*time)-np.exp(-beta*time))
+    spe_response = spe_response/np.sum(spe_response) #Normalization
     return spe_response
 
 
@@ -25,8 +28,9 @@ def convolve_tof(spe_response: Sequence[float], signal: Sequence[float]) -> Sequ
     pe_pos     = np.argwhere(signal > 0)
     pe_recov   = signal[pe_pos]
     for i in range(len(pe_recov)): #Loop over the charges
-        desp     = np.roll(conv_first, pe_pos[i])*pe_recov[i]
-        conv_res += desp
+        conv_first_ch = conv_first*pe_recov[i]
+        desp          = np.roll(conv_first_ch, pe_pos[i])
+        conv_res     += desp
     return conv_res
 
 
