@@ -10,7 +10,7 @@ def spe_dist(tau_sipm: Tuple[float, float], time: Sequence[float]) -> Sequence[f
     """
     alfa         = 1.0/tau_sipm[1]
     beta         = 1.0/tau_sipm[0]
-    if np.isclose(beta, alfa, atol=1e-2):
+    if np.isclose(alfa, beta, rtol=1e-2):
         return np.zeros(len(time))
     t_p          = np.log(beta/alfa)/(beta-alfa)
     K            = (beta)*np.exp(alfa*t_p)/(beta-alfa)

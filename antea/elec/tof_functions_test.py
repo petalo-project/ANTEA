@@ -16,7 +16,7 @@ l = st.lists(st.integers(min_value=1, max_value=10000), min_size=2, max_size=100
 @given(a, b, l)
 def test_spe_dist(a, b, l):
     exp_dist = tf.spe_dist((a, b), np.unique(l))
-    if np.isclose(1/a, 1/b, atol=1e-2):
+    if np.isclose(1/a, 1/b, rtol=1e-2):
         assert np.count_nonzero(exp_dist) == 0
         assert np.isclose(np.sum(exp_dist), 0)
     else:
@@ -33,7 +33,7 @@ def test_convolve_tof(t, l, s):
     spe_response = tf.spe_dist(t, np.unique(l))
     conv_res     = tf.convolve_tof(spe_response, np.array(s))
     assert len(conv_res) == len(spe_response) + len(s) - 1
-    if np.isclose(1/t[0], 1/t[1], atol=1e-2):
+    if np.isclose(1/t[0], 1/t[1], rtol=1e-2):
         assert np.sum(conv_res) == 0
     else:
         assert np.isclose(np.sum(s), np.sum(conv_res))
