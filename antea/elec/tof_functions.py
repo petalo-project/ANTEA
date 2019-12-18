@@ -15,6 +15,8 @@ def spe_dist(tau_sipm: Tuple[float, float], time: Sequence[float]) -> Sequence[f
     t_p          = np.log(beta/alfa)/(beta-alfa)
     K            = (beta)*np.exp(alfa*t_p)/(beta-alfa)
     spe_response = K*(np.exp(-alfa*time)-np.exp(-beta*time))
+    if np.sum(spe_response) == 0:
+        return np.zeros(len(time))
     spe_response = spe_response/np.sum(spe_response) #Normalization
     return spe_response
 
