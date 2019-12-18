@@ -40,10 +40,10 @@ def test_convolve_tof(t, l, s):
     """
     Check that the function convolve_tof returns an array with the adequate length, and, in case it is
     """
-    spe_response = tf.spe_dist(t, np.unique(l))
+    spe_response = tf.spe_dist(t, np.unique(np.array(l)))
     conv_res     = tf.convolve_tof(spe_response, np.array(s))
     assert len(conv_res) == len(spe_response) + len(s) - 1
-    if np.isclose(1/t[0], 1/t[1], rtol=1e-2):
-        assert np.sum(conv_res) == 0
-    else:
+    if np.count_nonzero(spe_response):
         assert np.isclose(np.sum(s), np.sum(conv_res))
+
+
