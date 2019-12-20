@@ -15,6 +15,9 @@ from .. io.mc_io import load_mcsns_response
 from .. io.mc_io import load_mcTOFsns_response
 
 
+DataSiPM     = db.DataSiPM('petalo', 0)
+DataSiPM_idx = DataSiPM.set_index('SensorID')
+
 f             = st.floats(min_value=1,     max_value=2)
 f_lower       = st.floats(min_value=0,     max_value=1)
 allowed_error = st.floats(min_value=1.e-8, max_value=1.e-6)
@@ -83,8 +86,9 @@ def test_find_SiPMs_over_threshold(ANTEADATADIR):
     assert len(df_over_thr) == len(sns_response) - len(df_below_thr)
 
 
-@given(x, y, z)
-def test_find_closest_sipm(x, y, z):
+sipm_id = st.integers(0, len(DataSiPM))
+@given(x, y, z, sipm_id)
+def test_find_closest_sipm(x, y, z, sipm_id):
     """
     Checks that the function find_closest_sipm returns the position of the
     closest SiPM to a given point, and the distance between them is a positive
@@ -96,18 +100,16 @@ def test_find_closest_sipm(x, y, z):
     r = np.sqrt(x**2+y**2)
     if r < 1: return
 
-    DataSiPM     = db.DataSiPM('petalo', 0)
-    DataSiPM_idx = DataSiPM.set_index('SensorID')
     point        = np.array([x, y, z])
     closest_sipm = rf.find_closest_sipm(point, DataSiPM_idx)
     sns_pos1     = np.array([closest_sipm.X, closest_sipm.Y, closest_sipm.Z])
     dist1        = np.linalg.norm(np.subtract(point, sns_pos1))
 
-    random_sns = DataSiPM_idx.iloc[[np.random.randint(len(DataSiPM))]]
-    sns_pos2   = np.array([random_sns.X.values, random_sns.Y.values, random_sns.Z.values]).transpose()
+    random_sns = DataSiPM_idx.iloc[sipm_id]
+    sns_pos2   = np.array([random_sns.X, random_sns.Y, random_sns.Z])
     dist2      = np.linalg.norm(np.subtract(point, sns_pos2))
 
-    assert dist1 < dist2
+    assert dist1 <= dist2
     assert dist1 > 0
 
 
@@ -157,8 +159,6 @@ def test_assign_sipms_to_gammas(ANTEADATADIR):
     between the sensors and the closest sensor to the interaction point.
     """
     PATH_IN      = os.path.join(ANTEADATADIR, 'ring_test_1000ev.h5')
-    DataSiPM     = db.DataSiPM('petalo', 0)
-    DataSiPM_idx = DataSiPM.set_index('SensorID')
     sns_response = load_mcsns_response(PATH_IN)
     threshold    = 2
     sel_df       = rf.find_SiPMs_over_threshold(sns_response, threshold)
@@ -281,8 +281,6 @@ def test_select_coincidences(ANTEADATADIR):
     that detected charge only when coincidences are produced.
     """
     PATH_IN      = os.path.join(ANTEADATADIR, 'ring_test_1000ev.h5')
-    DataSiPM     = db.DataSiPM('petalo', 0)
-    DataSiPM_idx = DataSiPM.set_index('SensorID')
     sns_response = load_mcsns_response(PATH_IN)
     tof_response = load_mcTOFsns_response(PATH_IN)
     threshold    = 2
@@ -377,8 +375,6 @@ def test_only_gamma_hits_interaction():
                'charge': [1100, 1200]}
    tof = pd.DataFrame(tof_data)
 
-   DataSiPM     = db.DataSiPM('petalo', 0)
-   DataSiPM_idx = DataSiPM.set_index('SensorID')
    charge_range = (1000, 1400)
    pos1, pos2, q1, q2, true_pos1, true_pos2, _, _ = rf.select_coincidences(sns, tof, charge_range, DataSiPM_idx, particles, hits)
 
