@@ -109,8 +109,8 @@ def select_coincidences(sns_response: pd.DataFrame, charge_range: Tuple[float, f
                         particles: pd.DataFrame, hits: pd.DataFrame)-> Tuple[Sequence[float], Sequence[float],
                                                                              Sequence[Tuple[float, float, float]],
                                                                              Sequence[Tuple[float, float, float]],
-                                                                             Tuple[float, float, float],
-                                                                             Tuple[float, float, float]]:
+                                                                             Tuple[float, float, float, float],
+									     Tuple[float, float, float, float]]:
     """
     Find the SiPM with maximum charge. The set of sensors around it are labelled as 1.
     The sensors on the opposite emisphere are labelled as 2.
@@ -155,14 +155,14 @@ def select_coincidences(sns_response: pd.DataFrame, charge_range: Tuple[float, f
         part_id  = sel_all[(sel_all.mother_id == 1) & (sel_all.initial_t == min_t1)].particle_id.values
 
         sel_hits      = find_hits_of_given_particles(part_id, hits)
-        hit_positions = np.array([sel_hits.x.values, sel_hits.y.values, sel_hits.z.values]).transpose()
+        hit_positions = np.array([sel_hits.x.values, sel_hits.y.values, sel_hits.z.values, sel_hits.time.values]).transpose()
         gamma_pos1    = np.average(hit_positions, axis=0, weights=sel_hits.energy)
     if len(sel_all[sel_all.mother_id == 2]) > 0:
         min_t2  = sel_all[sel_all.mother_id == 2].initial_t.min()
         part_id = sel_all[(sel_all.mother_id == 2) & (sel_all.initial_t == min_t2)].particle_id.values
 
         sel_hits      = find_hits_of_given_particles(part_id, hits)
-        hit_positions = np.array([sel_hits.x.values, sel_hits.y.values, sel_hits.z.values]).transpose()
+        hit_positions = np.array([sel_hits.x.values, sel_hits.y.values, sel_hits.z.values, sel_hits.time.values]).transpose()
         gamma_pos2    = np.average(hit_positions, axis=0, weights=sel_hits.energy)
 
     ### Calculate the minimum time among the hits of a given primary gamma
@@ -171,13 +171,13 @@ def select_coincidences(sns_response: pd.DataFrame, charge_range: Tuple[float, f
         if min_t1 < 0 or g1_min < min_t1:
             min_t1    = g1_min
             g1_hit = hits[(hits.particle_id == 1) & (hits.time == g1_min)]
-            gamma_pos1 = np.array([g1_hit.x.values, g1_hit.y.values, g1_hit.z.values]).transpose()[0]
+            gamma_pos1 = np.array([g1_hit.x.values, g1_hit.y.values, g1_hit.z.values, g1_hit.time.values]).transpose()[0]
     if len(hits[hits.particle_id == 2]) > 0:
         g2_min = hits[hits.particle_id == 2].time.min()
         if min_t2 < 0 or g2_min < min_t2:
             min_t2 = g2_min
             g2_hit = hits[(hits.particle_id == 2) & (hits.time == g2_min)]
-            gamma_pos2 = np.array([g2_hit.x.values, g2_hit.y.values, g2_hit.z.values]).transpose()[0]
+            gamma_pos2 = np.array([g2_hit.x.values, g2_hit.y.values, g2_hit.z.values, g2_hit.time.values]).transpose()[0]
 
     if gamma_pos1 is None or gamma_pos2 is None:
         print("Cannot find two true gamma interactions for this event")
@@ -194,3 +194,75 @@ def select_coincidences(sns_response: pd.DataFrame, charge_range: Tuple[float, f
 
 
     return pos1, pos2, q1, q2, true_pos1, true_pos2
+
+def select_coincidences_trueinfo(particles: pd.DataFrame, hits: pd.DataFrame)-> Tuple[Tuple[float, float, float, float],
+                                                                                      Tuple[float, float, float, float]]:
+    """
+    The true position of the first gamma interaction is returned for each emisphere.
+    A range of charge is given to select singles in the photoelectric peak.
+    """
+    ### select electrons, primary gammas daughters
+    sel_volume   = (particles.initial_volume == 'ACTIVE') & (particles.final_volume == 'ACTIVE')
+    sel_name     = particles.name == 'e-'
+    sel_vol_name = particles[sel_volume & sel_name]
+
+    # Select based on true total energy since we don't have SiPM charges.
+    etotal = hits.energy.sum()
+    sel1 = (etotal > 0.15*2) & (etotal < 0.65*2)
+    #sel1 = (etotal > 0.509*2) & (etotal < 0.511*2)
+    if not sel1:
+        return None, None, 0., 0.
+
+    primaries = particles[particles.primary == True]
+    sel_all   = sel_vol_name[sel_vol_name.mother_id.isin(primaries.particle_id.values)]
+    if len(sel_all) == 0:
+        return None, None, 0., 0.
+    ### Calculate the minimum time among the daughters of a given primary gamma
+    min_t1 = min_t2 = -1
+    gamma_pos1, gamma_pos2 = None, None
+
+    if len(sel_all[sel_all.mother_id == 1]) > 0:
+        min_t1   = sel_all[sel_all.mother_id == 1].initial_t.min()
+        part_id  = sel_all[(sel_all.mother_id == 1) & (sel_all.initial_t == min_t1)].particle_id.values
+
+        sel_hits      = find_hits_of_given_particles(part_id, hits)
+        hit_positions = np.array([sel_hits.x.values, sel_hits.y.values, sel_hits.z.values, sel_hits.time.values]).transpose()
+        gamma_pos1    = np.average(hit_positions, axis=0, weights=sel_hits.energy)
+    if len(sel_all[sel_all.mother_id == 2]) > 0:
+        min_t2  = sel_all[sel_all.mother_id == 2].initial_t.min()
+        part_id = sel_all[(sel_all.mother_id == 2) & (sel_all.initial_t == min_t2)].particle_id.values
+
+        sel_hits      = find_hits_of_given_particles(part_id, hits)
+        hit_positions = np.array([sel_hits.x.values, sel_hits.y.values, sel_hits.z.values, sel_hits.time.values]).transpose()
+        gamma_pos2    = np.average(hit_positions, axis=0, weights=sel_hits.energy)
+
+    ### Calculate the minimum time among the hits of a given primary gamma
+    if len(hits[hits.particle_id == 1]) > 0:
+        g1_min = hits[hits.particle_id == 1].time.min()
+        if min_t1 < 0 or g1_min < min_t1:
+            min_t1    = g1_min
+            g1_hit = hits[(hits.particle_id == 1) & (hits.time == g1_min)]
+            gamma_pos1 = np.array([g1_hit.x.values, g1_hit.y.values, g1_hit.z.values, g1_hit.time.values]).transpose()[0]
+    if len(hits[hits.particle_id == 2]) > 0:
+        g2_min = hits[hits.particle_id == 2].time.min()
+        if min_t2 < 0 or g2_min < min_t2:
+            min_t2 = g2_min
+            g2_hit = hits[(hits.particle_id == 2) & (hits.time == g2_min)]
+            gamma_pos2 = np.array([g2_hit.x.values, g2_hit.y.values, g2_hit.z.values, g2_hit.time.values]).transpose()[0]
+
+    if gamma_pos1 is None or gamma_pos2 is None:
+        print("Cannot find two true gamma interactions for this event")
+        return None, None, 0., 0.
+
+    # Calculate the energies of gamma1 and gamma2.
+    gamma_e1 = 0
+    part_id1  = sel_all[sel_all.mother_id == 1].particle_id.values
+    gamma1_hits = find_hits_of_given_particles(part_id1, hits)
+    gamma_e1 = gamma1_hits.energy.sum()
+
+    gamma_e2 = 0
+    part_id2  = sel_all[sel_all.mother_id == 2].particle_id.values
+    gamma2_hits = find_hits_of_given_particles(part_id2, hits)
+    gamma_e2 = gamma2_hits.energy.sum()    
+
+    return gamma_pos1, gamma_pos2, gamma_e1, gamma_e2
