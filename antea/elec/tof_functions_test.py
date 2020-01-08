@@ -28,7 +28,7 @@ s = st.lists(st.integers(min_value=1, max_value=10000), min_size=2, max_size=100
 @given(l, s)
 def test_convolve_tof(l, s):
     """
-    Check that the function convolve_tof returns an array with the adequate length, and, in case it is
+    Check that the function convolve_tof returns an array with the adequate length, and, in case the array is not empty, checks that the convoluted signal is normalizated to the initial signal.
     """
     spe_response = tf.spe_dist(np.unique(np.array(l)))
     conv_res     = tf.convolve_tof(spe_response, np.array(s))
