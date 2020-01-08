@@ -23,6 +23,9 @@ def convolve_tof(spe_response: Sequence[float], signal: Sequence[float]) -> Sequ
     """
     Apply the spe_response distribution to the given signal.
     """
+    if not np.count_nonzero(spe_response):
+        print('spe_response values are zero')
+        return np.zeros(len(spe_response)+len(signal)-1)
     conv_first = np.hstack([spe_response, np.zeros(len(signal)-1)])
     conv_res   = np.zeros(len(signal)+len(spe_response)-1)
     pe_pos     = np.argwhere(signal > 0)
