@@ -15,8 +15,10 @@ def spe_dist(time: Sequence[float]) -> Sequence[float]:
     spe_response = K*(np.exp(-alfa*time)-np.exp(-beta*time))
     if np.sum(spe_response) == 0:
         return np.zeros(len(time))
-    spe_response = spe_response/np.sum(spe_response) #Normalization
-    return spe_response
+    norm_dist    = np.sum(spe_response)
+    spe_response = spe_response/norm_dist #Normalization
+
+    return spe_response, norm_dist
 
 
 def convolve_tof(spe_response: Sequence[float], signal: Sequence[float]) -> Sequence[float]:
