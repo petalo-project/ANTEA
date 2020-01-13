@@ -83,13 +83,13 @@ def divide_sipms_in_two_hemispheres(sns_ids: Sequence[int],
         if scalar_prod > 0.:
             q1  .append(charge)
             pos1.append(sns_pos)
-            id1.append(sns_id)
+            id1 .append(sns_id)
         else:
             q2  .append(charge)
             pos2.append(sns_pos)
-            id2.append(sns_id)
+            id2 .append(sns_id)
 
-    return id1, id2, pos1, pos2, np.array(q1), np.array(q2)
+    return np.array(id1), np.array(id2), np.array(pos1), np.array(pos2), np.array(q1), np.array(q2)
 
 
 
