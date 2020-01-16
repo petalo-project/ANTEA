@@ -43,11 +43,10 @@ def tdc_convolution(tof_response: pd.DataFrame, spe_response: Sequence[float], t
     """
     Apply the spe_response distribution to every sipm and returns a charge matrix of time and n_sipms dimensions.
     """
-    pe_table  = np.zeros((time_window, n_sipms))
-    for i, wf in tof_response.iterrows():
-        if wf.time_bin < time_window:
-            s_id = - wf.sensor_id - first_sipm
-            pe_table[wf.time_bin, s_id] = wf.charge
+    pe_table = np.zeros((time_window, n_sipms))
+    sel_tof  = tof_response[tof_response.time_bin < time_window]
+    s_ids    = - sel_tof.sensor_id.values - first_sipm
+    pe_table[sel_tof.time_bin.values, s_ids] = sel_tof.charge.values
 
     conv_table = np.zeros((len(pe_table) + len(spe_response)-1, n_sipms))
     for i in range(n_sipms):
