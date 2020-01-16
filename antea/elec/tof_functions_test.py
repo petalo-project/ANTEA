@@ -30,8 +30,8 @@ def test_convolve_tof(l, s):
     """
     Check that the function convolve_tof returns an array with the adequate length, and, in case the array is not empty, checks that the convoluted signal is normalizated to the initial signal.
     """
-    spe_response = tf.spe_dist(np.unique(np.array(l)))
-    conv_res     = tf.convolve_tof(spe_response, np.array(s))
+    spe_response, norm = tf.spe_dist(t, np.unique(np.array(l)))
+    conv_res           = tf.convolve_tof(spe_response, np.array(s))
     assert len(conv_res) == len(spe_response) + len(s) - 1
     if np.count_nonzero(spe_response):
         assert np.isclose(np.sum(s), np.sum(conv_res))

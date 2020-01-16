@@ -14,7 +14,7 @@ def spe_dist(time: Sequence[float]) -> Sequence[float]:
     K            = (beta)*np.exp(alfa*t_p)/(beta-alfa)
     spe_response = K*(np.exp(-alfa*time)-np.exp(-beta*time))
     if np.sum(spe_response) == 0:
-        return np.zeros(len(time))
+        return np.zeros(len(time)), 0.
     norm_dist    = np.sum(spe_response)
     spe_response = spe_response/norm_dist #Normalization
 
