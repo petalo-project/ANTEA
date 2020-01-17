@@ -62,17 +62,18 @@ def test_tdc_convolution(ANTEADATADIR):
     assert np.all(tdc_conv_table_zeros==0)
 
 
-l0 = st.lists(st.floats(min_value=0, max_value=1000), min_size=2, max_size=100)
-l1 = st.lists(l0, min_size=2, max_size=2)
+l1 = st.lists(st.floats(min_value=0, max_value=1000), min_size=2, max_size=100)
+l2 = st.lists(st.floats(min_value=0, max_value=1000), min_size=2, max_size=100)
 e  = st.floats(min_value=0, max_value=1000)
 f  = st.floats(min_value=0, max_value=1000)
 
-@given(l1, e, f)
-def test_translate_charge_matrix_to_wf_df(l1, e, f):
-    """
-    Creates a matrix to pass it as an argument to translate_charge_matrix_to_wf_df function and checks that the returned dataframe
-    """
-    matrx = np.array(np.matrix(l1[0]).T * np.matrix(l1[1]))
+@given(l1, l2, e, f)
+def test_translate_charge_matrix_to_wf_df(l1, l2, e, f):
+    l1    = np.array(l1)
+    l2    = np.array(l2)
+    col   = np.reshape(l1, (l1.shape[0], 1))
+    row   = np.reshape(l2, (1, l2.shape[0]))
+    matrx = col*row
     wf_df = tf.translate_charge_matrix_to_wf_df(e, matrx, f)
     assert len(wf_df) == np.count_nonzero(matrx)
     assert len(wf_df.keys()) == 4
