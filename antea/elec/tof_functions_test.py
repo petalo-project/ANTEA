@@ -60,3 +60,21 @@ def test_tdc_convolution(ANTEADATADIR):
     wf_df                = pd.DataFrame({}, columns=keys)
     tdc_conv_table_zeros = tf.tdc_convolution(wf_df, spe_resp, time_window, n_sipms, first_sipm, TE_TDC)
     assert np.all(tdc_conv_table_zeros==0)
+
+
+l0 = st.lists(st.floats(min_value=0, max_value=1000), min_size=2, max_size=100)
+l1 = st.lists(l0, min_size=2, max_size=2)
+e  = st.floats(min_value=0, max_value=1000)
+f  = st.floats(min_value=0, max_value=1000)
+
+@given(l1, e, f)
+def test_translate_charge_matrix_to_wf_df(l1, e, f):
+    """
+    Creates a matrix to pass it as an argument to translate_charge_matrix_to_wf_df function and checks that the returned dataframe
+    """
+    matrx = np.array(np.matrix(l1[0]).T * np.matrix(l1[1]))
+    wf_df = tf.translate_charge_matrix_to_wf_df(e, matrx, f)
+    assert len(wf_df) == np.count_nonzero(matrx)
+    assert len(wf_df.keys()) == 4
+    if np.count_nonzero(matrx) == 0:
+        assert wf_df.empty
