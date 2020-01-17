@@ -62,12 +62,14 @@ def translate_charge_matrix_to_wf_df(event_id: int, conv_table: Sequence[Sequenc
     """
     Transform the charge matrix into a tof dataframe.
     """
+    keys         = np.array(['event_id', 'sensor_id', 'time_bin', 'charge'])
+    if not np.count_nonzero(conv_table):
+        return pd.DataFrame({}, columns=keys)
     t_bin, s_id  = np.where(conv_table>0)
     s_id         = - s_id - first_sipm
     conv_tb_flat = conv_table.flatten()
     charge       = conv_tb_flat[conv_tb_flat>0]
     evt          = np.full(len(t_bin), event_id)
-    keys         = np.array(['event_id', 'sensor_id', 'time_bin', 'charge'])
-    a_wf         = np.array([       evt,        s_id,      t_bin,  charge])
+    a_wf         = np.array([evt, s_id, t_bin, charge])
     wf_df        = pd.DataFrame(a_wf.T, columns=keys)
     return wf_df
