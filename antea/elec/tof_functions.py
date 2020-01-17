@@ -43,12 +43,15 @@ def tdc_convolution(tof_response: pd.DataFrame, spe_response: Sequence[float], t
     """
     Apply the spe_response distribution to every sipm and returns a charge matrix of time and n_sipms dimensions.
     """
-    pe_table = np.zeros((time_window, n_sipms))
-    sel_tof  = tof_response[tof_response.time_bin < time_window]
-    s_ids    = - sel_tof.sensor_id.values - first_sipm
-    pe_table[sel_tof.time_bin.values, s_ids] = sel_tof.charge.values
-
+    pe_table   = np.zeros((time_window, n_sipms))
+    sel_tof    = tof_response[tof_response.time_bin < time_window]
+    s_ids      = - sel_tof.sensor_id.values - first_sipm
     conv_table = np.zeros((len(pe_table) + len(spe_response)-1, n_sipms))
+    if sel_tof.empty:
+        print('Tof dataframe is empty')
+        return conv_table
+
+    pe_table[sel_tof.time_bin.values, s_ids] = sel_tof.charge.values
     for i in range(n_sipms):
         if np.count_nonzero(pe_table[:,i]):
             conv_table[:,i] = convolve_tof(spe_response, pe_table[0:time_window,i])
