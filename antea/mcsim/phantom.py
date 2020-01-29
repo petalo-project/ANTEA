@@ -1,15 +1,21 @@
-#
-# Defines the phantom class.
-#
 import numpy as np
 
 class phantom:
+    """
+    Stores a simulated phantom distribution.
 
-    def __init__(self,phantom_file):
+    The phantom is stored in a numpy file with a single key, 'phantom',
+    corresponding to a 3D numpy array containing the distribution.
+    """
+
+    def __init__(self,phantom_file=''):
 
         # Read the phantom from file.
-        fn = np.load(phantom_file)
-        npimg = fn['phantom']
+        if(phantom_file == ''):
+            npimg = np.ones([10,10,10])
+        else:
+            fn = np.load(phantom_file)
+            npimg = fn['phantom']
 
         # Normalize the phantom.
         npimg = npimg.astype('float64') / np.sum(npimg)

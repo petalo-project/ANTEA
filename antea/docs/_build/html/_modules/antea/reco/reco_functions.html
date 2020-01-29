@@ -1,0 +1,466 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>antea.reco.reco_functions &#8212; antea  documentation</title>
+    <link rel="stylesheet" href="../../../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+   
+  <link rel="stylesheet" href="../../../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <h1>Source code for antea.reco.reco_functions</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">numpy</span>  <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+
+<span class="kn">from</span> <span class="nn">.</span> <span class="n">mctrue_functions</span> <span class="kn">import</span> <span class="nn">find_hits_of_given_particles</span>
+
+<span class="kn">from</span> <span class="nn">typing</span> <span class="k">import</span> <span class="n">Sequence</span><span class="p">,</span> <span class="n">Tuple</span>
+
+
+<span class="k">def</span> <span class="nf">lower_or_equal</span><span class="p">(</span><span class="n">f1</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">f2</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">allowed_error</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1.e-6</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+    <span class="k">return</span> <span class="n">f1</span> <span class="o">&lt;=</span> <span class="n">f2</span> <span class="o">+</span> <span class="n">allowed_error</span>
+
+
+<span class="k">def</span> <span class="nf">greater_or_equal</span><span class="p">(</span><span class="n">f1</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">f2</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">allowed_error</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1.e-6</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+    <span class="k">return</span> <span class="n">f1</span> <span class="o">&gt;=</span> <span class="n">f2</span> <span class="o">-</span> <span class="n">allowed_error</span>
+
+
+<span class="k">def</span> <span class="nf">from_cartesian_to_cyl</span><span class="p">(</span><span class="n">pos</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">Sequence</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">]:</span>
+    <span class="n">cyl_pos</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">pos</span><span class="p">[:,</span><span class="mi">0</span><span class="p">]</span><span class="o">**</span><span class="mi">2</span><span class="o">+</span><span class="n">pos</span><span class="p">[:,</span><span class="mi">1</span><span class="p">]</span><span class="o">**</span><span class="mi">2</span><span class="p">),</span>
+                        <span class="n">np</span><span class="o">.</span><span class="n">arctan2</span><span class="p">(</span><span class="n">pos</span><span class="p">[:,</span><span class="mi">1</span><span class="p">],</span> <span class="n">pos</span><span class="p">[:,</span><span class="mi">0</span><span class="p">]),</span>
+                        <span class="n">pos</span><span class="p">[:,</span><span class="mi">2</span><span class="p">]])</span><span class="o">.</span><span class="n">transpose</span><span class="p">()</span>
+    <span class="k">return</span> <span class="n">cyl_pos</span>
+
+
+<span class="k">def</span> <span class="nf">phi_mean_var</span><span class="p">(</span><span class="n">pos_phi</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">float</span><span class="p">],</span> <span class="n">q</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">float</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]:</span>
+    <span class="n">diff_sign</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">pos_phi</span> <span class="p">)</span> <span class="o">&lt;</span> <span class="mi">0</span> <span class="o">&lt;</span> <span class="nb">max</span><span class="p">(</span><span class="n">pos_phi</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">diff_sign</span> <span class="o">&amp;</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="n">pos_phi</span><span class="p">))</span><span class="o">&gt;</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="o">/</span><span class="mi">2</span><span class="p">):</span>
+        <span class="n">pos_phi</span><span class="p">[</span><span class="n">pos_phi</span><span class="o">&lt;</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">+</span> <span class="n">pos_phi</span><span class="p">[</span><span class="n">pos_phi</span><span class="o">&lt;</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">mean_phi</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">average</span><span class="p">(</span><span class="n">pos_phi</span><span class="p">,</span> <span class="n">weights</span><span class="o">=</span><span class="n">q</span><span class="p">)</span>
+    <span class="n">var_phi</span>  <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">average</span><span class="p">((</span><span class="n">pos_phi</span><span class="o">-</span><span class="n">mean_phi</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span><span class="p">,</span> <span class="n">weights</span><span class="o">=</span><span class="n">q</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">mean_phi</span><span class="p">,</span> <span class="n">var_phi</span>
+
+
+<div class="viewcode-block" id="find_SiPMs_over_threshold"><a class="viewcode-back" href="../../../src/code_reconstruction.html#antea.reco.reco_functions.find_SiPMs_over_threshold">[docs]</a><span class="k">def</span> <span class="nf">find_SiPMs_over_threshold</span><span class="p">(</span><span class="n">df</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">,</span> <span class="n">threshold</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Integrate the charge in time of each SiPM and select only those with total</span>
+<span class="sd">    charge larger than threshold.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">tot_charges_df</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">groupby</span><span class="p">([</span><span class="s1">&#39;event_id&#39;</span><span class="p">,</span><span class="s1">&#39;sensor_id&#39;</span><span class="p">])[[</span><span class="s1">&#39;charge&#39;</span><span class="p">]]</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
+    <span class="k">return</span> <span class="n">tot_charges_df</span><span class="p">[</span><span class="n">tot_charges_df</span><span class="o">.</span><span class="n">charge</span> <span class="o">&gt;</span> <span class="n">threshold</span><span class="p">]</span><span class="o">.</span><span class="n">reset_index</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="find_closest_sipm"><a class="viewcode-back" href="../../../src/code_reconstruction.html#antea.reco.reco_functions.find_closest_sipm">[docs]</a><span class="k">def</span> <span class="nf">find_closest_sipm</span><span class="p">(</span><span class="n">point</span><span class="p">:</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">],</span>
+                      <span class="n">sipms</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">:</span>
+   <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">   Find the closest SiPM to a point, given a df of SiPMs.</span>
+<span class="sd">   &quot;&quot;&quot;</span>
+   <span class="n">sns_positions</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">sipms</span><span class="o">.</span><span class="n">X</span><span class="o">.</span><span class="n">values</span><span class="p">,</span> <span class="n">sipms</span><span class="o">.</span><span class="n">Y</span><span class="o">.</span><span class="n">values</span><span class="p">,</span> <span class="n">sipms</span><span class="o">.</span><span class="n">Z</span><span class="o">.</span><span class="n">values</span><span class="p">])</span><span class="o">.</span><span class="n">transpose</span><span class="p">()</span>
+
+   <span class="n">subtr</span>        <span class="o">=</span> <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">subtract</span><span class="p">(</span><span class="n">point</span><span class="p">,</span> <span class="n">pos</span><span class="p">)</span> <span class="k">for</span> <span class="n">pos</span> <span class="ow">in</span> <span class="n">sns_positions</span><span class="p">]</span>
+   <span class="n">distances</span>    <span class="o">=</span> <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">d</span><span class="p">)</span> <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">subtr</span><span class="p">]</span>
+   <span class="n">min_dist</span>     <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="n">distances</span><span class="p">)</span>
+   <span class="n">min_sipm</span>     <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">isclose</span><span class="p">(</span><span class="n">distances</span><span class="p">,</span> <span class="n">min_dist</span><span class="p">)</span>
+   <span class="n">closest_sipm</span> <span class="o">=</span> <span class="n">sipms</span><span class="p">[</span><span class="n">min_sipm</span><span class="p">]</span>
+
+   <span class="k">return</span> <span class="n">closest_sipm</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span></div>
+
+
+<div class="viewcode-block" id="divide_sipms_in_two_hemispheres"><a class="viewcode-back" href="../../../src/code_reconstruction.html#antea.reco.reco_functions.divide_sipms_in_two_hemispheres">[docs]</a><span class="k">def</span> <span class="nf">divide_sipms_in_two_hemispheres</span><span class="p">(</span><span class="n">sns_ids</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">int</span><span class="p">],</span>
+                                    <span class="n">sns_positions</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="n">Tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]],</span>
+                                    <span class="n">sns_charges</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">float</span><span class="p">],</span>
+                                    <span class="n">reference_pos</span><span class="p">:</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">Sequence</span><span class="p">[</span><span class="nb">int</span><span class="p">],</span>
+                                                                                        <span class="n">Sequence</span><span class="p">[</span><span class="nb">int</span><span class="p">],</span>
+                                                                                        <span class="n">Sequence</span><span class="p">[</span><span class="n">Tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]],</span>
+                                                                                        <span class="n">Sequence</span><span class="p">[</span><span class="n">Tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]],</span>
+                                                                                        <span class="n">Sequence</span><span class="p">[</span><span class="nb">float</span><span class="p">],</span>
+                                                                                        <span class="n">Sequence</span><span class="p">[</span><span class="nb">float</span><span class="p">]]:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Divide the SiPMs with charge between two hemispheres, using a given reference direction</span>
+<span class="sd">    (reference_pos) as a discriminator.</span>
+<span class="sd">    Return the lists of the ids, the charges and the positions of the SiPMs of the two groups.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">q1</span><span class="p">,</span>   <span class="n">q2</span>   <span class="o">=</span> <span class="p">[],</span> <span class="p">[]</span>
+    <span class="n">pos1</span><span class="p">,</span> <span class="n">pos2</span> <span class="o">=</span> <span class="p">[],</span> <span class="p">[]</span>
+    <span class="n">id1</span><span class="p">,</span> <span class="n">id2</span>   <span class="o">=</span> <span class="p">[],</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">sns_id</span><span class="p">,</span> <span class="n">sns_pos</span><span class="p">,</span> <span class="n">charge</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">sns_ids</span><span class="p">,</span> <span class="n">sns_positions</span><span class="p">,</span> <span class="n">sns_charges</span><span class="p">):</span>
+        <span class="n">scalar_prod</span> <span class="o">=</span> <span class="n">sns_pos</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">reference_pos</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">scalar_prod</span> <span class="o">&gt;</span> <span class="mf">0.</span><span class="p">:</span>
+            <span class="n">q1</span>  <span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">charge</span><span class="p">)</span>
+            <span class="n">pos1</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">sns_pos</span><span class="p">)</span>
+            <span class="n">id1</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">sns_id</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">q2</span>  <span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">charge</span><span class="p">)</span>
+            <span class="n">pos2</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">sns_pos</span><span class="p">)</span>
+            <span class="n">id2</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">sns_id</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">id1</span><span class="p">,</span> <span class="n">id2</span><span class="p">,</span> <span class="n">pos1</span><span class="p">,</span> <span class="n">pos2</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">q1</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">q2</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="assign_sipms_to_gammas"><a class="viewcode-back" href="../../../src/code_reconstruction.html#antea.reco.reco_functions.assign_sipms_to_gammas">[docs]</a><span class="k">def</span> <span class="nf">assign_sipms_to_gammas</span><span class="p">(</span><span class="n">sns_response</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">,</span>
+                           <span class="n">true_pos</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="n">Tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]],</span>
+                                              <span class="n">DataSiPM_idx</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">Sequence</span><span class="p">[</span><span class="nb">int</span><span class="p">],</span>
+                                                                                   <span class="n">Sequence</span><span class="p">[</span><span class="nb">int</span><span class="p">],</span>
+                                                                                   <span class="n">Sequence</span><span class="p">[</span><span class="n">Tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]],</span>
+                                                                                   <span class="n">Sequence</span><span class="p">[</span><span class="n">Tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]],</span>
+                                                                                   <span class="n">Sequence</span><span class="p">[</span><span class="nb">float</span><span class="p">],</span>
+                                                                                   <span class="n">Sequence</span><span class="p">[</span><span class="nb">float</span><span class="p">]]:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Divide the SiPMs with charge between the two back-to-back gammas,</span>
+<span class="sd">    or to one of the two if the other one hasn&#39;t interacted.</span>
+<span class="sd">    Return the lists of the charges and the positions of the SiPMs of the two groups.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">sipms</span>           <span class="o">=</span> <span class="n">DataSiPM_idx</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">sns_response</span><span class="o">.</span><span class="n">sensor_id</span><span class="p">]</span>
+    <span class="n">sns_ids</span>         <span class="o">=</span> <span class="n">sipms</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">values</span>
+    <span class="n">sns_closest_pos</span> <span class="o">=</span> <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">find_closest_sipm</span><span class="p">(</span><span class="n">pos</span><span class="p">,</span> <span class="n">sipms</span><span class="p">)</span><span class="o">.</span><span class="n">X</span><span class="p">,</span> <span class="n">find_closest_sipm</span><span class="p">(</span><span class="n">pos</span><span class="p">,</span> <span class="n">sipms</span><span class="p">)</span><span class="o">.</span><span class="n">Y</span><span class="p">,</span> <span class="n">find_closest_sipm</span><span class="p">(</span><span class="n">pos</span><span class="p">,</span> <span class="n">sipms</span><span class="p">)</span><span class="o">.</span><span class="n">Z</span><span class="p">])</span> <span class="k">for</span> <span class="n">pos</span> <span class="ow">in</span> <span class="n">true_pos</span><span class="p">]</span>
+
+    <span class="n">q1</span><span class="p">,</span>   <span class="n">q2</span>   <span class="o">=</span> <span class="p">[],</span> <span class="p">[]</span>
+    <span class="n">pos1</span><span class="p">,</span> <span class="n">pos2</span> <span class="o">=</span> <span class="p">[],</span> <span class="p">[]</span>
+    <span class="n">id1</span><span class="p">,</span> <span class="n">id2</span>   <span class="o">=</span> <span class="p">[],</span> <span class="p">[]</span>
+
+    <span class="n">sns_positions</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">sipms</span><span class="o">.</span><span class="n">X</span><span class="o">.</span><span class="n">values</span><span class="p">,</span> <span class="n">sipms</span><span class="o">.</span><span class="n">Y</span><span class="o">.</span><span class="n">values</span><span class="p">,</span> <span class="n">sipms</span><span class="o">.</span><span class="n">Z</span><span class="o">.</span><span class="n">values</span><span class="p">])</span><span class="o">.</span><span class="n">transpose</span><span class="p">()</span>
+    <span class="n">sns_charges</span>   <span class="o">=</span> <span class="n">sns_response</span><span class="o">.</span><span class="n">charge</span>
+    <span class="n">closest_pos</span>   <span class="o">=</span> <span class="n">sns_closest_pos</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="c1">## Look at the first one, which always exists.</span>
+    <span class="c1">### The sensors on the same semisphere are grouped together,</span>
+    <span class="c1">### and those on the opposite side, too, only</span>
+    <span class="c1">### if two interactions have been detected.</span>
+
+    <span class="k">for</span> <span class="n">sns_id</span><span class="p">,</span> <span class="n">sns_pos</span><span class="p">,</span> <span class="n">charge</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">sns_ids</span><span class="p">,</span> <span class="n">sns_positions</span><span class="p">,</span> <span class="n">sns_charges</span><span class="p">):</span>
+        <span class="n">scalar_prod</span> <span class="o">=</span> <span class="n">sns_pos</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">closest_pos</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">scalar_prod</span> <span class="o">&gt;</span> <span class="mf">0.</span><span class="p">:</span>
+            <span class="n">q1</span>  <span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">charge</span><span class="p">)</span>
+            <span class="n">pos1</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">sns_pos</span><span class="p">)</span>
+            <span class="n">id1</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">sns_id</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="n">sns_closest_pos</span><span class="p">)</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+            <span class="n">q2</span>  <span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">charge</span><span class="p">)</span>
+            <span class="n">pos2</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">sns_pos</span><span class="p">)</span>
+            <span class="n">id2</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">sns_id</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">id1</span><span class="p">,</span> <span class="n">id2</span><span class="p">,</span> <span class="n">pos1</span><span class="p">,</span> <span class="n">pos2</span><span class="p">,</span> <span class="n">q1</span><span class="p">,</span> <span class="n">q2</span></div>
+
+
+<div class="viewcode-block" id="initial_coord_first_daughter"><a class="viewcode-back" href="../../../src/code_reconstruction.html#antea.reco.reco_functions.initial_coord_first_daughter">[docs]</a><span class="k">def</span> <span class="nf">initial_coord_first_daughter</span><span class="p">(</span><span class="n">particles</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">,</span>
+                                 <span class="n">mother_id</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">Tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">],</span>
+                                                          <span class="nb">int</span><span class="p">,</span> <span class="nb">str</span><span class="p">]:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Returns the position, time and volume of the initial vertex</span>
+<span class="sd">    of the first daughter of a given particle.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">daughters</span> <span class="o">=</span> <span class="n">particles</span><span class="p">[</span><span class="n">particles</span><span class="o">.</span><span class="n">mother_id</span> <span class="o">==</span> <span class="n">mother_id</span><span class="p">]</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">daughters</span><span class="p">):</span>
+        <span class="n">min_t</span>    <span class="o">=</span> <span class="n">daughters</span><span class="o">.</span><span class="n">initial_t</span><span class="o">.</span><span class="n">min</span><span class="p">()</span>
+        <span class="n">daughter</span> <span class="o">=</span> <span class="n">particles</span><span class="p">[(</span><span class="n">particles</span><span class="o">.</span><span class="n">mother_id</span> <span class="o">==</span> <span class="n">mother_id</span><span class="p">)</span> <span class="o">&amp;</span>
+                             <span class="p">(</span><span class="n">particles</span><span class="o">.</span><span class="n">initial_t</span> <span class="o">==</span> <span class="n">min_t</span><span class="p">)]</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">vtx_pos</span>  <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">daughter</span><span class="o">.</span><span class="n">initial_x</span><span class="p">,</span> <span class="n">daughter</span><span class="o">.</span><span class="n">initial_y</span><span class="p">,</span> <span class="n">daughter</span><span class="o">.</span><span class="n">initial_z</span><span class="p">])</span>
+        <span class="n">init_vol</span> <span class="o">=</span> <span class="n">daughter</span><span class="o">.</span><span class="n">initial_volume</span>
+        <span class="k">return</span> <span class="n">vtx_pos</span><span class="p">,</span> <span class="n">min_t</span><span class="p">,</span> <span class="n">init_vol</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">[],</span> <span class="nb">float</span><span class="p">(</span><span class="s1">&#39;inf&#39;</span><span class="p">),</span> <span class="kc">None</span></div>
+
+
+<div class="viewcode-block" id="part_first_hit"><a class="viewcode-back" href="../../../src/code_reconstruction.html#antea.reco.reco_functions.part_first_hit">[docs]</a><span class="k">def</span> <span class="nf">part_first_hit</span><span class="p">(</span><span class="n">hits</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">,</span> <span class="n">part_id</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">Tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">],</span> <span class="nb">int</span><span class="p">]:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Returns the position and time of the first hit of a given particle.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">part_hits</span> <span class="o">=</span> <span class="n">hits</span><span class="p">[</span><span class="n">hits</span><span class="o">.</span><span class="n">particle_id</span> <span class="o">==</span> <span class="n">part_id</span><span class="p">]</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">part_hits</span><span class="p">):</span>
+        <span class="n">t_min</span>    <span class="o">=</span> <span class="n">part_hits</span><span class="o">.</span><span class="n">time</span><span class="o">.</span><span class="n">min</span><span class="p">()</span>
+        <span class="n">p_hit</span>    <span class="o">=</span> <span class="n">hits</span><span class="p">[(</span><span class="n">hits</span><span class="o">.</span><span class="n">particle_id</span> <span class="o">==</span> <span class="n">part_id</span><span class="p">)</span> <span class="o">&amp;</span> <span class="p">(</span><span class="n">hits</span><span class="o">.</span><span class="n">time</span> <span class="o">==</span> <span class="n">t_min</span><span class="p">)]</span>
+        <span class="n">part_pos</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">p_hit</span><span class="o">.</span><span class="n">x</span><span class="o">.</span><span class="n">values</span><span class="p">,</span> <span class="n">p_hit</span><span class="o">.</span><span class="n">y</span><span class="o">.</span><span class="n">values</span><span class="p">,</span> <span class="n">p_hit</span><span class="o">.</span><span class="n">z</span><span class="o">.</span><span class="n">values</span><span class="p">])</span><span class="o">.</span><span class="n">transpose</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">return</span> <span class="n">part_pos</span><span class="p">,</span> <span class="n">t_min</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">[],</span> <span class="nb">float</span><span class="p">(</span><span class="s1">&#39;inf&#39;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="find_first_time_of_sensors"><a class="viewcode-back" href="../../../src/code_reconstruction.html#antea.reco.reco_functions.find_first_time_of_sensors">[docs]</a><span class="k">def</span> <span class="nf">find_first_time_of_sensors</span><span class="p">(</span><span class="n">tof_response</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">,</span>
+                               <span class="n">sns_ids</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">int</span><span class="p">])</span><span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">]:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    This function looks for the time among all sensors for the first photoelectron detected.</span>
+<span class="sd">    In case more than one photoelectron arrives at the same time, the sensor with minimum id is chosen.</span>
+<span class="sd">    The positive value of the id of the sensor and the time of detection are returned.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">tof</span> <span class="o">=</span> <span class="n">tof_response</span><span class="p">[</span><span class="n">tof_response</span><span class="o">.</span><span class="n">sensor_id</span><span class="o">.</span><span class="n">isin</span><span class="p">(</span><span class="n">sns_ids</span><span class="p">)]</span>
+    <span class="n">min_t</span>  <span class="o">=</span> <span class="n">tof</span><span class="o">.</span><span class="n">time_bin</span><span class="o">.</span><span class="n">min</span><span class="p">()</span>
+    <span class="n">min_df</span> <span class="o">=</span> <span class="n">tof</span><span class="p">[</span><span class="n">tof</span><span class="o">.</span><span class="n">time_bin</span> <span class="o">==</span> <span class="n">min_t</span><span class="p">]</span>
+
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">min_df</span><span class="p">)</span><span class="o">&gt;</span><span class="mi">1</span><span class="p">:</span>
+        <span class="n">min_id</span> <span class="o">=</span> <span class="n">min_df</span><span class="p">[</span><span class="n">min_df</span><span class="o">.</span><span class="n">sensor_id</span> <span class="o">==</span> <span class="n">min_df</span><span class="o">.</span><span class="n">sensor_id</span><span class="o">.</span><span class="n">min</span><span class="p">()]</span><span class="o">.</span><span class="n">sensor_id</span><span class="o">.</span><span class="n">values</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">min_id</span> <span class="o">=</span> <span class="n">min_df</span><span class="o">.</span><span class="n">sensor_id</span><span class="o">.</span><span class="n">values</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+
+    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">min_id</span><span class="p">),</span> <span class="n">min_t</span></div>
+
+
+<span class="k">def</span> <span class="nf">find_hit_distances_from_true_pos</span><span class="p">(</span><span class="n">hits</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">,</span>
+                                     <span class="n">true_pos</span><span class="p">:</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">float</span><span class="p">]:</span>
+    <span class="n">positions</span>        <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">hits</span><span class="o">.</span><span class="n">x</span><span class="p">,</span> <span class="n">hits</span><span class="o">.</span><span class="n">y</span><span class="p">,</span> <span class="n">hits</span><span class="o">.</span><span class="n">z</span><span class="p">])</span><span class="o">.</span><span class="n">transpose</span><span class="p">()</span>
+    <span class="n">scalar_products</span> <span class="o">=</span> <span class="n">positions</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">true_pos</span><span class="p">)</span>
+    <span class="n">int_hits</span> <span class="o">=</span> <span class="n">hits</span><span class="p">[</span><span class="n">scalar_products</span> <span class="o">&gt;=</span> <span class="mi">0</span><span class="p">]</span>
+    <span class="n">pos_hits</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">int_hits</span><span class="o">.</span><span class="n">x</span><span class="o">.</span><span class="n">values</span><span class="p">,</span> <span class="n">int_hits</span><span class="o">.</span><span class="n">y</span><span class="o">.</span><span class="n">values</span><span class="p">,</span> <span class="n">int_hits</span><span class="o">.</span><span class="n">z</span><span class="o">.</span><span class="n">values</span><span class="p">])</span><span class="o">.</span><span class="n">transpose</span><span class="p">()</span>
+
+    <span class="n">distances</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">subtract</span><span class="p">(</span><span class="n">pos_hits</span><span class="p">,</span> <span class="n">true_pos</span><span class="p">),</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">distances</span>
+
+
+<div class="viewcode-block" id="find_first_interactions_in_active"><a class="viewcode-back" href="../../../src/code_reconstruction.html#antea.reco.reco_functions.find_first_interactions_in_active">[docs]</a><span class="k">def</span> <span class="nf">find_first_interactions_in_active</span><span class="p">(</span><span class="n">particles</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">,</span> <span class="n">hits</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">,</span>
+                                      <span class="n">photo_range</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1.</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">Tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">],</span>
+                                                                        <span class="n">Tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">],</span>
+                                                                        <span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span>
+                                                                        <span class="nb">bool</span><span class="p">,</span> <span class="nb">bool</span><span class="p">]:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Looks for the first interaction of primary gammas in the active volume.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1">### select electrons, primary gammas daughters in ACTIVE</span>
+    <span class="n">sel_volume</span>   <span class="o">=</span> <span class="p">(</span><span class="n">particles</span><span class="o">.</span><span class="n">initial_volume</span> <span class="o">==</span> <span class="s1">&#39;ACTIVE&#39;</span><span class="p">)</span> <span class="o">&amp;</span> <span class="p">(</span><span class="n">particles</span><span class="o">.</span><span class="n">final_volume</span> <span class="o">==</span> <span class="s1">&#39;ACTIVE&#39;</span><span class="p">)</span>
+    <span class="n">sel_name</span>     <span class="o">=</span> <span class="n">particles</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="s1">&#39;e-&#39;</span>
+    <span class="n">sel_vol_name</span> <span class="o">=</span> <span class="n">particles</span><span class="p">[</span><span class="n">sel_volume</span> <span class="o">&amp;</span> <span class="n">sel_name</span><span class="p">]</span>
+    <span class="n">primaries</span> <span class="o">=</span> <span class="n">particles</span><span class="p">[</span><span class="n">particles</span><span class="o">.</span><span class="n">primary</span> <span class="o">==</span> <span class="kc">True</span><span class="p">]</span>
+    <span class="n">sel_all</span>   <span class="o">=</span> <span class="n">sel_vol_name</span><span class="p">[</span><span class="n">sel_vol_name</span><span class="o">.</span><span class="n">mother_id</span><span class="o">.</span><span class="n">isin</span><span class="p">(</span><span class="n">primaries</span><span class="o">.</span><span class="n">particle_id</span><span class="o">.</span><span class="n">values</span><span class="p">)]</span>
+    <span class="c1">### Calculate the initial vertex.</span>
+    <span class="n">gamma_pos1</span><span class="p">,</span> <span class="n">gamma_pos2</span> <span class="o">=</span> <span class="p">[],</span> <span class="p">[]</span>
+    <span class="n">vol1</span>      <span class="p">,</span> <span class="n">vol2</span>       <span class="o">=</span> <span class="p">[],</span> <span class="p">[]</span>
+    <span class="n">min_t1</span>    <span class="p">,</span> <span class="n">min_t2</span>     <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="s1">&#39;inf&#39;</span><span class="p">),</span> <span class="nb">float</span><span class="p">(</span><span class="s1">&#39;inf&#39;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">sel_all</span><span class="p">[</span><span class="n">sel_all</span><span class="o">.</span><span class="n">mother_id</span> <span class="o">==</span> <span class="mi">1</span><span class="p">])</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">gamma_pos1</span><span class="p">,</span> <span class="n">min_t1</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">initial_coord_first_daughter</span><span class="p">(</span><span class="n">sel_all</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">sel_all</span><span class="p">[</span><span class="n">sel_all</span><span class="o">.</span><span class="n">mother_id</span> <span class="o">==</span> <span class="mi">2</span><span class="p">])</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">gamma_pos2</span><span class="p">,</span> <span class="n">min_t2</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">initial_coord_first_daughter</span><span class="p">(</span><span class="n">sel_all</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+
+    <span class="c1">### Calculate the minimum time among the hits of a given primary gamma, if any.</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">hits</span><span class="p">[</span><span class="n">hits</span><span class="o">.</span><span class="n">particle_id</span> <span class="o">==</span> <span class="mi">1</span><span class="p">])</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">g_pos1</span><span class="p">,</span> <span class="n">g_min_t1</span> <span class="o">=</span> <span class="n">part_first_hit</span><span class="p">(</span><span class="n">hits</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">g_min_t1</span> <span class="o">&lt;</span> <span class="n">min_t1</span><span class="p">:</span>
+            <span class="n">min_t1</span>     <span class="o">=</span> <span class="n">g_min_t1</span>
+            <span class="n">gamma_pos1</span> <span class="o">=</span> <span class="n">g_pos1</span>
+
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">hits</span><span class="p">[</span><span class="n">hits</span><span class="o">.</span><span class="n">particle_id</span> <span class="o">==</span> <span class="mi">2</span><span class="p">])</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">g_pos2</span><span class="p">,</span> <span class="n">g_min_t2</span> <span class="o">=</span> <span class="n">part_first_hit</span><span class="p">(</span><span class="n">hits</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">g_min_t2</span> <span class="o">&lt;</span> <span class="n">min_t2</span><span class="p">:</span>
+            <span class="n">min_t2</span>     <span class="o">=</span> <span class="n">g_min_t2</span>
+            <span class="n">gamma_pos2</span> <span class="o">=</span> <span class="n">g_pos2</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="nb">len</span><span class="p">(</span><span class="n">gamma_pos1</span><span class="p">)</span> <span class="ow">or</span> <span class="ow">not</span> <span class="nb">len</span><span class="p">(</span><span class="n">gamma_pos2</span><span class="p">):</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Cannot find two true gamma interactions for this event&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="p">[],</span> <span class="p">[],</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span>
+
+    <span class="c1">## find if the event is photoelectric-like</span>
+
+    <span class="n">distances1</span> <span class="o">=</span> <span class="n">find_hit_distances_from_true_pos</span><span class="p">(</span><span class="n">hits</span><span class="p">,</span> <span class="n">gamma_pos1</span><span class="p">)</span>
+    <span class="k">if</span> <span class="nb">max</span><span class="p">(</span><span class="n">distances1</span><span class="p">)</span> <span class="o">&gt;</span> <span class="n">photo_range</span><span class="p">:</span> <span class="c1">## hits at &lt;1 mm distance are considered of the same point</span>
+        <span class="n">phot_like1</span> <span class="o">=</span> <span class="kc">False</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">phot_like1</span> <span class="o">=</span> <span class="kc">True</span>
+
+    <span class="n">distances2</span> <span class="o">=</span> <span class="n">find_hit_distances_from_true_pos</span><span class="p">(</span><span class="n">hits</span><span class="p">,</span> <span class="n">gamma_pos2</span><span class="p">)</span>
+    <span class="k">if</span> <span class="nb">max</span><span class="p">(</span><span class="n">distances2</span><span class="p">)</span> <span class="o">&gt;</span> <span class="n">photo_range</span><span class="p">:</span> <span class="c1">## hits at &lt;1 mm distance are considered of the same point</span>
+        <span class="n">phot_like2</span> <span class="o">=</span> <span class="kc">False</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">phot_like2</span> <span class="o">=</span> <span class="kc">True</span>
+
+    <span class="k">return</span> <span class="n">gamma_pos1</span><span class="p">,</span> <span class="n">gamma_pos2</span><span class="p">,</span> <span class="n">min_t1</span><span class="p">,</span> <span class="n">min_t2</span><span class="p">,</span> <span class="n">phot_like1</span><span class="p">,</span> <span class="n">phot_like2</span></div>
+
+
+<div class="viewcode-block" id="reconstruct_coincidences"><a class="viewcode-back" href="../../../src/code_reconstruction.html#antea.reco.reco_functions.reconstruct_coincidences">[docs]</a><span class="k">def</span> <span class="nf">reconstruct_coincidences</span><span class="p">(</span><span class="n">sns_response</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">,</span> <span class="n">tof_response</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">,</span>
+                             <span class="n">charge_range</span><span class="p">:</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">],</span> <span class="n">DataSiPM_idx</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">,</span>
+                             <span class="n">particles</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">,</span>
+                             <span class="n">hits</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">Sequence</span><span class="p">[</span><span class="n">Tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]],</span>
+                                                    <span class="n">Sequence</span><span class="p">[</span><span class="n">Tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]],</span>
+                                                    <span class="n">Sequence</span><span class="p">[</span><span class="nb">float</span><span class="p">],</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">float</span><span class="p">],</span>
+                                                    <span class="n">Tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">],</span>
+                                                    <span class="n">Tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">],</span>
+                                                    <span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">]:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Finds the SiPM with maximum charge. The set of sensors around it are labelled as 1.</span>
+<span class="sd">    The sensors on the opposite hemisphere are labelled as 2.</span>
+<span class="sd">    The true position of the first gamma interaction in ACTIVE is also returned for each hemisphere.</span>
+<span class="sd">    A range of charge is given to select singles in the photoelectric peak.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">max_sns</span> <span class="o">=</span> <span class="n">sns_response</span><span class="p">[</span><span class="n">sns_response</span><span class="o">.</span><span class="n">charge</span> <span class="o">==</span> <span class="n">sns_response</span><span class="o">.</span><span class="n">charge</span><span class="o">.</span><span class="n">max</span><span class="p">()]</span>
+    <span class="c1">## If by chance two sensors have the maximum charge, choose one (arbitrarily)</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">max_sns</span> <span class="o">!=</span> <span class="mi">1</span><span class="p">):</span>
+        <span class="n">max_sns</span> <span class="o">=</span> <span class="n">max_sns</span><span class="p">[</span><span class="n">max_sns</span><span class="o">.</span><span class="n">sensor_id</span> <span class="o">==</span> <span class="n">max_sns</span><span class="o">.</span><span class="n">sensor_id</span><span class="o">.</span><span class="n">min</span><span class="p">()]</span>
+    <span class="n">max_sipm</span> <span class="o">=</span> <span class="n">DataSiPM_idx</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">max_sns</span><span class="o">.</span><span class="n">sensor_id</span><span class="p">]</span>
+    <span class="n">max_pos</span>  <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">max_sipm</span><span class="o">.</span><span class="n">X</span><span class="o">.</span><span class="n">values</span><span class="p">,</span> <span class="n">max_sipm</span><span class="o">.</span><span class="n">Y</span><span class="o">.</span><span class="n">values</span><span class="p">,</span> <span class="n">max_sipm</span><span class="o">.</span><span class="n">Z</span><span class="o">.</span><span class="n">values</span><span class="p">])</span><span class="o">.</span><span class="n">transpose</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span>
+
+    <span class="n">sipms</span>         <span class="o">=</span> <span class="n">DataSiPM_idx</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">sns_response</span><span class="o">.</span><span class="n">sensor_id</span><span class="p">]</span>
+    <span class="n">sns_ids</span>       <span class="o">=</span> <span class="n">sipms</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">values</span>
+    <span class="n">sns_positions</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">sipms</span><span class="o">.</span><span class="n">X</span><span class="o">.</span><span class="n">values</span><span class="p">,</span> <span class="n">sipms</span><span class="o">.</span><span class="n">Y</span><span class="o">.</span><span class="n">values</span><span class="p">,</span> <span class="n">sipms</span><span class="o">.</span><span class="n">Z</span><span class="o">.</span><span class="n">values</span><span class="p">])</span><span class="o">.</span><span class="n">transpose</span><span class="p">()</span>
+    <span class="n">sns_charges</span>   <span class="o">=</span> <span class="n">sns_response</span><span class="o">.</span><span class="n">charge</span>
+
+    <span class="n">sns1</span><span class="p">,</span> <span class="n">sns2</span><span class="p">,</span> <span class="n">pos1</span><span class="p">,</span> <span class="n">pos2</span><span class="p">,</span> <span class="n">q1</span><span class="p">,</span> <span class="n">q2</span> <span class="o">=</span> <span class="n">divide_sipms_in_two_hemispheres</span><span class="p">(</span><span class="n">sns_ids</span><span class="p">,</span> <span class="n">sns_positions</span><span class="p">,</span> <span class="n">sns_charges</span><span class="p">,</span> <span class="n">max_pos</span><span class="p">)</span>
+
+    <span class="n">tot_q1</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">q1</span><span class="p">)</span>
+    <span class="n">tot_q2</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">q2</span><span class="p">)</span>
+
+    <span class="n">sel1</span> <span class="o">=</span> <span class="p">(</span><span class="n">tot_q1</span> <span class="o">&gt;</span> <span class="n">charge_range</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="o">&amp;</span> <span class="p">(</span><span class="n">tot_q1</span> <span class="o">&lt;</span> <span class="n">charge_range</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+    <span class="n">sel2</span> <span class="o">=</span> <span class="p">(</span><span class="n">tot_q2</span> <span class="o">&gt;</span> <span class="n">charge_range</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="o">&amp;</span> <span class="p">(</span><span class="n">tot_q2</span> <span class="o">&lt;</span> <span class="n">charge_range</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">sel1</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">sel2</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">[],</span> <span class="p">[],</span> <span class="p">[],</span> <span class="p">[],</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span>
+
+    <span class="c1">### TOF</span>
+    <span class="n">sns1</span> <span class="o">=</span> <span class="o">-</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">sns1</span><span class="p">)</span>
+    <span class="n">sns2</span> <span class="o">=</span> <span class="o">-</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">sns2</span><span class="p">)</span>
+    <span class="n">min1</span><span class="p">,</span> <span class="n">min_tof1</span> <span class="o">=</span> <span class="n">find_first_time_of_sensors</span><span class="p">(</span><span class="n">tof_response</span><span class="p">,</span> <span class="n">sns1</span><span class="p">)</span>
+    <span class="n">min2</span><span class="p">,</span> <span class="n">min_tof2</span> <span class="o">=</span> <span class="n">find_first_time_of_sensors</span><span class="p">(</span><span class="n">tof_response</span><span class="p">,</span> <span class="n">sns2</span><span class="p">)</span>
+
+    <span class="n">true_pos1</span><span class="p">,</span> <span class="n">true_pos2</span><span class="p">,</span> <span class="n">true_t1</span><span class="p">,</span> <span class="n">true_t2</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">find_first_interactions_in_active</span><span class="p">(</span><span class="n">particles</span><span class="p">,</span>
+                                                                                     <span class="n">hits</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="nb">len</span><span class="p">(</span><span class="n">true_pos1</span><span class="p">)</span> <span class="ow">or</span> <span class="ow">not</span> <span class="nb">len</span><span class="p">(</span><span class="n">true_pos2</span><span class="p">):</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Cannot find two true gamma interactions for this event&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="p">[],</span> <span class="p">[],</span> <span class="p">[],</span> <span class="p">[],</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span>
+
+    <span class="n">scalar_prod</span> <span class="o">=</span> <span class="n">true_pos1</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">max_pos</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">scalar_prod</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">int_pos1</span> <span class="o">=</span> <span class="n">pos1</span>
+        <span class="n">int_pos2</span> <span class="o">=</span> <span class="n">pos2</span>
+        <span class="n">int_q1</span>   <span class="o">=</span> <span class="n">q1</span>
+        <span class="n">int_q2</span>   <span class="o">=</span> <span class="n">q2</span>
+        <span class="n">int_min1</span> <span class="o">=</span> <span class="n">min1</span>
+        <span class="n">int_min2</span> <span class="o">=</span> <span class="n">min2</span>
+        <span class="n">int_tof1</span> <span class="o">=</span> <span class="n">min_tof1</span>
+        <span class="n">int_tof2</span> <span class="o">=</span> <span class="n">min_tof2</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">int_pos1</span> <span class="o">=</span> <span class="n">pos2</span>
+        <span class="n">int_pos2</span> <span class="o">=</span> <span class="n">pos1</span>
+        <span class="n">int_q1</span>   <span class="o">=</span> <span class="n">q2</span>
+        <span class="n">int_q2</span>   <span class="o">=</span> <span class="n">q1</span>
+        <span class="n">int_min1</span> <span class="o">=</span> <span class="n">min2</span>
+        <span class="n">int_min2</span> <span class="o">=</span> <span class="n">min1</span>
+        <span class="n">int_tof1</span> <span class="o">=</span> <span class="n">min_tof2</span>
+        <span class="n">int_tof2</span> <span class="o">=</span> <span class="n">min_tof1</span>
+
+    <span class="k">return</span> <span class="n">int_pos1</span><span class="p">,</span> <span class="n">int_pos2</span><span class="p">,</span> <span class="n">int_q1</span><span class="p">,</span> <span class="n">int_q2</span><span class="p">,</span> <span class="n">true_pos1</span><span class="p">,</span> <span class="n">true_pos2</span><span class="p">,</span> <span class="n">true_t1</span><span class="p">,</span> <span class="n">true_t2</span><span class="p">,</span> <span class="n">int_min1</span><span class="p">,</span> <span class="n">int_min2</span><span class="p">,</span> <span class="n">int_tof1</span><span class="p">,</span> <span class="n">int_tof2</span></div>
+
+
+<span class="k">def</span> <span class="nf">select_coincidences</span><span class="p">(</span><span class="n">sns_response</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">,</span> <span class="n">tof_response</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">,</span>
+                        <span class="n">charge_range</span><span class="p">:</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">],</span>
+                        <span class="n">DataSiPM_idx</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">,</span> <span class="n">particles</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">,</span>
+                        <span class="n">hits</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">)</span><span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">Sequence</span><span class="p">[</span><span class="n">Tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]],</span>
+                                                    <span class="n">Sequence</span><span class="p">[</span><span class="n">Tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]],</span>
+                                                    <span class="n">Sequence</span><span class="p">[</span><span class="nb">float</span><span class="p">],</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">float</span><span class="p">],</span>
+                                                    <span class="n">Tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">],</span>
+                                                    <span class="n">Tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">],</span>
+                                                    <span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]:</span>
+
+    <span class="n">pos1</span><span class="p">,</span> <span class="n">pos2</span><span class="p">,</span> <span class="n">q1</span><span class="p">,</span> <span class="n">q2</span><span class="p">,</span> <span class="n">true_pos1</span><span class="p">,</span> <span class="n">true_pos2</span><span class="p">,</span> <span class="n">true_t1</span><span class="p">,</span> <span class="n">true_t2</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">reconstruct_coincidences</span><span class="p">(</span><span class="n">sns_response</span><span class="p">,</span>
+                                                                                                      <span class="n">tof_response</span><span class="p">,</span>
+                                                                                                      <span class="n">charge_range</span><span class="p">,</span>
+                                                                                                      <span class="n">DataSiPM_idx</span><span class="p">,</span>
+                                                                                                      <span class="n">particles</span><span class="p">,</span>
+                                                                                                      <span class="n">hits</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">pos1</span><span class="p">,</span> <span class="n">pos2</span><span class="p">,</span> <span class="n">q1</span><span class="p">,</span> <span class="n">q2</span><span class="p">,</span> <span class="n">true_pos1</span><span class="p">,</span> <span class="n">true_pos2</span><span class="p">,</span> <span class="n">true_t1</span><span class="p">,</span> <span class="n">true_t2</span>
+
+
+<span class="k">def</span> <span class="nf">find_first_times_of_coincidences</span><span class="p">(</span><span class="n">sns_response</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">,</span> <span class="n">tof_response</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">,</span>
+                                     <span class="n">charge_range</span><span class="p">:</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">],</span>
+                                     <span class="n">DataSiPM_idx</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">,</span> <span class="n">particles</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">,</span>
+                                     <span class="n">hits</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">)</span><span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">]:</span>
+
+    <span class="n">_</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">min1</span><span class="p">,</span> <span class="n">min2</span><span class="p">,</span> <span class="n">min_t1</span><span class="p">,</span> <span class="n">min_t2</span> <span class="o">=</span> <span class="n">reconstruct_coincidences</span><span class="p">(</span><span class="n">sns_response</span><span class="p">,</span>
+                                                                                  <span class="n">tof_response</span><span class="p">,</span>
+                                                                                  <span class="n">charge_range</span><span class="p">,</span>
+                                                                                  <span class="n">DataSiPM_idx</span><span class="p">,</span>
+                                                                                  <span class="n">particles</span><span class="p">,</span> <span class="n">hits</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">min1</span><span class="p">,</span> <span class="n">min2</span><span class="p">,</span> <span class="n">min_t1</span><span class="p">,</span> <span class="n">min_t2</span>
+</pre></div>
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../../../index.html">antea</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../src/code_mcsim.html">MC simulations</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../src/code_reconstruction.html">Reconstruction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../src/code_utils.html">Utilities</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../../index.html">Documentation overview</a><ul>
+  <li><a href="../../index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2020, petalo.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.8.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

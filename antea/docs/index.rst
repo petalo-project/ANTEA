@@ -1,0 +1,41 @@
+.. antea documentation master file, created by
+   sphinx-quickstart on Wed Jan 22 17:21:11 2020.
+   You can adapt this file completely to your liking, but it should at least
+   contain the root `toctree` directive.
+
+.. role:: raw-html(raw)
+   :format: html
+
+ANTEA: ANalysis Tool Environment for petAlo
+===========================================
+ANTEA contains functions for processing NEXUS-generated Monte Carlo events and
+for full PET image reconstruction.
+
+Overview
+--------
+The basic procedure for generating simulated events and reconstructing a PET
+image can be performed in three different ways:
+
+1. :ref:`Full simulation: NEXUS --> Coincidence selection/reconstruction -> Image Reco <fullmc>`
+2. :ref:`Fast simulation: NEXUS --> Fast MC --> Image Reco <fastmc>`
+3. :ref:`Fast-fast simulation: Fast-fast MC --> Image Reco <fastfastmc>`
+
+Examples
+--------
+* Image reconstruction with fast-fast MC
+
+Code reference
+--------------
+.. toctree::
+   :maxdepth: 2
+
+   src/code_mcsim
+   src/code_reconstruction
+   src/code_utils
+
+
+Indices and tables:
+-------------------
+* :ref:`genindex`
+* :ref:`modindex`
+* :ref:`search`

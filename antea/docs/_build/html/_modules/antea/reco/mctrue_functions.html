@@ -1,0 +1,157 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>antea.reco.mctrue_functions &#8212; antea  documentation</title>
+    <link rel="stylesheet" href="../../../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+   
+  <link rel="stylesheet" href="../../../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <h1>Source code for antea.reco.mctrue_functions</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">numpy</span>  <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+
+<span class="kn">from</span> <span class="nn">typing</span>     <span class="k">import</span> <span class="n">Sequence</span><span class="p">,</span> <span class="n">Tuple</span>
+
+<span class="kn">from</span> <span class="nn">antea.reco</span> <span class="k">import</span> <span class="n">reco_functions</span>   <span class="k">as</span> <span class="n">rf</span>
+
+
+<div class="viewcode-block" id="find_hits_of_given_particles"><a class="viewcode-back" href="../../../src/code_reconstruction.html#antea.reco.mctrue_functions.find_hits_of_given_particles">[docs]</a><span class="k">def</span> <span class="nf">find_hits_of_given_particles</span><span class="p">(</span><span class="n">p_ids</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">int</span><span class="p">],</span> <span class="n">hits</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Select only the hits belonging to given particles.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">hits</span><span class="p">[</span><span class="n">hits</span><span class="o">.</span><span class="n">particle_id</span><span class="o">.</span><span class="n">isin</span><span class="p">(</span><span class="n">p_ids</span><span class="p">)]</span></div>
+
+
+<div class="viewcode-block" id="select_photoelectric"><a class="viewcode-back" href="../../../src/code_reconstruction.html#antea.reco.mctrue_functions.select_photoelectric">[docs]</a><span class="k">def</span> <span class="nf">select_photoelectric</span><span class="p">(</span><span class="n">evt_parts</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">,</span> <span class="n">evt_hits</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">bool</span><span class="p">,</span> <span class="n">Sequence</span><span class="p">[</span><span class="n">Tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]]]:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Select only the events where one or two photoelectric events occur, and nothing else.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">sel_volume</span>   <span class="o">=</span> <span class="p">(</span><span class="n">evt_parts</span><span class="o">.</span><span class="n">initial_volume</span> <span class="o">==</span> <span class="s1">&#39;ACTIVE&#39;</span><span class="p">)</span> <span class="o">&amp;</span> <span class="p">(</span><span class="n">evt_parts</span><span class="o">.</span><span class="n">final_volume</span> <span class="o">==</span> <span class="s1">&#39;ACTIVE&#39;</span><span class="p">)</span>
+    <span class="n">sel_name</span>     <span class="o">=</span>  <span class="n">evt_parts</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="s1">&#39;e-&#39;</span>
+    <span class="n">sel_vol_name</span> <span class="o">=</span> <span class="n">evt_parts</span><span class="p">[</span><span class="n">sel_volume</span> <span class="o">&amp;</span> <span class="n">sel_name</span><span class="p">]</span>
+    <span class="n">ids</span>          <span class="o">=</span> <span class="n">sel_vol_name</span><span class="o">.</span><span class="n">particle_id</span><span class="o">.</span><span class="n">values</span>
+
+    <span class="n">sel_hits</span>   <span class="o">=</span> <span class="n">find_hits_of_given_particles</span><span class="p">(</span><span class="n">ids</span><span class="p">,</span> <span class="n">evt_hits</span><span class="p">)</span>
+    <span class="n">energies</span>   <span class="o">=</span> <span class="n">sel_hits</span><span class="o">.</span><span class="n">groupby</span><span class="p">([</span><span class="s1">&#39;particle_id&#39;</span><span class="p">])[[</span><span class="s1">&#39;energy&#39;</span><span class="p">]]</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
+    <span class="n">energies</span>   <span class="o">=</span> <span class="n">energies</span><span class="o">.</span><span class="n">reset_index</span><span class="p">()</span>
+    <span class="n">energy_sel</span> <span class="o">=</span> <span class="n">energies</span><span class="p">[</span><span class="n">rf</span><span class="o">.</span><span class="n">greater_or_equal</span><span class="p">(</span><span class="n">energies</span><span class="o">.</span><span class="n">energy</span><span class="p">,</span> <span class="mf">0.476443</span><span class="p">,</span> <span class="n">allowed_error</span><span class="o">=</span><span class="mf">1.e-6</span><span class="p">)]</span>
+
+    <span class="n">sel_vol_name_e</span>  <span class="o">=</span> <span class="n">sel_vol_name</span><span class="p">[</span><span class="n">sel_vol_name</span><span class="o">.</span><span class="n">particle_id</span><span class="o">.</span><span class="n">isin</span><span class="p">(</span><span class="n">energy_sel</span><span class="o">.</span><span class="n">particle_id</span><span class="p">)]</span>
+
+    <span class="n">primaries</span> <span class="o">=</span> <span class="n">evt_parts</span><span class="p">[</span><span class="n">evt_parts</span><span class="o">.</span><span class="n">primary</span> <span class="o">==</span> <span class="kc">True</span><span class="p">]</span>
+    <span class="n">sel_all</span>   <span class="o">=</span> <span class="n">sel_vol_name_e</span><span class="p">[</span><span class="n">sel_vol_name_e</span><span class="o">.</span><span class="n">mother_id</span><span class="o">.</span><span class="n">isin</span><span class="p">(</span><span class="n">primaries</span><span class="o">.</span><span class="n">particle_id</span><span class="o">.</span><span class="n">values</span><span class="p">)]</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">sel_all</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">(</span><span class="kc">False</span><span class="p">,</span> <span class="p">[])</span>
+
+    <span class="c1">### Once the event has passed the selection, let&#39;s calculate the true position(s)</span>
+    <span class="n">ids</span>      <span class="o">=</span> <span class="n">sel_all</span><span class="o">.</span><span class="n">particle_id</span><span class="o">.</span><span class="n">values</span>
+    <span class="n">sel_hits</span> <span class="o">=</span> <span class="n">find_hits_of_given_particles</span><span class="p">(</span><span class="n">ids</span><span class="p">,</span> <span class="n">evt_hits</span><span class="p">)</span>
+
+    <span class="n">sel_hits</span> <span class="o">=</span> <span class="n">sel_hits</span><span class="o">.</span><span class="n">groupby</span><span class="p">([</span><span class="s1">&#39;particle_id&#39;</span><span class="p">])</span>
+    <span class="n">true_pos</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">_</span><span class="p">,</span> <span class="n">df</span> <span class="ow">in</span> <span class="n">sel_hits</span><span class="p">:</span>
+        <span class="n">hit_positions</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">df</span><span class="o">.</span><span class="n">x</span><span class="o">.</span><span class="n">values</span><span class="p">,</span> <span class="n">df</span><span class="o">.</span><span class="n">y</span><span class="o">.</span><span class="n">values</span><span class="p">,</span> <span class="n">df</span><span class="o">.</span><span class="n">z</span><span class="o">.</span><span class="n">values</span><span class="p">])</span><span class="o">.</span><span class="n">transpose</span><span class="p">()</span>
+        <span class="n">true_pos</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">average</span><span class="p">(</span><span class="n">hit_positions</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">weights</span><span class="o">=</span><span class="n">df</span><span class="o">.</span><span class="n">energy</span><span class="p">))</span>
+
+    <span class="c1">### Reject events where the two gammas have interacted in the same hemisphere.</span>
+    <span class="k">if</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">true_pos</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">)</span> <span class="o">&amp;</span> <span class="p">(</span><span class="n">evt_hits</span><span class="o">.</span><span class="n">energy</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span> <span class="o">&gt;</span> <span class="mf">0.511</span><span class="p">):</span>
+       <span class="k">return</span> <span class="p">(</span><span class="kc">False</span><span class="p">,</span> <span class="p">[])</span>
+
+    <span class="k">return</span> <span class="p">(</span><span class="kc">True</span><span class="p">,</span> <span class="n">true_pos</span><span class="p">)</span></div>
+</pre></div>
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../../../index.html">antea</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../src/code_mcsim.html">MC simulations</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../src/code_reconstruction.html">Reconstruction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../src/code_utils.html">Utilities</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../../index.html">Documentation overview</a><ul>
+  <li><a href="../../index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2020, petalo.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.8.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>
