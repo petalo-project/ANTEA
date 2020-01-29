@@ -1,0 +1,222 @@
+
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta charset="utf-8" />
+    <title>antea.io.mc_io &#8212; antea  documentation</title>
+    <link rel="stylesheet" href="../../../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <script type="text/javascript" src="../../../_static/language_data.js"></script>
+    <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+   
+  <link rel="stylesheet" href="../../../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <h1>Source code for antea.io.mc_io</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">tables</span> <span class="k">as</span> <span class="nn">tb</span>
+<span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+
+<span class="kn">from</span> <span class="nn">invisible_cities.core</span>         <span class="k">import</span> <span class="n">system_of_units</span> <span class="k">as</span> <span class="n">units</span>
+<span class="kn">from</span> <span class="nn">invisible_cities.io.mcinfo_io</span> <span class="k">import</span> <span class="n">units_dict</span>
+
+<span class="kn">from</span> <span class="nn">typing</span> <span class="k">import</span> <span class="n">Mapping</span>
+
+<span class="n">str_length</span> <span class="o">=</span> <span class="mi">20</span>
+
+
+<div class="viewcode-block" id="mc_sns_response_writer"><a class="viewcode-back" href="../../../src/code_utils.html#antea.io.mc_io.mc_sns_response_writer">[docs]</a><span class="k">class</span> <span class="nc">mc_sns_response_writer</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;Add MC sensor response info to existing file.&quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filename</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">sns_df_name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;waveforms_lut&#39;</span><span class="p">):</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">filename</span> <span class="o">=</span> <span class="n">filename</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">sns_df_name</span> <span class="o">=</span> <span class="n">sns_df_name</span>
+
+        <span class="k">with</span> <span class="n">tb</span><span class="o">.</span><span class="n">open_file</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="s1">&#39;r+&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">h5in</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">sns_df_name</span> <span class="ow">in</span> <span class="n">h5in</span><span class="o">.</span><span class="n">root</span><span class="o">.</span><span class="n">MC</span><span class="p">:</span>
+                <span class="n">h5in</span><span class="o">.</span><span class="n">remove_node</span><span class="p">(</span><span class="s1">&#39;/MC/&#39;</span><span class="o">+</span><span class="bp">self</span><span class="o">.</span><span class="n">sns_df_name</span><span class="p">,</span> <span class="n">recursive</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">store</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">HDFStore</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="s2">&quot;a&quot;</span><span class="p">,</span> <span class="n">complib</span><span class="o">=</span><span class="nb">str</span><span class="p">(</span><span class="s2">&quot;zlib&quot;</span><span class="p">),</span> <span class="n">complevel</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span>
+
+
+    <span class="k">def</span> <span class="nf">close_file</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">store</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+
+
+    <span class="k">def</span> <span class="nf">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sns_response</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">float</span><span class="p">]],</span> <span class="n">evt_number</span><span class="p">:</span> <span class="nb">int</span><span class="p">):</span>
+
+        <span class="n">waveforms_dict</span> <span class="o">=</span> <span class="n">sns_response</span><span class="p">[</span><span class="n">evt_number</span><span class="p">]</span>
+        <span class="n">waveforms</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">({</span><span class="s1">&#39;event_id&#39;</span><span class="p">:</span>  <span class="p">[</span><span class="n">evt_number</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">waveforms_dict</span><span class="p">))],</span>
+                                  <span class="s1">&#39;sensor_id&#39;</span><span class="p">:</span> <span class="nb">list</span><span class="p">(</span><span class="n">waveforms_dict</span><span class="o">.</span><span class="n">keys</span><span class="p">()),</span>
+                                  <span class="s1">&#39;time_bin&#39;</span><span class="p">:</span>  <span class="p">[</span><span class="mi">0</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">waveforms_dict</span><span class="p">))],</span>
+                                  <span class="s1">&#39;charge&#39;</span><span class="p">:</span>    <span class="nb">list</span><span class="p">(</span><span class="n">waveforms_dict</span><span class="o">.</span><span class="n">values</span><span class="p">())})</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">store</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;MC/&#39;</span><span class="o">+</span><span class="bp">self</span><span class="o">.</span><span class="n">sns_df_name</span><span class="p">,</span> <span class="n">waveforms</span><span class="p">,</span> <span class="nb">format</span><span class="o">=</span><span class="s1">&#39;t&#39;</span><span class="p">,</span> <span class="n">data_columns</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="mc_writer"><a class="viewcode-back" href="../../../src/code_utils.html#antea.io.mc_io.mc_writer">[docs]</a><span class="k">class</span> <span class="nc">mc_writer</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;Copy MC true info to output file.&quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filename_in</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">filename_out</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">store</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">HDFStore</span><span class="p">(</span><span class="n">filename_out</span><span class="p">,</span> <span class="s2">&quot;a&quot;</span><span class="p">,</span> <span class="n">complib</span><span class="o">=</span><span class="nb">str</span><span class="p">(</span><span class="s2">&quot;zlib&quot;</span><span class="p">),</span> <span class="n">complevel</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span>
+        <span class="n">conf</span> <span class="o">=</span> <span class="n">load_configuration</span><span class="p">(</span><span class="n">filename_in</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">store</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;MC/configuration&#39;</span><span class="p">,</span> <span class="n">conf</span><span class="p">,</span> <span class="nb">format</span><span class="o">=</span><span class="s1">&#39;t&#39;</span><span class="p">,</span> <span class="n">data_columns</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">hits</span>      <span class="o">=</span> <span class="n">load_mchits</span><span class="p">(</span><span class="n">filename_in</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">particles</span> <span class="o">=</span> <span class="n">load_mcparticles</span><span class="p">(</span><span class="n">filename_in</span><span class="p">)</span>
+
+
+    <span class="k">def</span> <span class="nf">close_file</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">store</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+
+
+    <span class="k">def</span> <span class="nf">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">evt_number</span><span class="p">:</span> <span class="nb">int</span><span class="p">):</span>
+
+        <span class="n">evt_hits</span>      <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">hits</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">hits</span><span class="o">.</span><span class="n">event_id</span> <span class="o">==</span> <span class="n">evt_number</span><span class="p">]</span>
+        <span class="n">evt_particles</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">particles</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">particles</span><span class="o">.</span><span class="n">event_id</span> <span class="o">==</span> <span class="n">evt_number</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">store</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;MC/hits&#39;</span><span class="p">,</span>      <span class="n">evt_hits</span><span class="p">,</span>      <span class="nb">format</span><span class="o">=</span><span class="s1">&#39;t&#39;</span><span class="p">,</span> <span class="n">data_columns</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                          <span class="n">min_itemsize</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;label&#39;</span> <span class="p">:</span> <span class="n">str_length</span><span class="p">})</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">store</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;MC/particles&#39;</span><span class="p">,</span> <span class="n">evt_particles</span><span class="p">,</span> <span class="nb">format</span><span class="o">=</span><span class="s1">&#39;t&#39;</span><span class="p">,</span> <span class="n">data_columns</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                          <span class="n">min_itemsize</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;name&#39;</span> <span class="p">:</span> <span class="n">str_length</span><span class="p">,</span> <span class="s1">&#39;initial_volume&#39;</span> <span class="p">:</span> <span class="n">str_length</span><span class="p">,</span>
+                                        <span class="s1">&#39;final_volume&#39;</span> <span class="p">:</span> <span class="n">str_length</span><span class="p">,</span> <span class="s1">&#39;creator_proc&#39;</span><span class="p">:</span> <span class="n">str_length</span><span class="p">})</span></div>
+
+
+<div class="viewcode-block" id="read_sensor_bin_width_from_conf"><a class="viewcode-back" href="../../../src/code_utils.html#antea.io.mc_io.read_sensor_bin_width_from_conf">[docs]</a><span class="k">def</span> <span class="nf">read_sensor_bin_width_from_conf</span><span class="p">(</span><span class="n">h5f</span><span class="p">,</span> <span class="n">tof</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Return the time bin width (either TOF or no TOF) with units.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">h5config</span> <span class="o">=</span> <span class="n">h5f</span><span class="o">.</span><span class="n">root</span><span class="o">.</span><span class="n">MC</span><span class="o">.</span><span class="n">configuration</span>
+    <span class="n">bin_width</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">binning</span> <span class="o">=</span> <span class="s1">&#39;bin_size&#39;</span>
+    <span class="k">if</span> <span class="n">tof</span><span class="p">:</span>
+        <span class="n">binning</span> <span class="o">=</span> <span class="s1">&#39;tof_bin_size&#39;</span>
+    <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">h5config</span><span class="p">:</span>
+        <span class="n">param_name</span> <span class="o">=</span> <span class="n">row</span><span class="p">[</span><span class="s1">&#39;param_key&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="s1">&#39;utf-8&#39;</span><span class="p">,</span><span class="s1">&#39;ignore&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">param_name</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="n">binning</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">param_value</span> <span class="o">=</span> <span class="n">row</span><span class="p">[</span><span class="s1">&#39;param_value&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="s1">&#39;utf-8&#39;</span><span class="p">,</span><span class="s1">&#39;ignore&#39;</span><span class="p">)</span>
+            <span class="n">numb</span><span class="p">,</span> <span class="n">unit</span>  <span class="o">=</span> <span class="n">param_value</span><span class="o">.</span><span class="n">split</span><span class="p">()</span>
+            <span class="n">bin_width</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">numb</span><span class="p">)</span> <span class="o">*</span> <span class="n">units_dict</span><span class="p">[</span><span class="n">unit</span><span class="p">]</span>
+
+    <span class="k">return</span> <span class="n">bin_width</span></div>
+
+
+<span class="k">def</span> <span class="nf">load_mchits</span><span class="p">(</span><span class="n">file_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">:</span>
+
+    <span class="n">hits</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_hdf</span><span class="p">(</span><span class="n">file_name</span><span class="p">,</span> <span class="s1">&#39;MC/hits&#39;</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">hits</span>
+
+
+<span class="k">def</span> <span class="nf">load_mcparticles</span><span class="p">(</span><span class="n">file_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">:</span>
+
+    <span class="n">particles</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_hdf</span><span class="p">(</span><span class="n">file_name</span><span class="p">,</span> <span class="s1">&#39;MC/particles&#39;</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">particles</span>
+
+
+<span class="k">def</span> <span class="nf">load_mcsns_response</span><span class="p">(</span><span class="n">file_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">:</span>
+
+    <span class="n">sns_response</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_hdf</span><span class="p">(</span><span class="n">file_name</span><span class="p">,</span> <span class="s1">&#39;MC/waveforms&#39;</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">sns_response</span>
+
+
+<span class="k">def</span> <span class="nf">load_mcTOFsns_response</span><span class="p">(</span><span class="n">file_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">:</span>
+
+    <span class="n">sns_response</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_hdf</span><span class="p">(</span><span class="n">file_name</span><span class="p">,</span> <span class="s1">&#39;MC/tof_waveforms&#39;</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">sns_response</span>
+
+
+<span class="k">def</span> <span class="nf">load_configuration</span><span class="p">(</span><span class="n">file_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">:</span>
+
+    <span class="n">conf</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_hdf</span><span class="p">(</span><span class="n">file_name</span><span class="p">,</span> <span class="s1">&#39;MC/configuration&#39;</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">conf</span>
+</pre></div>
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../../../index.html">antea</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../src/code_mcsim.html">MC simulations</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../src/code_reconstruction.html">Reconstruction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../src/code_utils.html">Utilities</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../../index.html">Documentation overview</a><ul>
+  <li><a href="../../index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      
+      
+      
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 2.3.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

@@ -1,0 +1,222 @@
+
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta charset="utf-8" />
+    <title>antea.reco.petalo_reconstruct &#8212; antea  documentation</title>
+    <link rel="stylesheet" href="../../../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <script type="text/javascript" src="../../../_static/language_data.js"></script>
+    <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+   
+  <link rel="stylesheet" href="../../../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <h1>Source code for antea.reco.petalo_reconstruct</h1><div class="highlight"><pre>
+<span></span><span class="kn">from</span> <span class="nn">ctypes</span> <span class="k">import</span> <span class="o">*</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+
+<div class="viewcode-block" id="PetaloReconstructor"><a class="viewcode-back" href="../../../src/code_reconstruction.html#antea.reco.petalo_reconstruct.PetaloReconstructor">[docs]</a><span class="k">class</span> <span class="nc">PetaloReconstructor</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Python wrapper class to perform reconstruction in PETALO. The class</span>
+<span class="sd">    provides a method to call the C-based reconstruction using the</span>
+<span class="sd">    configuration provided by the class variables.</span>
+
+<span class="sd">    **NOTE:** the LOR points may need to be sorted for the reconstruction to</span>
+<span class="sd">    be correct</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">niterations</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="n">TOF_resolution</span> <span class="o">=</span> <span class="mi">200</span><span class="p">,</span>
+                 <span class="n">img_size_xy</span> <span class="o">=</span> <span class="mf">180.0</span><span class="p">,</span> <span class="n">img_size_z</span> <span class="o">=</span> <span class="mf">180.0</span><span class="p">,</span> <span class="n">img_nvoxels_xy</span> <span class="o">=</span> <span class="mi">60</span><span class="p">,</span>
+                 <span class="n">img_nvoxels_z</span> <span class="o">=</span> <span class="mi">60</span><span class="p">,</span> <span class="n">libdir</span> <span class="o">=</span> <span class="s2">&quot;anteacpp/libPETALO.so&quot;</span><span class="p">):</span>
+
+        <span class="c1"># Set default values for key variables.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">nlines</span> <span class="o">=</span> <span class="mi">1</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">niterations</span> <span class="o">=</span> <span class="n">niterations</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">TOF</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">TOF_resolution</span> <span class="o">=</span> <span class="n">TOF_resolution</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">img_size_xy</span> <span class="o">=</span> <span class="n">img_size_xy</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">img_size_z</span> <span class="o">=</span> <span class="n">img_size_z</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">img_nvoxels_xy</span> <span class="o">=</span> <span class="n">img_nvoxels_xy</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">img_nvoxels_z</span> <span class="o">=</span> <span class="n">img_nvoxels_z</span>
+
+        <span class="c1"># Load the C library.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">lib</span> <span class="o">=</span> <span class="n">cdll</span><span class="o">.</span><span class="n">LoadLibrary</span><span class="p">(</span><span class="n">libdir</span><span class="p">)</span>
+
+<div class="viewcode-block" id="PetaloReconstructor.reconstruct"><a class="viewcode-back" href="../../../src/code_reconstruction.html#antea.reco.petalo_reconstruct.PetaloReconstructor.reconstruct">[docs]</a>    <span class="k">def</span> <span class="nf">reconstruct</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">lor_x1</span><span class="p">,</span> <span class="n">lor_y1</span><span class="p">,</span> <span class="n">lor_z1</span><span class="p">,</span> <span class="n">lor_t1</span><span class="p">,</span>
+                    <span class="n">lor_x2</span><span class="p">,</span> <span class="n">lor_y2</span><span class="p">,</span> <span class="n">lor_z2</span><span class="p">,</span> <span class="n">lor_t2</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Performs reconstruction by calling a C-implemented function. The</span>
+<span class="sd">        reconstruction is list-mode, so the inputs are the coordinates</span>
+<span class="sd">        :math:`(x,y,z,t)` for each line of response (LOR). These coordinates</span>
+<span class="sd">        are specified as separate lists.</span>
+
+<span class="sd">        :param lor_x1: x-coordinates for the first point in the LOR</span>
+<span class="sd">        :type lor_x1: list</span>
+<span class="sd">        :param lor_y1: y-coordinates for the first point in the LOR</span>
+<span class="sd">        :type lor_y1: list</span>
+<span class="sd">        :param lor_z1: y-coordinates for the first point in the LOR</span>
+<span class="sd">        :type lor_z1: list</span>
+<span class="sd">        :param lor_t1: time coordinates for the first point in the LOR</span>
+<span class="sd">        :type lor_t1: list</span>
+<span class="sd">        :param lor_x2: x-coordinates for the second point in the LOR</span>
+<span class="sd">        :type lor_x2: list</span>
+<span class="sd">        :param lor_y2: y-coordinates for the second point in the LOR</span>
+<span class="sd">        :type lor_y2: list</span>
+<span class="sd">        :param lor_z2: y-coordinates for the second point in the LOR</span>
+<span class="sd">        :type lor_z2: list</span>
+<span class="sd">        :param lor_t2: time coordinates for the second point in the LOR</span>
+<span class="sd">        :type lor_t2: list</span>
+<span class="sd">        :rtype: numpy array of shape [`img_size_xy`, `img_size_xy`,`img_size_z`] containing the reconstructed image</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="c1"># Ensure arrays are all the same size.</span>
+        <span class="n">ncoinc</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">lor_x1</span><span class="p">)</span>
+        <span class="k">if</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">lor_y1</span><span class="p">)</span> <span class="o">!=</span> <span class="n">ncoinc</span> <span class="ow">or</span> <span class="nb">len</span><span class="p">(</span><span class="n">lor_z1</span><span class="p">)</span> <span class="o">!=</span> <span class="n">ncoinc</span>
+           <span class="ow">or</span> <span class="nb">len</span><span class="p">(</span><span class="n">lor_t1</span><span class="p">)</span> <span class="o">!=</span> <span class="n">ncoinc</span> <span class="ow">or</span> <span class="nb">len</span><span class="p">(</span><span class="n">lor_x2</span><span class="p">)</span> <span class="o">!=</span> <span class="n">ncoinc</span>
+           <span class="ow">or</span> <span class="nb">len</span><span class="p">(</span><span class="n">lor_y2</span><span class="p">)</span> <span class="o">!=</span> <span class="n">ncoinc</span> <span class="ow">or</span> <span class="nb">len</span><span class="p">(</span><span class="n">lor_z2</span><span class="p">)</span> <span class="o">!=</span> <span class="n">ncoinc</span>
+           <span class="ow">or</span> <span class="nb">len</span><span class="p">(</span><span class="n">lor_t2</span><span class="p">)</span> <span class="o">!=</span> <span class="n">ncoinc</span><span class="p">):</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;ERROR: all LOR arrays must contain the same # of values&quot;</span><span class="p">)</span>
+
+        <span class="c1"># ---------------------------------------------------------</span>
+        <span class="c1"># Call the C-function for reconstruction.</span>
+        <span class="c1"># ---------------------------------------------------------</span>
+
+        <span class="c1"># Create C-arrays</span>
+        <span class="n">lor_x1</span> <span class="o">=</span> <span class="p">(</span><span class="n">c_float</span> <span class="o">*</span> <span class="n">ncoinc</span><span class="p">)(</span><span class="o">*</span><span class="n">lor_x1</span><span class="p">)</span>
+        <span class="n">lor_y1</span> <span class="o">=</span> <span class="p">(</span><span class="n">c_float</span> <span class="o">*</span> <span class="n">ncoinc</span><span class="p">)(</span><span class="o">*</span><span class="n">lor_y1</span><span class="p">)</span>
+        <span class="n">lor_z1</span> <span class="o">=</span> <span class="p">(</span><span class="n">c_float</span> <span class="o">*</span> <span class="n">ncoinc</span><span class="p">)(</span><span class="o">*</span><span class="n">lor_z1</span><span class="p">)</span>
+        <span class="n">lor_t1</span> <span class="o">=</span> <span class="p">(</span><span class="n">c_float</span> <span class="o">*</span> <span class="n">ncoinc</span><span class="p">)(</span><span class="o">*</span><span class="n">lor_t1</span><span class="p">)</span>
+        <span class="n">lor_x2</span> <span class="o">=</span> <span class="p">(</span><span class="n">c_float</span> <span class="o">*</span> <span class="n">ncoinc</span><span class="p">)(</span><span class="o">*</span><span class="n">lor_x2</span><span class="p">)</span>
+        <span class="n">lor_y2</span> <span class="o">=</span> <span class="p">(</span><span class="n">c_float</span> <span class="o">*</span> <span class="n">ncoinc</span><span class="p">)(</span><span class="o">*</span><span class="n">lor_y2</span><span class="p">)</span>
+        <span class="n">lor_z2</span> <span class="o">=</span> <span class="p">(</span><span class="n">c_float</span> <span class="o">*</span> <span class="n">ncoinc</span><span class="p">)(</span><span class="o">*</span><span class="n">lor_z2</span><span class="p">)</span>
+        <span class="n">lor_t2</span> <span class="o">=</span> <span class="p">(</span><span class="n">c_float</span> <span class="o">*</span> <span class="n">ncoinc</span><span class="p">)(</span><span class="o">*</span><span class="n">lor_t2</span><span class="p">)</span>
+
+        <span class="c1"># Set the argument types and return type.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">lib</span><span class="o">.</span><span class="n">MLEM_TOF_Reco</span><span class="o">.</span><span class="n">argtypes</span> <span class="o">=</span> <span class="p">(</span><span class="n">c_int</span><span class="p">,</span> <span class="n">c_int</span><span class="p">,</span> <span class="n">c_bool</span><span class="p">,</span> <span class="n">c_float</span><span class="p">,</span>
+         <span class="n">c_float</span><span class="p">,</span> <span class="n">c_float</span><span class="p">,</span> <span class="n">c_int</span><span class="p">,</span> <span class="n">c_int</span><span class="p">,</span> <span class="n">c_int</span><span class="p">,</span>
+         <span class="n">POINTER</span><span class="p">(</span><span class="n">c_float</span><span class="p">),</span> <span class="n">POINTER</span><span class="p">(</span><span class="n">c_float</span><span class="p">),</span> <span class="n">POINTER</span><span class="p">(</span><span class="n">c_float</span><span class="p">),</span> <span class="n">POINTER</span><span class="p">(</span><span class="n">c_float</span><span class="p">),</span>
+         <span class="n">POINTER</span><span class="p">(</span><span class="n">c_float</span><span class="p">),</span> <span class="n">POINTER</span><span class="p">(</span><span class="n">c_float</span><span class="p">),</span> <span class="n">POINTER</span><span class="p">(</span><span class="n">c_float</span><span class="p">),</span> <span class="n">POINTER</span><span class="p">(</span><span class="n">c_float</span><span class="p">))</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">lib</span><span class="o">.</span><span class="n">MLEM_TOF_Reco</span><span class="o">.</span><span class="n">restype</span> <span class="o">=</span> <span class="n">POINTER</span><span class="p">(</span><span class="n">c_float</span><span class="p">)</span>
+
+        <span class="c1"># Call the function.</span>
+        <span class="n">img</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">lib</span><span class="o">.</span><span class="n">MLEM_TOF_Reco</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nlines</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">niterations</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">TOF</span><span class="p">,</span>
+                                <span class="bp">self</span><span class="o">.</span><span class="n">TOF_resolution</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">img_size_xy</span><span class="p">,</span>
+                                <span class="bp">self</span><span class="o">.</span><span class="n">img_size_z</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">img_nvoxels_xy</span><span class="p">,</span>
+                                <span class="bp">self</span><span class="o">.</span><span class="n">img_nvoxels_z</span><span class="p">,</span> <span class="n">ncoinc</span><span class="p">,</span>
+                                <span class="n">lor_x1</span><span class="p">,</span> <span class="n">lor_y1</span><span class="p">,</span> <span class="n">lor_z1</span><span class="p">,</span> <span class="n">lor_t1</span><span class="p">,</span>
+                                <span class="n">lor_x2</span><span class="p">,</span> <span class="n">lor_y2</span><span class="p">,</span> <span class="n">lor_z2</span><span class="p">,</span> <span class="n">lor_t2</span><span class="p">)</span>
+
+        <span class="c1"># --------------------------------------------------</span>
+        <span class="c1"># Prepare the numpy image from the C float pointer.</span>
+        <span class="c1"># --------------------------------------------------</span>
+
+        <span class="c1"># Construct some quantities for ease of use later.</span>
+        <span class="n">xdim</span> <span class="o">=</span> <span class="n">ydim</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">img_nvoxels_xy</span>
+        <span class="n">zdim</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">img_nvoxels_z</span>
+        <span class="n">nvoxels</span> <span class="o">=</span> <span class="n">xdim</span><span class="o">*</span><span class="n">ydim</span><span class="o">*</span><span class="n">zdim</span>
+
+        <span class="c1"># Create a 3D numpy array of the correct dimensions.</span>
+        <span class="n">img_arr</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">([</span><span class="n">xdim</span><span class="p">,</span><span class="n">ydim</span><span class="p">,</span><span class="n">zdim</span><span class="p">])</span>
+
+        <span class="c1"># Extract the information from the C array into a 1D numpy array.</span>
+        <span class="n">rimg</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">img</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">nvoxels</span><span class="p">)])</span>
+
+        <span class="c1"># Fill the final 3D image, extracting the voxel indices from the</span>
+        <span class="c1">#  single index in the 1D array.</span>
+        <span class="k">for</span> <span class="n">ivox</span><span class="p">,</span><span class="n">w</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">rimg</span><span class="p">):</span>
+            <span class="n">i</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">ivox</span> <span class="o">%</span> <span class="n">xdim</span><span class="p">)</span>
+            <span class="n">j</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">ivox</span> <span class="o">/</span> <span class="n">xdim</span><span class="p">)</span> <span class="o">%</span> <span class="n">ydim</span>
+            <span class="n">k</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">ivox</span> <span class="o">/</span> <span class="p">(</span><span class="n">xdim</span><span class="o">*</span><span class="n">ydim</span><span class="p">))</span>
+            <span class="n">img_arr</span><span class="p">[</span><span class="n">i</span><span class="p">,</span><span class="n">j</span><span class="p">,</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="n">w</span>
+
+        <span class="k">return</span> <span class="n">img_arr</span></div></div>
+</pre></div>
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../../../index.html">antea</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../src/code_mcsim.html">MC simulations</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../src/code_reconstruction.html">Reconstruction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../src/code_utils.html">Utilities</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../../index.html">Documentation overview</a><ul>
+  <li><a href="../../index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      
+      
+      
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 2.3.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>
