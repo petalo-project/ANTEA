@@ -106,6 +106,7 @@ def assign_sipms_to_gammas(sns_response: pd.DataFrame,
     or to one of the two if the other one hasn't interacted.
     Return the lists of the charges and the positions of the SiPMs of
     the two groups.
+    DataSiPM_idx is assumed to be indexed on the sensor ids.
     """
     sipms           = DataSiPM_idx.loc[sns_response.sensor_id]
     sns_ids         = sipms.index.values
@@ -282,12 +283,15 @@ def reconstruct_coincidences(sns_response: pd.DataFrame,
                                                     Tuple[float, float, float],
                                                     float, float, int, int, int, int]:
     """
-    Finds the SiPM with maximum charge. The set of sensors around it are
-    labelled as 1.
-    The sensors on the opposite hemisphere are labelled as 2.
-    The true position of the first gamma interaction in ACTIVE
-    is also returned for each hemisphere.
+    Finds the SiPM with maximum charge. Divide the SiPMs in two groups,
+    separated by the plane perpendicular to the line connecting this SiPM
+    with the centre of the cylinder.
+    The true position of the first gamma interaction in ACTIVE is also
+    returned for each of the two primary gammas (labeled 1 and 2 following
+    GEANT4 ids). The two SiPM groups are assigned to their correspondent
+    true gamma by position.
     A range of charge is given to select singles in the photoelectric peak.
+    DataSiPM_idx is assumed to be indexed on the sensor ids.
     """
     max_sns = sns_response[sns_response.charge == sns_response.charge.max()]
     ## If by chance two sensors have the maximum charge, choose one (arbitrarily)
@@ -355,7 +359,11 @@ def select_coincidences(sns_response: pd.DataFrame, tof_response: pd.DataFrame,
                                                     Tuple[float, float, float],
                                                     Tuple[float, float, float],
                                                     float, float]:
-
+    """
+    This function returns positions and charges (true and reconstructed)
+    of two sets of SiPMs, each one corresponding to 1 gamma interaction.
+    DataSiPM_idx is assumed to be indexed on the sensor ids.
+    """
     pos1, pos2, q1, q2, true_pos1, true_pos2, true_t1, true_t2, _, _, _, _ = reconstruct_coincidences(sns_response, tof_response, charge_range, DataSiPM_idx, particles, hits)
 
     return pos1, pos2, q1, q2, true_pos1, true_pos2, true_t1, true_t2
@@ -367,7 +375,11 @@ def find_first_times_of_coincidences(sns_response: pd.DataFrame,
                                      DataSiPM_idx: pd.DataFrame,
                                      particles: pd.DataFrame,
                                      hits: pd.DataFrame)-> Tuple[int, int, int, int]:
-
+    """
+    This function returns the IDs and times of the SiPMs that detect
+    the first photoelectrons.
+    DataSiPM_idx is assumed to be indexed on the sensor ids.
+    """
     _, _, _, _, _, _, _, _, min1, min2, min_t1, min_t2 = reconstruct_coincidences(sns_response, tof_response, charge_range, DataSiPM_idx, particles, hits)
 
     return min1, min2, min_t1, min_t2
