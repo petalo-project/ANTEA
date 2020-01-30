@@ -106,8 +106,11 @@ def assign_sipms_to_gammas(sns_response: pd.DataFrame,
     or to one of the two if the other one hasn't interacted.
     Return the lists of the charges and the positions of the SiPMs of
     the two groups.
-    DataSiPM_idx is assumed to be indexed on the sensor ids.
+    DataSiPM_idx is assumed to be indexed on the sensor ids. If it is not,
+    it is indexed inside the function.
     """
+    if 'SensorID' in DataSiPM_idx.columns:
+        DataSiPM_idx = DataSiPM_idx.set_index('SensorID')
     sipms           = DataSiPM_idx.loc[sns_response.sensor_id]
     sns_ids         = sipms.index.values
     sns_closest_pos = [np.array([find_closest_sipm(pos, sipms).X,
@@ -220,8 +223,7 @@ def find_first_interactions_in_active(particles: pd.DataFrame,
     Looks for the first interaction of primary gammas in the active volume.
     """
     ### select electrons, primary gammas daughters in ACTIVE
-    sel_volume   = (particles.initial_volume == 'ACTIVE') &
-                   (particles.final_volume == 'ACTIVE')
+    sel_volume   = (particles.initial_volume == 'ACTIVE') & (particles.final_volume == 'ACTIVE')
     sel_name     = particles.name == 'e-'
     sel_vol_name = particles[sel_volume & sel_name]
     primaries = particles[particles.primary == True]
@@ -291,8 +293,12 @@ def reconstruct_coincidences(sns_response: pd.DataFrame,
     GEANT4 ids). The two SiPM groups are assigned to their correspondent
     true gamma by position.
     A range of charge is given to select singles in the photoelectric peak.
-    DataSiPM_idx is assumed to be indexed on the sensor ids.
+    DataSiPM_idx is assumed to be indexed on the sensor ids. If it is not,
+    it is indexed inside the function.
     """
+    if 'SensorID' in DataSiPM_idx.columns:
+        DataSiPM_idx = DataSiPM_idx.set_index('SensorID')
+
     max_sns = sns_response[sns_response.charge == sns_response.charge.max()]
     ## If by chance two sensors have the maximum charge, choose one (arbitrarily)
     if len(max_sns != 1):
