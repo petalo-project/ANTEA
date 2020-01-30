@@ -22,7 +22,7 @@ image can be performed in three different ways:
 
 Examples
 --------
-* Image reconstruction with fast-fast MC
+* `Image reconstruction with fast-fast MC <https://github.com/nextic/ANTEA/docs/examples/petalo_reconstruction_fastfastmc_example.ipynb>`_
 
 Code reference
 --------------
@@ -39,3 +39,10 @@ Indices and tables:
 * :ref:`genindex`
 * :ref:`modindex`
 * :ref:`search`
+
+How to update this documentation
+--------------------------------
+The source for this documentation is located in the ANTEA/docs folder. The main
+source file is called 
+
+1. Download
