@@ -53,9 +53,14 @@ geometric configuration. The PET image can then be reconstructed using functions
 from antea.reco.</p>
 <span class="target" id="module-antea.mcsim.fastmc"></span><dl class="function">
 <dt id="antea.mcsim.fastmc.simulate_reco_event">
-<code class="sig-prename descclassname">antea.mcsim.fastmc.</code><code class="sig-name descname">simulate_reco_event</code><span class="sig-paren">(</span><em class="sig-param">evt_id: int</em>, <em class="sig-param">hits: pandas.core.frame.DataFrame</em>, <em class="sig-param">particles: pandas.core.frame.DataFrame</em>, <em class="sig-param">errmat_p_r: antea.mcsim.errmat.errmat</em>, <em class="sig-param">errmat_p_phi: antea.mcsim.errmat.errmat</em>, <em class="sig-param">errmat_p_z: antea.mcsim.errmat.errmat</em>, <em class="sig-param">errmat_p_t: antea.mcsim.errmat.errmat</em>, <em class="sig-param">errmat_c_r: antea.mcsim.errmat.errmat</em>, <em class="sig-param">errmat_c_phi: antea.mcsim.errmat.errmat</em>, <em class="sig-param">errmat_c_z: antea.mcsim.errmat.errmat</em>, <em class="sig-param">errmat_c_t: antea.mcsim.errmat.errmat</em>, <em class="sig-param">true_e_threshold: float = 0.0</em><span class="sig-paren">)</span> &#x2192; pandas.core.frame.DataFrame<a class="reference internal" href="../_modules/antea/mcsim/fastmc.html#simulate_reco_event"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#antea.mcsim.fastmc.simulate_reco_event" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">antea.mcsim.fastmc.</code><code class="sig-name descname">simulate_reco_event</code><span class="sig-paren">(</span><em class="sig-param">evt_id</em>, <em class="sig-param">hits</em>, <em class="sig-param">particles</em>, <em class="sig-param">errmat_p_r</em>, <em class="sig-param">errmat_p_phi</em>, <em class="sig-param">errmat_p_z</em>, <em class="sig-param">errmat_p_t</em>, <em class="sig-param">errmat_c_r</em>, <em class="sig-param">errmat_c_phi</em>, <em class="sig-param">errmat_c_z</em>, <em class="sig-param">errmat_c_t</em>, <em class="sig-param">true_e_threshold=0.0</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/antea/mcsim/fastmc.html#simulate_reco_event"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#antea.mcsim.fastmc.simulate_reco_event" title="Permalink to this definition">¶</a></dt>
 <dd><p>Simulate the reconstructed coordinates for 1 coincidence from true GEANT4 dataframes.
 Notice that the time binning must be provided in ps.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><code class="xref py py-class docutils literal notranslate"><span class="pre">DataFrame</span></code></p>
+</dd>
+</dl>
 </dd></dl>
 
 </div>
@@ -74,7 +79,7 @@ image can be reconstructed immediately from the quantities produced by the
 fast-fast MC using functions from antea.reco.</p>
 <span class="target" id="module-antea.mcsim.fastfastmc"></span><dl class="function">
 <dt id="antea.mcsim.fastfastmc.run_fastfastmc">
-<code class="sig-prename descclassname">antea.mcsim.fastfastmc.</code><code class="sig-name descname">run_fastfastmc</code><span class="sig-paren">(</span><em class="sig-param">Nevts: int</em>, <em class="sig-param">phtm: antea.mcsim.phantom.phantom</em>, <em class="sig-param">errmat_r: antea.mcsim.errmat.errmat</em>, <em class="sig-param">errmat_phi: antea.mcsim.errmat.errmat</em>, <em class="sig-param">errmat_z: antea.mcsim.errmat.errmat</em>, <em class="sig-param">rmin: float = 380.0</em>, <em class="sig-param">zmin: float = -450.0</em>, <em class="sig-param">zmax: float = 450.0</em>, <em class="sig-param">coslim: float = 0.309</em><span class="sig-paren">)</span> &#x2192; pandas.core.frame.DataFrame<a class="reference internal" href="../_modules/antea/mcsim/fastfastmc.html#run_fastfastmc"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#antea.mcsim.fastfastmc.run_fastfastmc" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">antea.mcsim.fastfastmc.</code><code class="sig-name descname">run_fastfastmc</code><span class="sig-paren">(</span><em class="sig-param">Nevts</em>, <em class="sig-param">phtm</em>, <em class="sig-param">errmat_r</em>, <em class="sig-param">errmat_phi</em>, <em class="sig-param">errmat_z</em>, <em class="sig-param">rmin=380.0</em>, <em class="sig-param">zmin=-450.0</em>, <em class="sig-param">zmax=450.0</em>, <em class="sig-param">coslim=0.309</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/antea/mcsim/fastfastmc.html#run_fastfastmc"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#antea.mcsim.fastfastmc.run_fastfastmc" title="Permalink to this definition">¶</a></dt>
 <dd><p>Runs the fast fast MC, simulating coincident events in a PETALO geometry
 subject to the specified restrictions.</p>
 <dl class="field-list simple">
@@ -92,11 +97,14 @@ subject to the specified restrictions.</p>
 (see note below)</p></li>
 </ul>
 </dd>
-<dt class="field-even">Return type</dt>
-<dd class="field-even"><p>Pandas dataframe containing the following information for each
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>dataframe containing the following information for each
 event: ‘event_id’, ‘true_r1’, ‘true_phi1’, ‘true_z1’, ‘true_t1’,
 ‘true_r2’, ‘true_phi2’, ‘true_z2’, ‘true_t2’, ‘reco_r1’, ‘reco_phi1’,
 ‘reco_z1’, ‘reco_r2’, ‘reco_phi2’, ‘reco_z2’</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>DataFrame</p>
 </dd>
 </dl>
 <dl class="simple">
@@ -128,13 +136,13 @@ only within (zmin, zmax).</p>
 <dd><p>Class to store an error matrix and relevant information. Note that errors
 are always expressed in (true - reco).
 Error matrices are currently stored in a numpy file containing keys:
-- ‘errmat’: the 2D error matrix containing dimensions [x,y] = [coord,err],
-where coord specifies a coordinate and err the corresponding error
-- ‘xmin’: the minimum coordinate value
-- ‘ymin’: the minimum error value`
-- ‘dx’: the coordinate bin width
-- ‘dy’: the error bin width
-The distribution of simulated coordinates is calculated by summing over the
+‘errmat’: the 2D error matrix containing dimensions [x,y] = [coord,err],
+where coord specifies a coordinate and err the corresponding error;
+‘xmin’: the minimum coordinate value;
+‘ymin’: the minimum error value;
+‘dx’: the coordinate bin width;
+‘dy’: the error bin width</p>
+<p>The distribution of simulated coordinates is calculated by summing over the
 error dimension.</p>
 <dl class="method">
 <dt id="antea.mcsim.errmat.errmat.get_random_coord">
@@ -142,7 +150,10 @@ error dimension.</p>
 <dd><p>Select a random coordinate from the coordinate matrix.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p>float containing the randomly selected coordinate</p>
+<dd class="field-odd"><p>float</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>the randomly selected coordinate</p>
 </dd>
 </dl>
 </dd></dl>
@@ -155,8 +166,11 @@ error dimension.</p>
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><p><strong>x</strong> (<em>float</em>) – the coordinate</p>
 </dd>
-<dt class="field-even">Return type</dt>
-<dd class="field-even"><p>float containing a random error corresponding to the specified coordinate</p>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>a random error corresponding to the specified coordinate</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>float</p>
 </dd>
 </dl>
 </dd></dl>

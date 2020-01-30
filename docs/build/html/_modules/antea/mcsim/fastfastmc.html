@@ -69,10 +69,11 @@
 <span class="sd">    :param coslim: limit on the cosine of the opening angle of emitted gammas</span>
 <span class="sd">     (see note below)</span>
 <span class="sd">    :type coslim: float</span>
-<span class="sd">    :rtype: Pandas dataframe containing the following information for each</span>
+<span class="sd">    :returns: dataframe containing the following information for each</span>
 <span class="sd">     event: &#39;event_id&#39;, &#39;true_r1&#39;, &#39;true_phi1&#39;, &#39;true_z1&#39;, &#39;true_t1&#39;,</span>
 <span class="sd">     &#39;true_r2&#39;, &#39;true_phi2&#39;, &#39;true_z2&#39;, &#39;true_t2&#39;, &#39;reco_r1&#39;, &#39;reco_phi1&#39;,</span>
 <span class="sd">     &#39;reco_z1&#39;, &#39;reco_r2&#39;, &#39;reco_phi2&#39;, &#39;reco_z2&#39;</span>
+<span class="sd">    :rtype: DataFrame</span>
 
 <span class="sd">    **Note** that there are two ways to restrict the z-extent of the generated coincidences:</span>
 <span class="sd">        1. direct restriction of the opening angle: this is done by specifying</span>

@@ -39,91 +39,156 @@
 <span id="sensor-reconstruction"></span><h2>Sensor reconstruction<a class="headerlink" href="#module-antea.reco.reco_functions" title="Permalink to this headline">¶</a></h2>
 <dl class="function">
 <dt id="antea.reco.reco_functions.assign_sipms_to_gammas">
-<code class="sig-prename descclassname">antea.reco.reco_functions.</code><code class="sig-name descname">assign_sipms_to_gammas</code><span class="sig-paren">(</span><em class="sig-param">sns_response: pandas.core.frame.DataFrame, true_pos: Sequence[Tuple[float, float, float]], DataSiPM_idx: pandas.core.frame.DataFrame</em><span class="sig-paren">)</span> &#x2192; Tuple[Sequence[int], Sequence[int], Sequence[Tuple[float, float, float]], Sequence[Tuple[float, float, float]], Sequence[float], Sequence[float]]<a class="reference internal" href="../_modules/antea/reco/reco_functions.html#assign_sipms_to_gammas"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#antea.reco.reco_functions.assign_sipms_to_gammas" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">antea.reco.reco_functions.</code><code class="sig-name descname">assign_sipms_to_gammas</code><span class="sig-paren">(</span><em class="sig-param">sns_response</em>, <em class="sig-param">true_pos</em>, <em class="sig-param">DataSiPM_idx</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/antea/reco/reco_functions.html#assign_sipms_to_gammas"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#antea.reco.reco_functions.assign_sipms_to_gammas" title="Permalink to this definition">¶</a></dt>
 <dd><p>Divide the SiPMs with charge between the two back-to-back gammas,
 or to one of the two if the other one hasn’t interacted.
 Return the lists of the charges and the positions of the SiPMs of the two groups.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><code class="xref py py-data docutils literal notranslate"><span class="pre">Tuple</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">Sequence</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code>], <code class="xref py py-class docutils literal notranslate"><span class="pre">Sequence</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code>], <code class="xref py py-class docutils literal notranslate"><span class="pre">Sequence</span></code>[<code class="xref py py-data docutils literal notranslate"><span class="pre">Tuple</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code>]], <code class="xref py py-class docutils literal notranslate"><span class="pre">Sequence</span></code>[<code class="xref py py-data docutils literal notranslate"><span class="pre">Tuple</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code>]], <code class="xref py py-class docutils literal notranslate"><span class="pre">Sequence</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code>], <code class="xref py py-class docutils literal notranslate"><span class="pre">Sequence</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code>]]</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="function">
 <dt id="antea.reco.reco_functions.divide_sipms_in_two_hemispheres">
-<code class="sig-prename descclassname">antea.reco.reco_functions.</code><code class="sig-name descname">divide_sipms_in_two_hemispheres</code><span class="sig-paren">(</span><em class="sig-param">sns_ids: Sequence[int], sns_positions: Sequence[Tuple[float, float, float]], sns_charges: Sequence[float], reference_pos: Tuple[float, float, float]</em><span class="sig-paren">)</span> &#x2192; Tuple[Sequence[int], Sequence[int], Sequence[Tuple[float, float, float]], Sequence[Tuple[float, float, float]], Sequence[float], Sequence[float]]<a class="reference internal" href="../_modules/antea/reco/reco_functions.html#divide_sipms_in_two_hemispheres"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#antea.reco.reco_functions.divide_sipms_in_two_hemispheres" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">antea.reco.reco_functions.</code><code class="sig-name descname">divide_sipms_in_two_hemispheres</code><span class="sig-paren">(</span><em class="sig-param">sns_ids</em>, <em class="sig-param">sns_positions</em>, <em class="sig-param">sns_charges</em>, <em class="sig-param">reference_pos</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/antea/reco/reco_functions.html#divide_sipms_in_two_hemispheres"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#antea.reco.reco_functions.divide_sipms_in_two_hemispheres" title="Permalink to this definition">¶</a></dt>
 <dd><p>Divide the SiPMs with charge between two hemispheres, using a given reference direction
 (reference_pos) as a discriminator.
 Return the lists of the ids, the charges and the positions of the SiPMs of the two groups.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><code class="xref py py-data docutils literal notranslate"><span class="pre">Tuple</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">Sequence</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code>], <code class="xref py py-class docutils literal notranslate"><span class="pre">Sequence</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code>], <code class="xref py py-class docutils literal notranslate"><span class="pre">Sequence</span></code>[<code class="xref py py-data docutils literal notranslate"><span class="pre">Tuple</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code>]], <code class="xref py py-class docutils literal notranslate"><span class="pre">Sequence</span></code>[<code class="xref py py-data docutils literal notranslate"><span class="pre">Tuple</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code>]], <code class="xref py py-class docutils literal notranslate"><span class="pre">Sequence</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code>], <code class="xref py py-class docutils literal notranslate"><span class="pre">Sequence</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code>]]</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="function">
 <dt id="antea.reco.reco_functions.find_SiPMs_over_threshold">
-<code class="sig-prename descclassname">antea.reco.reco_functions.</code><code class="sig-name descname">find_SiPMs_over_threshold</code><span class="sig-paren">(</span><em class="sig-param">df: pandas.core.frame.DataFrame</em>, <em class="sig-param">threshold: float</em><span class="sig-paren">)</span> &#x2192; pandas.core.frame.DataFrame<a class="reference internal" href="../_modules/antea/reco/reco_functions.html#find_SiPMs_over_threshold"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#antea.reco.reco_functions.find_SiPMs_over_threshold" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">antea.reco.reco_functions.</code><code class="sig-name descname">find_SiPMs_over_threshold</code><span class="sig-paren">(</span><em class="sig-param">df</em>, <em class="sig-param">threshold</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/antea/reco/reco_functions.html#find_SiPMs_over_threshold"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#antea.reco.reco_functions.find_SiPMs_over_threshold" title="Permalink to this definition">¶</a></dt>
 <dd><p>Integrate the charge in time of each SiPM and select only those with total
 charge larger than threshold.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><code class="xref py py-class docutils literal notranslate"><span class="pre">DataFrame</span></code></p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="function">
 <dt id="antea.reco.reco_functions.find_closest_sipm">
-<code class="sig-prename descclassname">antea.reco.reco_functions.</code><code class="sig-name descname">find_closest_sipm</code><span class="sig-paren">(</span><em class="sig-param">point: Tuple[float, float, float], sipms: pandas.core.frame.DataFrame</em><span class="sig-paren">)</span> &#x2192; pandas.core.frame.DataFrame<a class="reference internal" href="../_modules/antea/reco/reco_functions.html#find_closest_sipm"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#antea.reco.reco_functions.find_closest_sipm" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">antea.reco.reco_functions.</code><code class="sig-name descname">find_closest_sipm</code><span class="sig-paren">(</span><em class="sig-param">point</em>, <em class="sig-param">sipms</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/antea/reco/reco_functions.html#find_closest_sipm"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#antea.reco.reco_functions.find_closest_sipm" title="Permalink to this definition">¶</a></dt>
 <dd><p>Find the closest SiPM to a point, given a df of SiPMs.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><code class="xref py py-class docutils literal notranslate"><span class="pre">DataFrame</span></code></p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="function">
 <dt id="antea.reco.reco_functions.find_first_interactions_in_active">
-<code class="sig-prename descclassname">antea.reco.reco_functions.</code><code class="sig-name descname">find_first_interactions_in_active</code><span class="sig-paren">(</span><em class="sig-param">particles: pandas.core.frame.DataFrame</em>, <em class="sig-param">hits: pandas.core.frame.DataFrame</em>, <em class="sig-param">photo_range: float = 1.0</em><span class="sig-paren">)</span> &#x2192; Tuple[Tuple[float, float, float], Tuple[float, float, float], float, float, bool, bool]<a class="reference internal" href="../_modules/antea/reco/reco_functions.html#find_first_interactions_in_active"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#antea.reco.reco_functions.find_first_interactions_in_active" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">antea.reco.reco_functions.</code><code class="sig-name descname">find_first_interactions_in_active</code><span class="sig-paren">(</span><em class="sig-param">particles</em>, <em class="sig-param">hits</em>, <em class="sig-param">photo_range=1.0</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/antea/reco/reco_functions.html#find_first_interactions_in_active"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#antea.reco.reco_functions.find_first_interactions_in_active" title="Permalink to this definition">¶</a></dt>
 <dd><p>Looks for the first interaction of primary gammas in the active volume.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><code class="xref py py-data docutils literal notranslate"><span class="pre">Tuple</span></code>[<code class="xref py py-data docutils literal notranslate"><span class="pre">Tuple</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code>], <code class="xref py py-data docutils literal notranslate"><span class="pre">Tuple</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code>], <code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code>]</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="function">
 <dt id="antea.reco.reco_functions.find_first_time_of_sensors">
-<code class="sig-prename descclassname">antea.reco.reco_functions.</code><code class="sig-name descname">find_first_time_of_sensors</code><span class="sig-paren">(</span><em class="sig-param">tof_response: pandas.core.frame.DataFrame, sns_ids: Sequence[int]</em><span class="sig-paren">)</span> &#x2192; Tuple[int, int]<a class="reference internal" href="../_modules/antea/reco/reco_functions.html#find_first_time_of_sensors"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#antea.reco.reco_functions.find_first_time_of_sensors" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">antea.reco.reco_functions.</code><code class="sig-name descname">find_first_time_of_sensors</code><span class="sig-paren">(</span><em class="sig-param">tof_response</em>, <em class="sig-param">sns_ids</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/antea/reco/reco_functions.html#find_first_time_of_sensors"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#antea.reco.reco_functions.find_first_time_of_sensors" title="Permalink to this definition">¶</a></dt>
 <dd><p>This function looks for the time among all sensors for the first photoelectron detected.
 In case more than one photoelectron arrives at the same time, the sensor with minimum id is chosen.
 The positive value of the id of the sensor and the time of detection are returned.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><code class="xref py py-data docutils literal notranslate"><span class="pre">Tuple</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code>]</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="function">
 <dt id="antea.reco.reco_functions.initial_coord_first_daughter">
-<code class="sig-prename descclassname">antea.reco.reco_functions.</code><code class="sig-name descname">initial_coord_first_daughter</code><span class="sig-paren">(</span><em class="sig-param">particles: pandas.core.frame.DataFrame</em>, <em class="sig-param">mother_id: int</em><span class="sig-paren">)</span> &#x2192; Tuple[Tuple[float, float, float], int, str]<a class="reference internal" href="../_modules/antea/reco/reco_functions.html#initial_coord_first_daughter"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#antea.reco.reco_functions.initial_coord_first_daughter" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">antea.reco.reco_functions.</code><code class="sig-name descname">initial_coord_first_daughter</code><span class="sig-paren">(</span><em class="sig-param">particles</em>, <em class="sig-param">mother_id</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/antea/reco/reco_functions.html#initial_coord_first_daughter"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#antea.reco.reco_functions.initial_coord_first_daughter" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns the position, time and volume of the initial vertex
 of the first daughter of a given particle.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><code class="xref py py-data docutils literal notranslate"><span class="pre">Tuple</span></code>[<code class="xref py py-data docutils literal notranslate"><span class="pre">Tuple</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code>], <code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>]</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="function">
 <dt id="antea.reco.reco_functions.part_first_hit">
-<code class="sig-prename descclassname">antea.reco.reco_functions.</code><code class="sig-name descname">part_first_hit</code><span class="sig-paren">(</span><em class="sig-param">hits: pandas.core.frame.DataFrame</em>, <em class="sig-param">part_id: int</em><span class="sig-paren">)</span> &#x2192; Tuple[Tuple[float, float, float], int]<a class="reference internal" href="../_modules/antea/reco/reco_functions.html#part_first_hit"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#antea.reco.reco_functions.part_first_hit" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">antea.reco.reco_functions.</code><code class="sig-name descname">part_first_hit</code><span class="sig-paren">(</span><em class="sig-param">hits</em>, <em class="sig-param">part_id</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/antea/reco/reco_functions.html#part_first_hit"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#antea.reco.reco_functions.part_first_hit" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns the position and time of the first hit of a given particle.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><code class="xref py py-data docutils literal notranslate"><span class="pre">Tuple</span></code>[<code class="xref py py-data docutils literal notranslate"><span class="pre">Tuple</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code>], <code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code>]</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="function">
 <dt id="antea.reco.reco_functions.reconstruct_coincidences">
-<code class="sig-prename descclassname">antea.reco.reco_functions.</code><code class="sig-name descname">reconstruct_coincidences</code><span class="sig-paren">(</span><em class="sig-param">sns_response: pandas.core.frame.DataFrame, tof_response: pandas.core.frame.DataFrame, charge_range: Tuple[float, float], DataSiPM_idx: pandas.core.frame.DataFrame, particles: pandas.core.frame.DataFrame, hits: pandas.core.frame.DataFrame</em><span class="sig-paren">)</span> &#x2192; Tuple[Sequence[Tuple[float, float, float]], Sequence[Tuple[float, float, float]], Sequence[float], Sequence[float], Tuple[float, float, float], Tuple[float, float, float], float, float, int, int, int, int]<a class="reference internal" href="../_modules/antea/reco/reco_functions.html#reconstruct_coincidences"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#antea.reco.reco_functions.reconstruct_coincidences" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">antea.reco.reco_functions.</code><code class="sig-name descname">reconstruct_coincidences</code><span class="sig-paren">(</span><em class="sig-param">sns_response</em>, <em class="sig-param">tof_response</em>, <em class="sig-param">charge_range</em>, <em class="sig-param">DataSiPM_idx</em>, <em class="sig-param">particles</em>, <em class="sig-param">hits</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/antea/reco/reco_functions.html#reconstruct_coincidences"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#antea.reco.reco_functions.reconstruct_coincidences" title="Permalink to this definition">¶</a></dt>
 <dd><p>Finds the SiPM with maximum charge. The set of sensors around it are labelled as 1.
 The sensors on the opposite hemisphere are labelled as 2.
 The true position of the first gamma interaction in ACTIVE is also returned for each hemisphere.
 A range of charge is given to select singles in the photoelectric peak.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><code class="xref py py-data docutils literal notranslate"><span class="pre">Tuple</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">Sequence</span></code>[<code class="xref py py-data docutils literal notranslate"><span class="pre">Tuple</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code>]], <code class="xref py py-class docutils literal notranslate"><span class="pre">Sequence</span></code>[<code class="xref py py-data docutils literal notranslate"><span class="pre">Tuple</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code>]], <code class="xref py py-class docutils literal notranslate"><span class="pre">Sequence</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code>], <code class="xref py py-class docutils literal notranslate"><span class="pre">Sequence</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code>], <code class="xref py py-data docutils literal notranslate"><span class="pre">Tuple</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code>], <code class="xref py py-data docutils literal notranslate"><span class="pre">Tuple</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code>], <code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code>]</p>
+</dd>
+</dl>
 </dd></dl>
 
 <span class="target" id="module-antea.elec.tof_functions"></span><dl class="function">
 <dt id="antea.elec.tof_functions.convolve_tof">
-<code class="sig-prename descclassname">antea.elec.tof_functions.</code><code class="sig-name descname">convolve_tof</code><span class="sig-paren">(</span><em class="sig-param">spe_response: Sequence[float], signal: Sequence[float]</em><span class="sig-paren">)</span> &#x2192; Sequence[float]<a class="reference internal" href="../_modules/antea/elec/tof_functions.html#convolve_tof"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#antea.elec.tof_functions.convolve_tof" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">antea.elec.tof_functions.</code><code class="sig-name descname">convolve_tof</code><span class="sig-paren">(</span><em class="sig-param">spe_response</em>, <em class="sig-param">signal</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/antea/elec/tof_functions.html#convolve_tof"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#antea.elec.tof_functions.convolve_tof" title="Permalink to this definition">¶</a></dt>
 <dd><p>Apply the spe_response distribution to the given signal.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><code class="xref py py-class docutils literal notranslate"><span class="pre">Sequence</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code>]</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="function">
 <dt id="antea.elec.tof_functions.spe_dist">
-<code class="sig-prename descclassname">antea.elec.tof_functions.</code><code class="sig-name descname">spe_dist</code><span class="sig-paren">(</span><em class="sig-param">tau_sipm: Tuple[float, float], time: Sequence[float]</em><span class="sig-paren">)</span> &#x2192; Sequence[float]<a class="reference internal" href="../_modules/antea/elec/tof_functions.html#spe_dist"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#antea.elec.tof_functions.spe_dist" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">antea.elec.tof_functions.</code><code class="sig-name descname">spe_dist</code><span class="sig-paren">(</span><em class="sig-param">tau_sipm</em>, <em class="sig-param">time</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/antea/elec/tof_functions.html#spe_dist"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#antea.elec.tof_functions.spe_dist" title="Permalink to this definition">¶</a></dt>
 <dd><p>Double exponential decay for the sipm response. Returns a normalized array.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><code class="xref py py-class docutils literal notranslate"><span class="pre">Sequence</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code>]</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="function">
 <dt id="antea.elec.tof_functions.tdc_convolution">
-<code class="sig-prename descclassname">antea.elec.tof_functions.</code><code class="sig-name descname">tdc_convolution</code><span class="sig-paren">(</span><em class="sig-param">tof_response: pandas.core.frame.DataFrame, spe_response: Sequence[float], time_window: float, n_sipms: int, first_sipm: int, te_tdc: float</em><span class="sig-paren">)</span> &#x2192; Sequence[Sequence[float]]<a class="reference internal" href="../_modules/antea/elec/tof_functions.html#tdc_convolution"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#antea.elec.tof_functions.tdc_convolution" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">antea.elec.tof_functions.</code><code class="sig-name descname">tdc_convolution</code><span class="sig-paren">(</span><em class="sig-param">tof_response</em>, <em class="sig-param">spe_response</em>, <em class="sig-param">time_window</em>, <em class="sig-param">n_sipms</em>, <em class="sig-param">first_sipm</em>, <em class="sig-param">te_tdc</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/antea/elec/tof_functions.html#tdc_convolution"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#antea.elec.tof_functions.tdc_convolution" title="Permalink to this definition">¶</a></dt>
 <dd><p>Apply the spe_response distribution to every sipm and returns a charge matrix of time and n_sipms dimensions.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><code class="xref py py-class docutils literal notranslate"><span class="pre">Sequence</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">Sequence</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code>]]</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="function">
 <dt id="antea.elec.tof_functions.translate_charge_matrix_to_wf_df">
-<code class="sig-prename descclassname">antea.elec.tof_functions.</code><code class="sig-name descname">translate_charge_matrix_to_wf_df</code><span class="sig-paren">(</span><em class="sig-param">conv_table: Sequence[Sequence[float]]</em><span class="sig-paren">)</span> &#x2192; pandas.core.frame.DataFrame<a class="reference internal" href="../_modules/antea/elec/tof_functions.html#translate_charge_matrix_to_wf_df"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#antea.elec.tof_functions.translate_charge_matrix_to_wf_df" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">antea.elec.tof_functions.</code><code class="sig-name descname">translate_charge_matrix_to_wf_df</code><span class="sig-paren">(</span><em class="sig-param">conv_table</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/antea/elec/tof_functions.html#translate_charge_matrix_to_wf_df"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#antea.elec.tof_functions.translate_charge_matrix_to_wf_df" title="Permalink to this definition">¶</a></dt>
 <dd><p>Transform the charge matrix into a tof dataframe.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><code class="xref py py-class docutils literal notranslate"><span class="pre">DataFrame</span></code></p>
+</dd>
+</dl>
 </dd></dl>
 
 </div>
@@ -131,14 +196,24 @@ A range of charge is given to select singles in the photoelectric peak.</p>
 <span id="mc-truth-selection-functions"></span><h2>MC truth selection functions<a class="headerlink" href="#module-antea.reco.mctrue_functions" title="Permalink to this headline">¶</a></h2>
 <dl class="function">
 <dt id="antea.reco.mctrue_functions.find_hits_of_given_particles">
-<code class="sig-prename descclassname">antea.reco.mctrue_functions.</code><code class="sig-name descname">find_hits_of_given_particles</code><span class="sig-paren">(</span><em class="sig-param">p_ids: Sequence[int], hits: pandas.core.frame.DataFrame</em><span class="sig-paren">)</span> &#x2192; pandas.core.frame.DataFrame<a class="reference internal" href="../_modules/antea/reco/mctrue_functions.html#find_hits_of_given_particles"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#antea.reco.mctrue_functions.find_hits_of_given_particles" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">antea.reco.mctrue_functions.</code><code class="sig-name descname">find_hits_of_given_particles</code><span class="sig-paren">(</span><em class="sig-param">p_ids</em>, <em class="sig-param">hits</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/antea/reco/mctrue_functions.html#find_hits_of_given_particles"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#antea.reco.mctrue_functions.find_hits_of_given_particles" title="Permalink to this definition">¶</a></dt>
 <dd><p>Select only the hits belonging to given particles.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><code class="xref py py-class docutils literal notranslate"><span class="pre">DataFrame</span></code></p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="function">
 <dt id="antea.reco.mctrue_functions.select_photoelectric">
-<code class="sig-prename descclassname">antea.reco.mctrue_functions.</code><code class="sig-name descname">select_photoelectric</code><span class="sig-paren">(</span><em class="sig-param">evt_parts: pandas.core.frame.DataFrame</em>, <em class="sig-param">evt_hits: pandas.core.frame.DataFrame</em><span class="sig-paren">)</span> &#x2192; Tuple[bool, Sequence[Tuple[float, float, float]]]<a class="reference internal" href="../_modules/antea/reco/mctrue_functions.html#select_photoelectric"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#antea.reco.mctrue_functions.select_photoelectric" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">antea.reco.mctrue_functions.</code><code class="sig-name descname">select_photoelectric</code><span class="sig-paren">(</span><em class="sig-param">evt_parts</em>, <em class="sig-param">evt_hits</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/antea/reco/mctrue_functions.html#select_photoelectric"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#antea.reco.mctrue_functions.select_photoelectric" title="Permalink to this definition">¶</a></dt>
 <dd><p>Select only the events where one or two photoelectric events occur, and nothing else.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><code class="xref py py-data docutils literal notranslate"><span class="pre">Tuple</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">Sequence</span></code>[<code class="xref py py-data docutils literal notranslate"><span class="pre">Tuple</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code>]]]</p>
+</dd>
+</dl>
 </dd></dl>
 
 </div>
@@ -172,8 +247,11 @@ are specified as separate lists.</p>
 <li><p><strong>lor_t2</strong> (<em>list</em>) – time coordinates for the second point in the LOR</p></li>
 </ul>
 </dd>
-<dt class="field-even">Return type</dt>
-<dd class="field-even"><p>numpy array of shape [<cite>img_size_xy</cite>, <cite>img_size_xy</cite>,`img_size_z`] containing the reconstructed image</p>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>array of shape [<cite>img_size_xy</cite>, <cite>img_size_xy</cite>,`img_size_z`] containing the reconstructed image</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>numpy.ndarray</p>
 </dd>
 </dl>
 </dd></dl>

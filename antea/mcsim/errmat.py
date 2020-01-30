@@ -6,12 +6,13 @@ class errmat:
     Class to store an error matrix and relevant information. Note that errors
     are always expressed in (true - reco).
     Error matrices are currently stored in a numpy file containing keys:
-    - 'errmat': the 2D error matrix containing dimensions [x,y] = [coord,err],
-    where coord specifies a coordinate and err the corresponding error
-    - 'xmin': the minimum coordinate value
-    - 'ymin': the minimum error value`
-    - 'dx': the coordinate bin width
-    - 'dy': the error bin width
+    'errmat': the 2D error matrix containing dimensions [x,y] = [coord,err],
+    where coord specifies a coordinate and err the corresponding error;
+    'xmin': the minimum coordinate value;
+    'ymin': the minimum error value;
+    'dx': the coordinate bin width;
+    'dy': the error bin width
+
     The distribution of simulated coordinates is calculated by summing over the
     error dimension.
     """
@@ -47,7 +48,8 @@ class errmat:
         """
         Select a random coordinate from the coordinate matrix.
 
-        :rtype: float containing the randomly selected coordinate
+        :rtype: float
+        :returns: the randomly selected coordinate
         """
         i = np.random.choice(len(self.coordmat),p=self.coordmat)
         return self.xmin + (i + np.random.uniform())*self.dx
@@ -55,10 +57,11 @@ class errmat:
     def get_random_error(self,x):
         """
         Select a random error for the specified coordinate.
-        
+
         :param x: the coordinate
         :type x: float
-        :rtype: float containing a random error corresponding to the specified coordinate
+        :returns: a random error corresponding to the specified coordinate
+        :rtype: float
         """
         i = int((x - self.xmin)/self.dx)
         if(i >= len(self.errmat)): i = len(self.errmat)-1
