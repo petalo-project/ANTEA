@@ -3,10 +3,9 @@ import numpy                 as np
 import pandas                as pd
 import hypothesis.strategies as st
 
-from hypothesis  import given
-
-import tof_functions as tf
+from hypothesis     import given
 from antea.io.mc_io import load_mcTOFsns_response
+from antea.elec     import tof_functions   as tf
 
 
 a = st.floats(min_value=1, max_value=100000)
