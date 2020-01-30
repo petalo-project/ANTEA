@@ -38,8 +38,9 @@ def test_true_signal_crc_is_close_to_one(phantom_true_img):
     img_slice = np.sum(phantom_true_img[:,:,89:90], axis=2)
 
     for i in range(0, len(hot_phi)):
-        crc = fomf.crc(img_slice, max_intensity, hot_sphere_r[i], r, hot_phi[i], bckg_sphere_r,
-                       phi0, phi_step, nphi, x_size, y_size, xbins, ybins)
+        crc = fomf.crc2d(img_slice, max_intensity, hot_sphere_r[i], r, hot_phi[i],
+                        bckg_sphere_r, phi0, phi_step, nphi, x_size, y_size,
+                        xbins, ybins)
 
         assert np.isclose(crc, 1, rtol=5e-02, atol=5e-02)
 
@@ -50,7 +51,8 @@ def test_true_background_crc_is_close_to_zero(phantom_true_img):
     img_slice = np.sum(phantom_true_img[:,:,89:90], axis=2)
 
     for i in range(0, len(cold_phi)):
-        crc = fomf.crc(img_slice, max_intensity, cold_sphere_r[i], r, cold_phi[i], bckg_sphere_r,
-                       phi0, phi_step, nphi, x_size, y_size, xbins, ybins)
+        crc = fomf.crc2d(img_slice, max_intensity, cold_sphere_r[i], r, cold_phi[i],
+                        bckg_sphere_r, phi0, phi_step, nphi, x_size, y_size,
+                        xbins, ybins)
 
         assert np.isclose(crc, 0, rtol=8e-02, atol=8e-02)

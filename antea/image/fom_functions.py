@@ -7,7 +7,7 @@ a background.
 """
 
 
-def average_in_sphere(img2d : np.ndarray,
+def average_in_sphere2d(img2d : np.ndarray,
                       sphere_r : float, r : float, phi : float,
                       x_size : float, y_size : float, xbins : int, ybins : int) -> float:
     """
@@ -33,7 +33,7 @@ def average_in_sphere(img2d : np.ndarray,
     return np.average(sphere_bins)
 
 
-def average_in_bckg(img2d : np.ndarray,
+def average_in_bckg2d(img2d : np.ndarray,
                     sphere_r : float, r : float,
                     phi_start : float, phi_step : float, n_phi : int,
                     x_size : float, y_size : float, xbins : int, ybins: int) -> float:
@@ -44,7 +44,7 @@ def average_in_bckg(img2d : np.ndarray,
 
     bckg_ave = 0
     for i in range(n_phi):
-        bckg = average_in_sphere(img2d, sphere_r, r, phi_start + i*phi_step, x_size,
+        bckg = average_in_sphere2d(img2d, sphere_r, r, phi_start + i*phi_step, x_size,
                                  y_size, xbins, ybins)
         bckg_ave += bckg
 
@@ -53,7 +53,7 @@ def average_in_bckg(img2d : np.ndarray,
     return bckg_ave
 
 
-def crc(img2d : np.ndarray, max_intensity : int,
+def crc2d(img2d : np.ndarray, max_intensity : int,
         sig_sphere_r : float, r : float, phi : float,
         bckg_sphere_r : float, phi0 : float, phi_step : float, nphi : int,
         x_size : float, y_size : float, xbins : int, ybins : int) -> float:
@@ -72,8 +72,8 @@ def crc(img2d : np.ndarray, max_intensity : int,
     xbins, ybins: number of bins of the image.
     """
 
-    signal = average_in_sphere(img2d, sig_sphere_r, r, phi, x_size, y_size, xbins, ybins)
-    bckg   = average_in_bckg(img2d, bckg_sphere_r, r, phi0, phi_step, nphi,
+    signal = average_in_sphere2d(img2d, sig_sphere_r, r, phi, x_size, y_size, xbins, ybins)
+    bckg   = average_in_bckg2d(img2d, bckg_sphere_r, r, phi0, phi_step, nphi,
                              x_size, y_size,  xbins, ybins)
 
     return signal / bckg / max_intensity
