@@ -112,14 +112,15 @@ def average_in_bckg3d(img3d : np.ndarray,
     return bckg_ave
 
 
-def crc_hot2d(img2d : np.ndarray, max_intensity : int,
+def crc_hot2d(img2d : np.ndarray, true_signal : float, true_bckg : float,
               sig_sphere_r : float, r : float, phi : float,
               bckg_sphere_r : float, phi0 : float, phi_step : float, nphi : int,
               x_size : float, y_size : float, xbins : int, ybins : int) -> float:
     """
     Calculates the contrast_recovery_coefficent of an image.
     img2d: 2D np.array with the image.
-    max_intensity: maximum value of original image pixels.
+    true_signal: maximum value of original image pixels.
+    true_bckg: value of background pixels.
     sig_sphere_r: radius of the sphere of signal.
     r: radial position of both signal and background spheres.
     phi: angular position of signal sphere.
@@ -135,10 +136,12 @@ def crc_hot2d(img2d : np.ndarray, max_intensity : int,
     bckg   = average_in_bckg2d(img2d, bckg_sphere_r, r, phi0, phi_step, nphi,
                                x_size, y_size,  xbins, ybins)
 
-    return signal / bckg / max_intensity
+    alpha = true_signal / true_bckg
+
+    return (signal/bckg - 1)/(alpha - 1)
 
 
-def crc_hot3d(img3d : np.ndarray, max_intensity : int,
+def crc_hot3d(img3d : np.ndarray, true_signal : float, true_bckg : float,
               sig_sphere_r : float, r : float, phi : float,
               bckg_sphere_r : float, phi0 : float, phi_step : float, nphi : int,
               x_size : float, y_size : float, z_size : float,
@@ -146,7 +149,8 @@ def crc_hot3d(img3d : np.ndarray, max_intensity : int,
     """
     Calculates the contrast_recovery_coefficent of an image.
     img2d: 2D np.array with the image.
-    max_intensity: maximum value of original image pixels.
+    true_signal: maximum value of original image pixels.
+    true_bckg: value of background pixels.
     sig_sphere_r: radius of the sphere of signal.
     r: radial position of both signal and background spheres.
     phi: angular position of signal sphere.
@@ -162,7 +166,10 @@ def crc_hot3d(img3d : np.ndarray, max_intensity : int,
     bckg   = average_in_bckg3d(img3d, bckg_sphere_r, r, phi0, phi_step, nphi,
                                x_size, y_size, z_size, xbins, ybins, zbins)
 
-    return signal / bckg / max_intensity
+    alpha = true_signal / true_bckg
+
+    return (signal/bckg - 1)/(alpha - 1)
+
 
 
 def crc_cold2d(img2d : np.ndarray, sig_sphere_r : float, r : float, phi : float,

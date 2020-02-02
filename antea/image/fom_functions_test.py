@@ -15,21 +15,22 @@ def phantom_true_img(ANTEADATADIR):
     return img
 
 ### image characteristics
-max_intensity = 4
-r             = 50
-bckg_sphere_r = 4
-phi0          = np.pi/6.
-phi_step      = np.pi/3.
-nphi          = 6
-x_size        = 180
-y_size        = 180
-z_size        = 180
-xbins         = 180
-ybins         = 180
-zbins         = 180
+sig_intensity  = 4
+bckg_intensity = 1
+r              =  50
+bckg_sphere_r  = 4
+phi0           = np.pi/6.
+phi_step       = np.pi/3.
+nphi           = 6
+x_size         = 180
+y_size         = 180
+z_size         = 180
+xbins          = 180
+ybins          = 180
+zbins          = 180
 
-hot_sphere_r = [4, 6.5, 8.5, 11]
-hot_phi      = [np.pi/3., 2.*np.pi/3., 3.*np.pi/3., 4*np.pi/3.]
+hot_sphere_r  = [4, 6.5, 8.5, 11]
+hot_phi       = [np.pi/3., 2.*np.pi/3., 3.*np.pi/3., 4*np.pi/3.]
 cold_sphere_r = [14, 18.5]
 cold_phi      = [5*np.pi/3., 6*np.pi/3.]
 
@@ -40,16 +41,18 @@ def test_true_signal_crc_is_close_to_one(phantom_true_img):
     img_slice = np.sum(phantom_true_img[:,:,89:90], axis=2)
 
     for i in range(0, len(hot_phi)):
-        crc = fomf.crc_hot2d(img_slice, max_intensity, hot_sphere_r[i],
-                             r, hot_phi[i], bckg_sphere_r, phi0, phi_step, nphi,
+        crc = fomf.crc_hot2d(img_slice, sig_intensity, bckg_intensity,
+                             hot_sphere_r[i], r, hot_phi[i],
+                             bckg_sphere_r, phi0, phi_step, nphi,
                              x_size, y_size, xbins, ybins)
 
         assert np.isclose(crc, 1, rtol=5e-02, atol=5e-02)
 
     ### take the 3d image
     for i in range(0, len(hot_phi)):
-        crc = fomf.crc_hot3d(phantom_true_img, max_intensity, hot_sphere_r[i],
-                             r, hot_phi[i], bckg_sphere_r, phi0, phi_step, nphi,
+        crc = fomf.crc_hot3d(phantom_true_img, sig_intensity, bckg_intensity,
+                             hot_sphere_r[i], r, hot_phi[i],
+                             bckg_sphere_r, phi0, phi_step, nphi,
                              x_size, y_size, z_size,
                              xbins, ybins, zbins)
 
@@ -63,15 +66,17 @@ def test_true_background_crc_is_close_to_zero(phantom_true_img):
 
     for i in range(0, len(cold_phi)):
         crc = fomf.crc_cold2d(img_slice, cold_sphere_r[i],
-                              r, cold_phi[i], bckg_sphere_r, phi0, phi_step, nphi,
+                              r, cold_phi[i], bckg_sphere_r,
+                              phi0, phi_step, nphi,
                               x_size, y_size, xbins, ybins)
 
-        assert np.isclose(crc, 1, rtol=8e-02, atol=8e-02)
+        assert np.isclose(crc, 1, rtol=1e-02, atol=1e-02)
 
     ### take the 3d image
     for i in range(0, len(cold_phi)):
         crc = fomf.crc_cold3d(phantom_true_img, cold_sphere_r[i],
-                              r, cold_phi[i], bckg_sphere_r, phi0, phi_step, nphi,
+                              r, cold_phi[i], bckg_sphere_r,
+                              phi0, phi_step, nphi,
                               x_size, y_size, z_size, xbins, ybins, zbins)
 
-        assert np.isclose(crc, 1, rtol=8e-02, atol=8e-02)
+        assert np.isclose(crc, 1, rtol=1e-02, atol=1e-02)
