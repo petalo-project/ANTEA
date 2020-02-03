@@ -48,7 +48,7 @@ extensions = [
 
 # The following modules will be "mocked" during build (do not need to be
 #  installed in the Python environment executing the build.)
-autodoc_mock_imports = ["numpy", "pandas", "invisible_cities", "pymysql", "tables", "matplotlib"]
+autodoc_mock_imports = ["invisible_cities"]
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
