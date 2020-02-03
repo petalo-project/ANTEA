@@ -13,8 +13,35 @@ def run_fastfastmc(Nevts: int, phtm: phantom, errmat_r: errmat, errmat_phi: errm
                     errmat_z: errmat, rmin: float = 380.0, zmin: float = -450.0,
                     zmax: float = 450.0, coslim: float = 0.309) -> pd.DataFrame:
     """
-    Runs the fast fast MC.
-    Note that there are two ways to restrict the z-extent of the generated coincidences:
+    Runs the fast fast MC, simulating coincident events in a PETALO geometry
+    subject to the specified restrictions.
+
+    :param Nevts: the number of events to generate
+    :type Nevts: int
+    :param phtm: the phantom to simulate
+    :type phtm: class antea.mcsim.phantom
+    :param errmat_r: the r-error matrix
+    :type errmat_r: class antea.mcsim.errmat
+    :param errmat_phi: the phi-error matrix
+    :type errmat_phi: class antea.mcsim.errmat
+    :param errmat_z: the z-error matrix
+    :type errmat_z: class antea.mcsim.errmat
+    :param rmin: the radius at which the LXe volume begins
+    :type rmin: float
+    :param zmin: minimum z-coordinate simulated (see note below)
+    :type zmin: float
+    :param zmax: maximum z-coordinate simulated (see note below)
+    :type zmax: float
+    :param coslim: limit on the cosine of the opening angle of emitted gammas
+     (see note below)
+    :type coslim: float
+    :returns: dataframe containing the following information for each
+     event: 'event_id', 'true_r1', 'true_phi1', 'true_z1', 'true_t1',
+     'true_r2', 'true_phi2', 'true_z2', 'true_t2', 'reco_r1', 'reco_phi1',
+     'reco_z1', 'reco_r2', 'reco_phi2', 'reco_z2'
+    :rtype: DataFrame
+
+    **Note** that there are two ways to restrict the z-extent of the generated coincidences:
         1. direct restriction of the opening angle: this is done by specifying
             coslim > 0. In this case the gammas emitted from each point will be
             restricted to opening angle with cosine from (-coslim, coslim)

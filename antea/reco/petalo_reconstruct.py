@@ -52,7 +52,8 @@ class PetaloReconstructor:
         :type lor_z2: list
         :param lor_t2: time coordinates for the second point in the LOR
         :type lor_t2: list
-        :rtype: numpy array of shape [`img_size_xy`, `img_size_xy`,`img_size_z`] containing the reconstructed image
+        :returns: array of shape [`img_size_xy`, `img_size_xy`,`img_size_z`] containing the reconstructed image
+        :rtype: numpy.ndarray
         """
 
         # Ensure arrays are all the same size.
