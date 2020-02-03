@@ -49,17 +49,7 @@ file is called `index.rst`, and the other relevant source files are located
 in the `src` subdirectory. Assuming the Python environment for IC is set up,
 the documentation can be updated as follows.
 
-1. Install sphinx and sphinx-autodoc-typehints
-##############################################
-Run the following command to install sphinx::
-
-   $ pip install sphinx
-
-The extension for processing typehints must also be installed::
-
-   $ pip install sphinx-autodoc-typehints
-
-2. Update the source files
+1. Update the source files
 ##########################
 Ensure that the local `ANTEA/docs` directory is up-to-date. Then update the
 source files, noting the following:
@@ -95,11 +85,29 @@ update the table of contents as::
 d) Any documentation outside of python docstrings can be written in reStructuredText
 directly into the `.rst` source files.
 
-3. Build the updated documentation
+2. Build the updated documentation
 ##################################
-The updated documentation can be built by running, from within the `docs/`
+This is done automatically by Read the Docs, but upon editing the documentation,
+one may want to do a local build to see how it looks before committing/pushing
+the changes. Run the following command to install sphinx::
+
+   $ pip install sphinx
+
+The extension for processing typehints must also be installed::
+
+   $ pip install sphinx-autodoc-typehints
+
+And also the Sphinx theme::
+
+   $ pip install sphinx_rtd_theme
+
+Now the updated documentation can be built by running, from within the `docs/`
 directory::
 
    $ make html
 
 All the updated files in `docs/` can then be committed and pushed to git.
+
+**Note:** the documentation is built assuming IC is not installed, and certain
+warning messages may appear in the build output because of this. These can be
+ignored if they do not affect the final output.
