@@ -1,0 +1,4 @@
+#
+####### ANTEA requirements.txt #######
+#
+sphinx_autodoc_typehints
