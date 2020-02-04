@@ -5,6 +5,7 @@ import pandas                as pd
 import hypothesis.strategies as st
 
 from hypothesis  import given
+from hypothesis  import assume
 from .           import reco_functions   as rf
 from .           import mctrue_functions as mcf
 from .. database import load_db          as db
@@ -95,8 +96,9 @@ def test_find_closest_sipm(x, y, z, sipm_id):
     quantity.
     """
 
-    if x == 0. and y == 0. and z == 0.:
-       return
+    assume(x != 0)
+    assume(y != 0)
+    assume(z != 0)
 
     point        = np.array([x, y, z])
     closest_sipm = rf.find_closest_sipm(point, DataSiPM_idx)
