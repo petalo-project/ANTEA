@@ -86,19 +86,17 @@ def test_find_SiPMs_over_threshold(ANTEADATADIR):
     assert len(df_over_thr) == len(sns_response) - len(df_below_thr)
 
 
-sipm_id = st.integers(0, len(DataSiPM))
+sipm_id = st.integers(0, len(DataSiPM)-1)
 @given(x, y, z, sipm_id)
 def test_find_closest_sipm(x, y, z, sipm_id):
     """
     Checks that the function find_closest_sipm returns the position of the
     closest SiPM to a given point, and the distance between them is a positive
     quantity.
-    If the point is in the center of the coordinate system or far from the
-    sensors, the function takes more than one sipm because many of them are
-    at the same distance, so a range for the radius is imposed.
     """
-    r = np.sqrt(x**2+y**2)
-    if r < 1: return
+
+    if x == 0. and y == 0. and z == 0.:
+       return
 
     point        = np.array([x, y, z])
     closest_sipm = rf.find_closest_sipm(point, DataSiPM_idx)
