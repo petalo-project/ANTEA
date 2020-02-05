@@ -15,8 +15,8 @@ def test_spe_dist(l):
     """
     This test checks that the function spe_dist returns an array with the distribution value for each time.
     """
-    l        = np.array(l)
-    exp_dist = tf.spe_dist(np.unique(l))
+    l = np.array(l)
+    exp_dist, norm_dist = tf.spe_dist(np.unique(l))
 
     assert len(exp_dist) == len(np.unique(l))
     assert (exp_dist >= 0.).all()
@@ -30,7 +30,7 @@ def test_convolve_tof(l, s):
     """
     Check that the function convolve_tof returns an array with the adequate length, and, in case the array is not empty, checks that the convoluted signal is normalizated to the initial signal.
     """
-    spe_response, norm = tf.spe_dist(t, np.unique(np.array(l)))
+    spe_response, norm = tf.spe_dist(np.unique(np.array(l)))
     conv_res           = tf.convolve_tof(spe_response, np.array(s))
     assert len(conv_res) == len(spe_response) + len(s) - 1
     if np.count_nonzero(spe_response):
@@ -43,16 +43,15 @@ def test_tdc_convolution(ANTEADATADIR):
     """
     PATH_IN        = os.path.join(ANTEADATADIR, 'ring_test_1000ev.h5')
     tof_response   = load_mcTOFsns_response(PATH_IN)
-    SIPM           = {'n_sipms':3500, 'first_sipm':1000, 'tau_sipm':[100,15000]}
+    SIPM           = {'n_sipms':3500, 'first_sipm':1000}
     n_sipms        = SIPM['n_sipms']
     first_sipm     = SIPM['first_sipm']
-    tau_sipm       = SIPM['tau_sipm']
     TE_range       = [0.25]
     TE_TDC         = TE_range[0]
     time_window    = 10000
     time_bin       = 5
     time           = np.arange(0, 80000, time_bin)
-    spe_resp, norm = tf.spe_dist(tau_sipm, time)
+    spe_resp, norm = tf.spe_dist(time)
     tdc_conv_table = tf.tdc_convolution(tof_response, spe_resp, time_window, n_sipms, first_sipm, TE_TDC)
     assert tdc_conv_table.shape == (time_window + len(spe_resp)-1, n_sipms)
 
