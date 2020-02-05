@@ -4,12 +4,12 @@ import pandas as pd
 from typing import Sequence, Tuple
 
 
-def spe_dist(time: Sequence[float], tau_sipm=[100, 15000]) -> Sequence[float]:
+def spe_dist(time: Sequence[float]) -> Sequence[float]:
     """
     Double exponential decay for the sipm response. Returns a normalized array.
     """
-    alfa         = 1.0/tau_sipm[1]
-    beta         = 1.0/tau_sipm[0]
+    alfa         = 1.0/15000
+    beta         = 1.0/100
     t_p          = np.log(beta/alfa)/(beta-alfa)
     K            = (beta)*np.exp(alfa*t_p)/(beta-alfa)
     spe_response = K*(np.exp(-alfa*time)-np.exp(-beta*time))
