@@ -23,7 +23,7 @@ image can be performed in three different ways:
 
 Examples
 --------
-* `Image reconstruction with fast-fast MC <https://github.com/nextic/ANTEA/docs/examples/petalo_reconstruction_fastfastmc_example.ipynb>`_
+* `Image reconstruction with fast-fast MC <https://github.com/nextic/ANTEA/blob/master/docs/examples/petalo_reconstruction_fastfastmc_example.ipynb>`_
 
 Code reference
 --------------
