@@ -5,6 +5,7 @@ import pandas                as pd
 import hypothesis.strategies as st
 
 from hypothesis  import given
+from hypothesis  import assume
 from .           import reco_functions   as rf
 from .           import mctrue_functions as mcf
 from .. database import load_db          as db
@@ -86,19 +87,18 @@ def test_find_SiPMs_over_threshold(ANTEADATADIR):
     assert len(df_over_thr) == len(sns_response) - len(df_below_thr)
 
 
-sipm_id = st.integers(0, len(DataSiPM))
+sipm_id = st.integers(0, len(DataSiPM)-1)
 @given(x, y, z, sipm_id)
 def test_find_closest_sipm(x, y, z, sipm_id):
     """
     Checks that the function find_closest_sipm returns the position of the
     closest SiPM to a given point, and the distance between them is a positive
     quantity.
-    If the point is in the center of the coordinate system or far from the
-    sensors, the function takes more than one sipm because many of them are
-    at the same distance, so a range for the radius is imposed.
     """
-    r = np.sqrt(x**2+y**2)
-    if r < 1: return
+
+    assume(x != 0)
+    assume(y != 0)
+    assume(z != 0)
 
     point        = np.array([x, y, z])
     closest_sipm = rf.find_closest_sipm(point, DataSiPM_idx)
