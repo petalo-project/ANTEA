@@ -8,27 +8,19 @@ from antea.io.mc_io import load_mcTOFsns_response
 from antea.elec     import tof_functions   as tf
 
 
-a = st.floats(min_value=1, max_value=100000)
-b = st.floats(min_value=2, max_value=100000)
 l = st.lists(st.integers(min_value=1, max_value=10000), min_size=2, max_size=1000)
 
-@given(a, b, l)
-def test_spe_dist(a, b, l):
+@given(l)
+def test_spe_dist(l):
     """
-    This test checks that the function spe_dist returns an array with the distribution value for each time and in case the distribution contains only zeros, it ensures that it returns a fully zeros array, avoiding the normalization.
+    This test checks that the function spe_dist returns an array with the distribution value for each time.
     """
     l        = np.array(l)
-    exp_dist = tf.spe_dist((a, b), np.unique(l))
-    count_a  = np.count_nonzero(np.exp(-(1/a)*l))
-    count_b  = np.count_nonzero(np.exp(-(1/b)*l))
+    exp_dist = tf.spe_dist(np.unique(l))
 
-    if np.isclose(1/a, 1/b, rtol=1e-2) or (not count_a and not count_b):
-        assert np.count_nonzero(exp_dist) == 0
-        assert np.isclose(np.sum(exp_dist), 0)
-    else:
-        assert len(exp_dist) == len(np.unique(l))
-        assert (exp_dist >= 0.).all()
-        assert np.isclose(np.sum(exp_dist), 1)
+    assert len(exp_dist) == len(np.unique(l))
+    assert (exp_dist >= 0.).all()
+    assert np.isclose(np.sum(exp_dist), 1)
 
 
 t = st.tuples(st.floats(min_value=1, max_value=1000), st.floats(min_value=2, max_value=1000))
