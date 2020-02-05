@@ -23,15 +23,14 @@ def test_spe_dist(l):
     assert np.isclose(np.sum(exp_dist), 1)
 
 
-t = st.tuples(st.floats(min_value=1, max_value=1000), st.floats(min_value=2, max_value=1000))
 s = st.lists(st.integers(min_value=1, max_value=10000), min_size=2, max_size=1000)
 
-@given(t, l, s)
-def test_convolve_tof(t, l, s):
+@given(l, s)
+def test_convolve_tof(l, s):
     """
     Check that the function convolve_tof returns an array with the adequate length, and, in case it is
     """
-    spe_response = tf.spe_dist(t, np.unique(np.array(l)))
+    spe_response = tf.spe_dist(np.unique(np.array(l)))
     conv_res     = tf.convolve_tof(spe_response, np.array(s))
     assert len(conv_res) == len(spe_response) + len(s) - 1
     if np.count_nonzero(spe_response):
