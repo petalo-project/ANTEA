@@ -1,5 +1,8 @@
 from ctypes import *
+import os
+import struct
 import numpy as np
+
 
 class PetaloReconstructor:
     """
@@ -7,15 +10,47 @@ class PetaloReconstructor:
     provides a method to call the C-based reconstruction using the
     configuration provided by the class variables.
 
+    The reconstructed image is stored in a 1D array of 32-bit (4-byte) floats
+    with values corresponding to:
+
+        | ``(x0,y0,z0), (x1,y0,z0) ... (xN,y0,z0)``
+        | ``(x0,y1,z0), (x1,y1,z0) ... (xN,y1,z0)``
+        | ``...``
+        | ``(x0,yN,z0), (x1,yN,z0) ... (xN,yN,z0)``
+
+        | ``(x0,y0,z1), (x1,y0,z1) ... (xN,y0,z1)``
+        | ``(x0,y1,z1), (x1,y1,z1) ... (xN,y1,z1)``
+        | ``...``
+        | ``(x0,yN,z1), (x1,yN,z1) ... (xN,yN,z1)``
+
+        ``...``
+
+        | ``(x0,y0,zN), (x1,y0,zN) ... (xN,y0,zN)``
+        | ``(x0,y1,zN), (x1,y1,zN) ... (xN,y1,zN)``
+        | ``...``
+        | ``(x0,yN,zN), (x1,yN,zN) ... (xN,yN,zN)``
+
     **NOTE:** the LOR points may need to be sorted for the reconstruction to
     be correct
 
-    :param prefix: the prefix for all saved files
+    :param prefix: the filename prefix for all saved files
+    :param niterations: the number of iterations to perform on reconstruction
+    :param save_every: save every specified number of iterations
+    :param TOF: boolean to enable TOF
+    :param TOF_resolution: the TOF resolution in ps
+    :param img_size_xy: the image size in the x and y dimensions (in mm)
+    :param img_size_z: the image size in the z dimension (in mm)
+    :param img_nvoxels_xy: the number of voxels in the x and y dimensions
+    :param img_nvoxels_z: the number of voxels in the z dimension
+    :param libpath: the path to the C++ reconstruction library
     """
 
-    def __init__(self, prefix = "petalo", niterations = 1, save_every = -1, TOF_resolution = 200,
-                 img_size_xy = 180.0, img_size_z = 180.0, img_nvoxels_xy = 60,
-                 img_nvoxels_z = 60, libdir = "anteacpp/libPETALO.so"):
+    def __init__(self, prefix: str = "petalo", niterations: int = 1,
+                 save_every: int = -1, TOF: bool = True,
+                 TOF_resolution: float = 200.,
+                 img_size_xy: float = 180.0, img_size_z: float = 180.0,
+                 img_nvoxels_xy: int = 60, img_nvoxels_z: int = 60,
+                 libpath: str = "anteacpp/libPETALO.so"):
 
         # Set default values for key variables.
         self.prefix = prefix
@@ -29,7 +64,48 @@ class PetaloReconstructor:
         self.img_nvoxels_z = img_nvoxels_z
 
         # Load the C library.
-        self.lib = cdll.LoadLibrary(libdir)
+        self.lib = cdll.LoadLibrary(libpath)
+
+    def read_image(self, niter: int):
+        """
+        Reads a reconstructed image stored as "(prefix)_iter(niter).raw".
+
+        :param niter: the iteration number to be read
+        """
+
+        # Construct an empty image.
+        xdim = self.img_nvoxels_xy
+        ydim = self.img_nvoxels_xy
+        zdim = self.img_nvoxels_z
+        img_arr = np.zeros([xdim,ydim,zdim])
+
+        # Open the file containing the reconstructed image.
+        fpath = "{}_iter{}.raw".format(self.prefix,niter)
+        if(os.path.isfile(fpath)):
+
+            fimg = open(fpath,'rb')
+            fdata = fimg.read()
+            print("Read {} bytes".format(len(fdata)))
+
+            # Read the image of nvoxels 32-bit (4-byte) floats.
+            nvoxels = xdim*ydim*zdim
+            if(len(fdata) == nvoxels*4):
+
+                # Unpack the floats into a 1D array.
+                s_arr = struct.unpack_from('f'*nvoxels, fdata)
+
+                # Fill the 3D image from the array.
+                for ivox,w in enumerate(s_arr):
+                    i = int(ivox % xdim)
+                    j = int(ivox / xdim) % ydim
+                    k = int(ivox / (xdim*ydim))
+                    img_arr[i,j,k] = w
+            else:
+                print("ERROR: unexpected data length {}".format(len(fdata)))
+        else:
+            print("ERROR: file {} not found".format(fpath))
+
+        return img_arr
 
     def reconstruct(self, lor_x1, lor_y1, lor_z1, lor_t1,
                     lor_x2, lor_y2, lor_z2, lor_t2):
