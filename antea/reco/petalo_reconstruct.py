@@ -66,7 +66,7 @@ class PetaloReconstructor:
         # Load the C library.
         self.lib = cdll.LoadLibrary(libpath)
 
-    def read_image(self, niter: int):
+    def read_image(self, niter: int) -> np.ndarray:
         """
         Reads a reconstructed image stored as "(prefix)_iter(niter).raw".
 
@@ -108,7 +108,7 @@ class PetaloReconstructor:
         return img_arr
 
     def reconstruct(self, lor_x1, lor_y1, lor_z1, lor_t1,
-                    lor_x2, lor_y2, lor_z2, lor_t2):
+                    lor_x2, lor_y2, lor_z2, lor_t2) -> np.ndarray:
         """
         Performs reconstruction by calling a C-implemented function. The
         reconstruction is list-mode, so the inputs are the coordinates
@@ -132,7 +132,6 @@ class PetaloReconstructor:
         :param lor_t2: time coordinates for the second point in the LOR
         :type lor_t2: list
         :returns: array of shape [`img_size_xy`, `img_size_xy`,`img_size_z`] containing the reconstructed image
-        :rtype: numpy.ndarray
         """
 
         # Ensure arrays are all the same size.
