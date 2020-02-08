@@ -9,15 +9,18 @@ class PetaloReconstructor:
 
     **NOTE:** the LOR points may need to be sorted for the reconstruction to
     be correct
+
+    :param prefix: the prefix for all saved files
     """
 
-    def __init__(self, niterations = 1, TOF_resolution = 200,
+    def __init__(self, prefix = "petalo", niterations = 1, save_every = -1, TOF_resolution = 200,
                  img_size_xy = 180.0, img_size_z = 180.0, img_nvoxels_xy = 60,
                  img_nvoxels_z = 60, libdir = "anteacpp/libPETALO.so"):
 
         # Set default values for key variables.
-        self.nlines = 1
+        self.prefix = prefix
         self.niterations = niterations
+        self.save_every = save_every
         self.TOF = True
         self.TOF_resolution = TOF_resolution
         self.img_size_xy = img_size_xy
@@ -77,22 +80,25 @@ class PetaloReconstructor:
         lor_y2 = (c_float * ncoinc)(*lor_y2)
         lor_z2 = (c_float * ncoinc)(*lor_z2)
         lor_t2 = (c_float * ncoinc)(*lor_t2)
+        prefix = c_char_p(self.prefix.encode('utf-8'))
 
         # Set the argument types and return type.
-        self.lib.MLEM_TOF_Reco.argtypes = (c_int, c_int, c_bool, c_float,
+        self.lib.MLEM_TOF_Reco.argtypes = (c_int, c_bool, c_float,
          c_float, c_float, c_int, c_int, c_int,
          POINTER(c_float), POINTER(c_float), POINTER(c_float), POINTER(c_float),
-         POINTER(c_float), POINTER(c_float), POINTER(c_float), POINTER(c_float))
+         POINTER(c_float), POINTER(c_float), POINTER(c_float), POINTER(c_float),
+         c_char_p, c_int)
 
         self.lib.MLEM_TOF_Reco.restype = POINTER(c_float)
 
         # Call the function.
-        img = self.lib.MLEM_TOF_Reco(self.nlines, self.niterations, self.TOF,
+        img = self.lib.MLEM_TOF_Reco(self.niterations, self.TOF,
                                 self.TOF_resolution, self.img_size_xy,
                                 self.img_size_z, self.img_nvoxels_xy,
                                 self.img_nvoxels_z, ncoinc,
                                 lor_x1, lor_y1, lor_z1, lor_t1,
-                                lor_x2, lor_y2, lor_z2, lor_t2)
+                                lor_x2, lor_y2, lor_z2, lor_t2,
+                                prefix, self.save_every)
 
         # --------------------------------------------------
         # Prepare the numpy image from the C float pointer.
