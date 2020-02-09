@@ -128,7 +128,7 @@ class phantom:
         self.Lz = Lz
         self.NyNz = NyNz
 
-    def get_vol(self) -> np.ndarray:
+    def get_volume(self) -> np.ndarray:
         """
         Return the 3D phantom volume.
         """
