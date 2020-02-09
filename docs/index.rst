@@ -24,6 +24,7 @@ image can be performed in three different ways:
 Examples
 --------
 * `Image reconstruction with fast-fast MC <https://github.com/nextic/ANTEA/blob/master/docs/examples/petalo_reconstruction_fastfastmc_example.ipynb>`_
+* `Creation of a NEMA phantom <https://github.com/nextic/ANTEA/blob/master/docs/examples/phantom_NEMA_example.ipynb>`_
 
 Code reference
 --------------
