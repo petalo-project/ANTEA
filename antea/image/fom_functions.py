@@ -7,11 +7,13 @@ a background.
 """
 
 
-def average_in_sphere2d(img2d : np.ndarray,
-                        sphere_r : float, r : float, phi : float,
-                        x_size : float, y_size : float, xbins : int, ybins : int) -> float:
+def mean_std_dev_in_sphere2d(img2d : np.ndarray,
+                             sphere_r : float, r : float, phi : float,
+                             x_size : float, y_size : float,
+                             xbins : int, ybins : int) -> float:
     """
-    Calculates the average density in a circle of radius sphere_r, centred in (r, phi).
+    Calculates the average density in a circle of radius sphere_r,
+    centred in (r, phi).
     x_size, y_size: size of the image (in length unit).
     xbins, ybins: number of bins  in x and y.
     """
@@ -33,15 +35,18 @@ def average_in_sphere2d(img2d : np.ndarray,
     in_sphere = np.sqrt((comb_xy[:, 0]-cx)**2 + (comb_xy[:, 1]-cy)**2) < sphere_r
     img_bins  = comb_ij[in_sphere]
 
-    return np.average(img2d[img_bins[:, 0], img_bins[:, 1]])
+    circle = img2d[img_bins[:, 0], img_bins[:, 1]]
+
+    return np.average(circle), np.std(circle)
 
 
-def average_in_sphere3d(img3d : np.ndarray,
-                        sphere_r : float, r : float, phi : float,
-                        x_size : float, y_size : float, z_size : float,
-                        xbins : int, ybins : int, zbins : int) -> float:
+def mean_std_dev_in_sphere3d(img3d : np.ndarray,
+                             sphere_r : float, r : float, phi : float,
+                             x_size : float, y_size : float, z_size : float,
+                             xbins : int, ybins : int, zbins : int) -> float:
     """
-    Calculates the average density in a sphere of radius sphere_r, centred in (r, phi).
+    Calculates the average density in a sphere of radius sphere_r,
+    centred in (r, phi).
     x_size, y_size, z_size: size of the image (in length unit).
     xbins, ybins, zbins: number of bins in x, y and z.
     """
@@ -68,7 +73,9 @@ def average_in_sphere3d(img3d : np.ndarray,
                         (comb_xyz[:, 2] - cz)**2) < sphere_r
     img_bins  = comb_ijk[in_sphere]
 
-    return np.average(img3d[img_bins[:, 0], img_bins[:, 1], img_bins[:, 2]])
+    sphere = img3d[img_bins[:, 0], img_bins[:, 1], img_bins[:, 2]]
+
+    return np.average(sphere), np.std(sphere)
 
 
 def average_in_bckg2d(img2d : np.ndarray,
@@ -76,19 +83,44 @@ def average_in_bckg2d(img2d : np.ndarray,
                       phi_start : float, phi_step : float, n_phi : int,
                       x_size : float, y_size : float, xbins : int, ybins: int) -> float:
     """
-    Calculates the average background density taking the average of n_phi circles
-    of radius sphere_r, centred at radius r and phi == phi_start + n*phi_step.
+    Calculates the average background density taking the average of
+    n_phi circles of radius sphere_r, centred at radius r and
+    phi == phi_start + n*phi_step.
     """
 
     bckg_ave = 0
     for i in range(n_phi):
-        bckg = average_in_sphere2d(img2d, sphere_r, r, phi_start + i*phi_step, x_size,
-                                   y_size, xbins, ybins)
+        bckg, _ = mean_std_dev_in_sphere2d(img2d, sphere_r, r,
+                                           phi_start + i*phi_step, x_size,
+                                           y_size, xbins, ybins)
         bckg_ave += bckg
 
     bckg_ave /= n_phi
 
     return bckg_ave
+
+
+def average_std_dev_in_bckg2d(img2d : np.ndarray,
+                              sphere_r : float, r : float,
+                              phi_start : float, phi_step : float, n_phi : int,
+                              x_size : float, y_size : float,
+                              xbins : int, ybins: int) -> float:
+    """
+    Calculates the average standard deviation of background
+    taking the average of n_phi circles of radius sphere_r,
+    centred at radius r and phi == phi_start + n*phi_step.
+    """
+
+    std_bckg_ave = 0
+    for i in range(n_phi):
+        _, std_bckg = mean_std_dev_in_sphere2d(img2d, sphere_r, r,
+                                               phi_start + i*phi_step, x_size,
+                                               y_size, xbins, ybins)
+        std_bckg_ave += std_bckg
+
+    std_bckg_ave /= n_phi
+
+    return std_bckg_ave
 
 
 def average_in_bckg3d(img3d : np.ndarray,
@@ -97,19 +129,46 @@ def average_in_bckg3d(img3d : np.ndarray,
                       x_size : float, y_size : float, z_size : float,
                       xbins : int, ybins: int, zbins : int) -> float:
     """
-    Calculates the average background density taking the average of n_phi spheres
-    of radius sphere_r, centred at radius r and phi == phi_start + n*phi_step.
+    Calculates the average background density taking the average of
+    n_phi spheres of radius sphere_r, centred at radius r
+    and phi == phi_start + n*phi_step.
     """
 
     bckg_ave = 0
     for i in range(n_phi):
-        bckg = average_in_sphere3d(img3d, sphere_r, r, phi_start + i*phi_step, x_size,
-                                   y_size, z_size, xbins, ybins, zbins)
+        bckg, _ = mean_std_dev_in_sphere3d(img3d, sphere_r, r,
+                                           phi_start + i*phi_step,
+                                           x_size, y_size, z_size,
+                                           xbins, ybins, zbins)
         bckg_ave += bckg
 
     bckg_ave /= n_phi
 
     return bckg_ave
+
+
+def average_std_dev_in_bckg3d(img3d : np.ndarray,
+                              sphere_r : float, r : float,
+                              phi_start : float, phi_step : float, n_phi : int,
+                              x_size : float, y_size : float, z_size : float,
+                              xbins : int, ybins: int, zbins : int) -> float:
+    """
+    Calculates the average standard deviation of background
+    taking the average of n_phi spheres of radius sphere_r,
+    centred at radius r and phi == phi_start + n*phi_step.
+    """
+
+    std_bckg_ave = 0
+    for i in range(n_phi):
+        _, std_bckg = mean_std_dev_in_sphere3d(img3d, sphere_r, r,
+                                               phi_start + i*phi_step,
+                                               x_size, y_size, z_size,
+                                               xbins, ybins, zbins)
+        std_bckg_ave += std_bckg
+
+    std_bckg_ave /= n_phi
+
+    return std_bckg_ave
 
 
 def crc_hot2d(img2d : np.ndarray, true_signal : float, true_bckg : float,
@@ -132,9 +191,11 @@ def crc_hot2d(img2d : np.ndarray, true_signal : float, true_bckg : float,
     xbins, ybins: number of bins of the image.
     """
 
-    signal = average_in_sphere2d(img2d, sig_sphere_r, r, phi, x_size, y_size, xbins, ybins)
-    bckg   = average_in_bckg2d(img2d, bckg_sphere_r, r, phi0, phi_step, nphi,
-                               x_size, y_size,  xbins, ybins)
+    signal, _ = mean_std_dev_in_sphere2d(img2d, sig_sphere_r, r, phi,
+                                         x_size, y_size, xbins, ybins)
+    bckg      = average_in_bckg2d(img2d, bckg_sphere_r, r,
+                                  phi0, phi_step, nphi,
+                                  x_size, y_size,  xbins, ybins)
 
     alpha = true_signal / true_bckg
 
@@ -148,7 +209,7 @@ def crc_hot3d(img3d : np.ndarray, true_signal : float, true_bckg : float,
               xbins : int, ybins : int, zbins : int):
     """
     Calculates the contrast_recovery_coefficent of an image.
-    img2d: 2D np.array with the image.
+    img3d: 3D np.array with the image.
     true_signal: maximum value of original image pixels.
     true_bckg: value of background pixels.
     sig_sphere_r: radius of the sphere of signal.
@@ -162,9 +223,11 @@ def crc_hot3d(img3d : np.ndarray, true_signal : float, true_bckg : float,
     xbins, ybins, zbins: number of bins of the image.
     """
 
-    signal = average_in_sphere3d(img3d, sig_sphere_r, r, phi, x_size, y_size, z_size, xbins, ybins, zbins)
-    bckg   = average_in_bckg3d(img3d, bckg_sphere_r, r, phi0, phi_step, nphi,
-                               x_size, y_size, z_size, xbins, ybins, zbins)
+    signal, _ = mean_std_dev_in_sphere3d(img3d, sig_sphere_r, r, phi,
+                                         x_size, y_size, z_size,
+                                         xbins, ybins, zbins)
+    bckg      = average_in_bckg3d(img3d, bckg_sphere_r, r, phi0, phi_step, nphi,
+                                  x_size, y_size, z_size, xbins, ybins, zbins)
 
     alpha = true_signal / true_bckg
 
@@ -190,9 +253,10 @@ def crc_cold2d(img2d : np.ndarray, sig_sphere_r : float, r : float, phi : float,
     xbins, ybins: number of bins of the image.
     """
 
-    signal = average_in_sphere2d(img2d, sig_sphere_r, r, phi, x_size, y_size, xbins, ybins)
-    bckg   = average_in_bckg2d(img2d, bckg_sphere_r, r, phi0, phi_step, nphi,
-                               x_size, y_size,  xbins, ybins)
+    signal, _ = mean_std_dev_in_sphere2d(img2d, sig_sphere_r, r, phi,
+                                         x_size, y_size, xbins, ybins)
+    bckg      = average_in_bckg2d(img2d, bckg_sphere_r, r, phi0, phi_step, nphi,
+                                  x_size, y_size,  xbins, ybins)
 
     return 1 - signal / bckg
 
@@ -203,7 +267,7 @@ def crc_cold3d(img3d : np.ndarray, sig_sphere_r : float, r : float, phi : float,
                xbins : int, ybins : int, zbins : int) -> float:
     """
     Calculates the contrast_recovery_coefficent of an image.
-    img2d: 2D np.array with the image.
+    img3d: 3D np.array with the image.
     max_intensity: maximum value of original image pixels.
     sig_sphere_r: radius of the sphere of signal.
     r: radial position of both signal and background spheres.
@@ -216,9 +280,75 @@ def crc_cold3d(img3d : np.ndarray, sig_sphere_r : float, r : float, phi : float,
     xbins, ybins: number of bins of the image.
     """
 
-    signal = average_in_sphere3d(img3d, sig_sphere_r, r, phi, x_size, y_size, z_size,
-                                 xbins, ybins, zbins)
-    bckg   = average_in_bckg3d(img3d, bckg_sphere_r, r, phi0, phi_step, nphi,
-                               x_size, y_size, z_size, xbins, ybins, zbins)
+    signal, _ = mean_std_dev_in_sphere3d(img3d, sig_sphere_r, r, phi,
+                                         x_size, y_size, z_size,
+                                         xbins, ybins, zbins)
+    bckg      = average_in_bckg3d(img3d, bckg_sphere_r, r, phi0, phi_step, nphi,
+                                  x_size, y_size, z_size, xbins, ybins, zbins)
 
     return 1 - signal / bckg
+
+
+def snr2d(img2d : np.ndarray,
+          sig_sphere_r : float, r : float, phi : float,
+          bckg_sphere_r : float, phi0 : float, phi_step : float, nphi : int,
+          x_size : float, y_size : float,
+          xbins : int, ybins : int) -> float:
+    """
+    Calculates the signal to noise ratio of an image.
+    img2d: 2D np.array with the image.
+    sig_sphere_r: radius of the sphere of signal.
+    r: radial position of both signal and background spheres.
+    phi: angular position of signal sphere.
+    bckg_sphere_r: radius of the sphere of background.
+    phi0: angular position of first background sphere.
+    phi_step: angular step of background spheres.
+    nphi: number of backgrounds spheres used for average.
+    x_size, y_size, z_size: size of the image in length unit.
+    xbins, ybins, zbins: number of bins of the image.
+    """
+
+    signal, _    = mean_std_dev_in_sphere2d(img2d, sig_sphere_r, r, phi,
+                                            x_size, y_size, xbins, ybins)
+    bckg         = average_in_bckg2d(img2d, bckg_sphere_r, r,
+                                     phi0, phi_step, nphi,
+                                     x_size, y_size,  xbins, ybins)
+    std_dev_bckg = average_std_dev_in_bckg2d(img2d, bckg_sphere_r, r,
+                                             phi0, phi_step, nphi,
+                                             x_size, y_size, xbins, ybins)
+
+    return (signal - bckg) / std_dev_bckg
+
+
+def snr3d(img3d : np.ndarray,
+          sig_sphere_r : float, r : float, phi : float,
+          bckg_sphere_r : float, phi0 : float, phi_step : float, nphi : int,
+          x_size : float, y_size : float, z_size : float,
+          xbins : int, ybins : int, zbins : int) -> float:
+    """
+    Calculates the signal to noise ratio of an image.
+    img3d: 3D np.array with the image.
+    sig_sphere_r: radius of the sphere of signal.
+    r: radial position of both signal and background spheres.
+    phi: angular position of signal sphere.
+    bckg_sphere_r: radius of the sphere of background.
+    phi0: angular position of first background sphere.
+    phi_step: angular step of background spheres.
+    nphi: number of backgrounds spheres used for average.
+    x_size, y_size, z_size: size of the image in length unit.
+    xbins, ybins, zbins: number of bins of the image.
+    """
+
+    signal, _    = mean_std_dev_in_sphere3d(img3d, sig_sphere_r, r, phi,
+                                            x_size, y_size, z_size,
+                                            xbins, ybins, zbins)
+    bckg         = average_in_bckg3d(img3d, bckg_sphere_r, r,
+                                     phi0, phi_step, nphi,
+                                     x_size, y_size, z_size,
+                                     xbins, ybins, zbins)
+    std_dev_bckg = average_std_dev_in_bckg3d(img3d, bckg_sphere_r, r,
+                                             phi0, phi_step, nphi,
+                                             x_size, y_size, z_size,
+                                             xbins, ybins, zbins)
+
+    return (signal - bckg) / std_dev_bckg
