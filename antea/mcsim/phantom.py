@@ -12,8 +12,8 @@ def create_sphere(radius: float) -> np.ndarray:
         dimensions - there is likely a better way to do this.
     """
 
-    # Create a volume large enough to hold the sphere,
-    #  ensuring that the side length is evenly divisible by 2.
+    # Create a volume large enough to hold the cylinder, ensuring that all
+    #  side lengths are odd (so there exists a definite central voxel).
     s = np.rint(radius*2).astype('int')
     if(s % 2 == 0): s += 1
     vol = np.zeros([s,s,s])
@@ -47,7 +47,7 @@ def create_cylinder(radius: float, halfheight: float) -> np.ndarray:
     """
 
     # Create a volume large enough to hold the cylinder, ensuring that all
-    #  side lengths are evenly divisible by 2.
+    #  side lengths are odd (so there exists a definite central voxel).
     s = np.rint(radius*2).astype('int')
     if(s % 2 == 0): s += 1
     h = np.rint(halfheight*2).astype('int')
