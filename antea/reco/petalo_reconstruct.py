@@ -68,7 +68,7 @@ class PetaloReconstructor:
 
     def read_image(self, niter: int) -> np.ndarray:
         """
-        Reads a reconstructed image stored as "(prefix)_iter(niter).raw".
+        Reads a reconstructed image stored as "(prefix)(niter).raw".
 
         :param niter: the iteration number to be read
         """
@@ -80,7 +80,7 @@ class PetaloReconstructor:
         img_arr = np.zeros([xdim,ydim,zdim])
 
         # Open the file containing the reconstructed image.
-        fpath = "{}_iter{}.raw".format(self.prefix,niter)
+        fpath = "{}{}.raw".format(self.prefix,niter)
         if(os.path.isfile(fpath)):
 
             fimg = open(fpath,'rb')
