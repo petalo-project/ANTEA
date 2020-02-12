@@ -17,7 +17,7 @@ def test_create_sphere(rsphere):
 
     # Volume should be near theoretical volume, but a large tolerance is given
     #  due to edge effects.
-    assert np.isclose(np.sum(vsphere),4*np.pi*rsphere**3/3,atol=50)
+    assert np.isclose(np.sum(vsphere),4*np.pi*rsphere**3/3,rtol=1)
 
 @given(st.integers(min_value=1, max_value=8), st.integers(min_value=1, max_value=10))
 def test_create_cylinder(rcylinder, hhcylinder):
@@ -28,7 +28,7 @@ def test_create_cylinder(rcylinder, hhcylinder):
 
     # Volume should be near theoretical volume, but a large tolerance is given
     #  due to edge effects.
-    assert np.isclose(np.sum(vcylinder),np.pi*rcylinder**2*(2*hhcylinder),atol=150)
+    assert np.isclose(np.sum(vcylinder),np.pi*rcylinder**2*(2*hhcylinder),rtol=0.3)
 
 @given(st.integers(min_value=1, max_value=8))
 def test_phantom_add_to_vol(rsphere):
