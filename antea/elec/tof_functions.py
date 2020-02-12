@@ -49,9 +49,15 @@ def convolve_tof(spe_response: Sequence[float],
     return conv_res
 
 
-def tdc_convolution(tof_response: pd.DataFrame, spe_response: Sequence[float], time_window: float, n_sipms: int, first_sipm: int, te_tdc: float) -> Sequence[Sequence[float]]:
+def tdc_convolution(tof_response: pd.DataFrame,
+                    spe_response: Sequence[float],
+                    time_window: float,
+                    n_sipms: int,
+                    first_sipm: int,
+                    te_tdc: float) -> Sequence[Sequence[float]]:
     """
-    Apply the spe_response distribution to every sipm and returns a charge matrix of time and n_sipms dimensions.
+    Apply the spe_response distribution to every sipm and returns a charge
+    matrix of time and n_sipms dimensions.
     """
     pe_table = np.zeros((time_window, n_sipms))
     sel_tof  = tof_response[tof_response.time_bin < time_window]
@@ -65,7 +71,9 @@ def tdc_convolution(tof_response: pd.DataFrame, spe_response: Sequence[float], t
     return conv_table
 
 
-def translate_charge_matrix_to_wf_df(event_id: int, conv_table: Sequence[Sequence[float]], first_sipm: int) -> pd.DataFrame:
+def translate_charge_matrix_to_wf_df(event_id: int,
+                                     conv_table: Sequence[Sequence[float]],
+                                     first_sipm: int) -> pd.DataFrame:
     """
     Transform the charge matrix into a tof dataframe.
     """
