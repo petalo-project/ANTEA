@@ -78,5 +78,7 @@ def translate_charge_matrix_to_wf_df(event_id: int, conv_table: Sequence[Sequenc
     charge       = conv_tb_flat[conv_tb_flat>0]
     evt          = np.full(len(t_bin), event_id)
     a_wf         = np.array([evt, s_id, t_bin, charge])
-    wf_df        = pd.DataFrame(a_wf.T, columns=keys)
+    wf_df        = pd.DataFrame(a_wf.T, columns=keys).astype({'event_id': 'int32',
+                                                             'sensor_id': 'int32',
+                                                             'time_bin' : 'int32'})
     return wf_df
