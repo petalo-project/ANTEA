@@ -52,7 +52,8 @@ def run_fastfastmc(Nevts: int, phtm: phantom, errmat_r: errmat, errmat_phi: errm
     """
 
     # Pick a random number for the location of the emission point.
-    ievts = np.random.choice(len(phtm.cdist),Nevts,p=phtm.cdist)
+    pdist = phtm.get_pdist()
+    ievts = np.random.choice(len(pdist),Nevts,p=pdist)
 
     # Compute the cosines and sines of the axial angle.
     phis = np.random.uniform(size=Nevts)*2*np.pi

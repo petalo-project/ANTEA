@@ -153,6 +153,13 @@ class phantom:
         """
         return self.vol
 
+    def get_pdist(self) -> np.ndarray:
+        """
+        Return the probability distribution (the normalized, flattened volume).
+        """
+        nvol = self.vol.astype('float64') / np.sum(self.vol)
+        return nvol.flatten()
+
     def get_cdist(self) -> np.ndarray:
         """
         Return the cumulative distribution.

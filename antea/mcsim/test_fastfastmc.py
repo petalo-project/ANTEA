@@ -14,7 +14,7 @@ def test_run_fastfastmc(ANTEADATADIR):
 
     # Construct the phantom object.
     PATH_PHANTOM = os.path.join(ANTEADATADIR, 'phantom_NEMAlike.npz')
-    phtm = phantom(PATH_PHANTOM)
+    phtm = phantom(phantom_file=PATH_PHANTOM)
 
     # Construct the error matrix objects.
     PATH_ERRMAT_R = os.path.join(ANTEADATADIR, 'errmat_r.npz')
