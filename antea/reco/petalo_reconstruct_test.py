@@ -6,7 +6,7 @@ def test_read_image():
     """
     Tests the ``read_image`` function of class PetaloReconstructor.
     """
-    rec = preco.PetaloReconstructor(libpath="{}/../anteacpp/libPETALO.so".format(os.environ['ANTEADIR']))
+    rec = preco.PetaloReconstructor(libpath="{}../anteacpp/libPETALO.so".format(os.environ['ANTEADIR']))
     rec.img_size_xy = 180.0
     rec.img_size_z = 180.0
     rec.img_nvoxels_xy = 60
@@ -14,7 +14,7 @@ def test_read_image():
     rec.prefix = "{}testdata/reconstruction_NEMA_test".format(os.environ['ANTEADIR'])
     img = rec.read_image(4)
 
-    assert(img.shape == (60,60,60))
+    assert(img.shape == (rec.img_nvoxels_xy,rec.img_nvoxels_xy,rec.img_nvoxels_z))
 
 @pytest.mark.skipif(not os.path.isfile("{}/../anteacpp/libPETALO.so".format(os.environ['ANTEADIR'])), reason="Reconstruction C++ library not found")
 def test_reconstruct():
