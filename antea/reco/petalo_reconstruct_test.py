@@ -2,6 +2,7 @@ import os
 import pytest
 import antea.reco.petalo_reconstruct as preco
 
+@pytest.mark.skipif(not os.path.isfile("{}/../anteacpp/libPETALO.so".format(os.environ['ANTEADIR'])), reason="Reconstruction C++ library not found")
 def test_read_image():
     """
     Tests the ``read_image`` function of class PetaloReconstructor.
