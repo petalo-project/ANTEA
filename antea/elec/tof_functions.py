@@ -4,24 +4,34 @@ import pandas as pd
 from typing import Sequence, Tuple
 
 
-def spe_dist(time: Sequence[float]) -> Sequence[float]:
+def apply_spe_dist(time: np.array) -> Tuple[np.array, float]:
     """
-    Double exponential decay for the sipm response. Returns a normalized array.
+    Returns a normalized array following the double exponential
+    distribution of the sipm response.
     """
-    alfa         = 1.0/15000
-    beta         = 1.0/100
-    t_p          = np.log(beta/alfa)/(beta-alfa)
-    K            = (beta)*np.exp(alfa*t_p)/(beta-alfa)
-    spe_response = K*(np.exp(-alfa*time)-np.exp(-beta*time))
+    spe_response = spe_dist(time)
     if np.sum(spe_response) == 0:
         return np.zeros(len(time)), 0.
     norm_dist    = np.sum(spe_response)
     spe_response = spe_response/norm_dist #Normalization
-
     return spe_response, norm_dist
 
 
-def convolve_tof(spe_response: Sequence[float], signal: Sequence[float]) -> Sequence[float]:
+def spe_dist(time: np.array) -> np.array:
+    """
+    Analitic function that calculates the double exponential decay for
+    the sipm response.
+    """
+    alfa      = 1.0/15000
+    beta      = 1.0/100
+    t_p       = np.log(beta/alfa)/(beta-alfa)
+    K         = (beta)*np.exp(alfa*t_p)/(beta-alfa)
+    time_dist = K*(np.exp(-alfa*time)-np.exp(-beta*time))
+    return time_dist
+
+
+def convolve_tof(spe_response: Sequence[float],
+                 signal: Sequence[float]) -> Sequence[float]:
     """
     Apply the spe_response distribution to the given signal.
     """

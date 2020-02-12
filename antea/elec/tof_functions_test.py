@@ -11,16 +11,28 @@ from antea.elec     import tof_functions   as tf
 l = st.lists(st.integers(min_value=1, max_value=10000), min_size=2, max_size=1000)
 
 @given(l)
-def test_spe_dist(l):
+def test_apply_spe_dist(l):
     """
-    This test checks that the function spe_dist returns an array with the distribution value for each time.
+    This test checks that the function apply_spe_dist returns an array with the distribution value for each time.
     """
     l = np.array(l)
-    exp_dist, norm_dist = tf.spe_dist(np.unique(l))
+    exp_dist, norm_dist = tf.apply_spe_dist(np.unique(l))
 
     assert len(exp_dist) == len(np.unique(l))
     assert (exp_dist >= 0.).all()
     assert np.isclose(np.sum(exp_dist), 1)
+
+
+@mark.parametrize('time, time_dist',
+                  ((  0, 0),
+                   (100, 0.65120889),
+                   (np.array([1,2,3]), np.array([0.01029012, 0.02047717, 0.03056217]))))
+def test_spe_dist(time, time_dist):
+    """
+    Spe_dist is an analitic function, so this test takes some values and checks that the function returns the correct value for each one.
+    """
+    result = tf.spe_dist(time)
+    assert np.all(result) == np.all(time_dist)
 
 
 s = st.lists(st.integers(min_value=1, max_value=10000), min_size=2, max_size=1000)
@@ -30,7 +42,7 @@ def test_convolve_tof(l, s):
     """
     Check that the function convolve_tof returns an array with the adequate length, and, in case the array is not empty, checks that the convoluted signal is normalizated to the initial signal.
     """
-    spe_response, norm = tf.spe_dist(np.unique(np.array(l)))
+    spe_response, norm = tf.apply_spe_dist(np.unique(np.array(l)))
     conv_res           = tf.convolve_tof(spe_response, np.array(s))
     assert len(conv_res) == len(spe_response) + len(s) - 1
     if np.count_nonzero(spe_response):
