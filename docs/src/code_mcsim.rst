@@ -53,5 +53,7 @@ MC utilities
 .. automodule:: antea.mcsim.errmat3d
    :members:
 
+Functions for creating basic phantoms
+-------------------------------------
 .. automodule:: antea.mcsim.phantom
    :members:
