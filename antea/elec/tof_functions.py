@@ -62,22 +62,16 @@ def tdc_convolution(tof_response: pd.DataFrame,
     return tdc_conv
 
 
-def translate_charge_matrix_to_wf_df(event_id: int,
-                                     conv_table: Sequence[Sequence[float]],
-                                     first_sipm: int) -> pd.DataFrame:
-    """
-    Transform the charge matrix into a tof dataframe.
-    """
-    keys         = np.array(['event_id', 'sensor_id', 'time_bin', 'charge'])
-    if np.all(conv_table==0):
-        return pd.DataFrame({}, columns=keys)
-    t_bin, s_id  = np.where(conv_table>0)
-    s_id         = - s_id - first_sipm
-    conv_tb_flat = conv_table.flatten()
-    charge       = conv_tb_flat[conv_tb_flat>0]
-    evt          = np.full(len(t_bin), event_id)
-    a_wf         = np.array([evt, s_id, t_bin, charge])
-    wf_df        = pd.DataFrame(a_wf.T, columns=keys).astype({'event_id': 'int32',
-                                                             'sensor_id': 'int32',
-                                                             'time_bin' : 'int32'})
+def translate_charge_conv_to_wf_df(event_id: int,
+                                   s_id: int,
+                                   conv_vect: Sequence[float]) -> pd.DataFrame:
+    keys        = np.array(['event_id', 'sensor_id', 'time_bin', 'charge'])
+    t_bin       = np.where(conv_vect>0)[0]
+    charge      = conv_vect[conv_vect>0]
+    evt         = np.full(len(t_bin), event_id)
+    sns_id_full = np.full(len(t_bin), s_id)
+    a_wf        = np.array([evt, sns_id_full, t_bin, charge])
+    wf_df       = pd.DataFrame(a_wf.T, columns=keys).astype({'event_id': 'int32',
+                                                            'sensor_id': 'int32',
+                                                            'time_bin' : 'int32'})
     return wf_df

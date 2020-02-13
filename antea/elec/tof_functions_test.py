@@ -75,12 +75,23 @@ def test_tdc_convolution(ANTEADATADIR, filename):
                             (tof_response.time_bin > time_window)]) == 0:
                 assert np.count_nonzero(tdc_conv) > 0
 
+
+e     = st.integers(min_value=0,     max_value= 1000)
+s_id  = st.integers(min_value=-3500, max_value=-1000)
+l2    = st.lists(st.floats(min_value=0, max_value=1000), min_size=2, max_size=100)
+
+@given(e, s_id, l2)
+def test_translate_charge_conv_to_wf_df(e, s_id, l2):
+    """
+    Look whether the translate_charge_conv_to_wf_df function returns a dataframe with the same number of rows as the input numpy array and four columns. Three of this columns must contain integers.
+    """
     l2    = np.array(l2)
-    col   = np.reshape(l1, (l1.shape[0], 1))
-    row   = np.reshape(l2, (1, l2.shape[0]))
-    matrx = col*row
-    wf_df = tf.translate_charge_matrix_to_wf_df(e, matrx, f)
-    assert len(wf_df) == np.count_nonzero(matrx)
+    wf_df = tf.translate_charge_conv_to_wf_df(e, s_id, l2)
+    assert len(wf_df) == np.count_nonzero(l2)
     assert len(wf_df.keys()) == 4
-    if np.count_nonzero(matrx) == 0:
+    if np.count_nonzero(l2) == 0:
         assert wf_df.empty
+    else:
+        assert wf_df.event_id .dtype == 'int32'
+        assert wf_df.sensor_id.dtype == 'int32'
+        assert wf_df.time_bin .dtype == 'int32'
