@@ -4,6 +4,7 @@ import pandas                as pd
 import hypothesis.strategies as st
 
 from hypothesis     import given
+from pytest         import mark
 from antea.io.mc_io import load_mcTOFsns_response
 from antea.elec     import tof_functions   as tf
 
@@ -49,38 +50,31 @@ def test_convolve_tof(l, s):
         assert np.isclose(np.sum(s), np.sum(conv_res))
 
 
-def test_tdc_convolution(ANTEADATADIR):
+@mark.parametrize('filename',
+                  (('ring_test.h5'),
+                   ('full_body_1ev.h5')))
+def test_tdc_convolution(ANTEADATADIR, filename):
     """
-    Check that the function tdc_convolution returns a table with the adequate dimentions and in case the tof dataframe is empty, checks that the table only contains zeros.
+    Check that the function tdc_convolution returns a table with the adequate dimensions and in case the tof dataframe is empty, checks that the table only contains zeros.
     """
-    PATH_IN        = os.path.join(ANTEADATADIR, 'ring_test_1000ev.h5')
+    PATH_IN        = os.path.join(ANTEADATADIR, filename)
     tof_response   = load_mcTOFsns_response(PATH_IN)
-    SIPM           = {'n_sipms':3500, 'first_sipm':1000}
-    n_sipms        = SIPM['n_sipms']
-    first_sipm     = SIPM['first_sipm']
-    TE_range       = [0.25]
-    TE_TDC         = TE_range[0]
+    events         = tof_response.event_id.unique()
+    te_tdc         = 0.25
     time_window    = 10000
     time_bin       = 5
     time           = np.arange(0, 80000, time_bin)
-    spe_resp, norm = tf.spe_dist(time)
-    tdc_conv_table = tf.tdc_convolution(tof_response, spe_resp, time_window, n_sipms, first_sipm, TE_TDC)
-    assert tdc_conv_table.shape == (time_window + len(spe_resp)-1, n_sipms)
+    spe_resp, norm = tf.apply_spe_dist(time)
+    for evt in events:
+        evt_tof = tof_response[tof_response.event_id == evt]
+        tof_sns = evt_tof.sensor_id.unique()
+        for s_id in tof_sns:
+            tdc_conv = tf.tdc_convolution(tof_response, spe_resp, s_id, time_window, te_tdc)
+            assert len(tdc_conv) == time_window + len(spe_resp) - 1
+            if len(tof_response[(tof_response.sensor_id == s_id) &
+                            (tof_response.time_bin > time_window)]) == 0:
+                assert np.count_nonzero(tdc_conv) > 0
 
-    keys                 = np.array(['event_id', 'sensor_id', 'time_bin', 'charge'])
-    wf_df                = pd.DataFrame({}, columns=keys)
-    tdc_conv_table_zeros = tf.tdc_convolution(wf_df, spe_resp, time_window, n_sipms, first_sipm, TE_TDC)
-    assert np.all(tdc_conv_table_zeros==0)
-
-
-l1 = st.lists(st.floats(min_value=0, max_value=1000), min_size=2, max_size=100)
-l2 = st.lists(st.floats(min_value=0, max_value=1000), min_size=2, max_size=100)
-e  = st.floats(min_value=0, max_value=1000)
-f  = st.floats(min_value=0, max_value=1000)
-
-@given(l1, l2, e, f)
-def test_translate_charge_matrix_to_wf_df(l1, l2, e, f):
-    l1    = np.array(l1)
     l2    = np.array(l2)
     col   = np.reshape(l1, (l1.shape[0], 1))
     row   = np.reshape(l2, (1, l2.shape[0]))

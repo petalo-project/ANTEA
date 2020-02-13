@@ -51,24 +51,15 @@ def convolve_tof(spe_response: Sequence[float],
 
 def tdc_convolution(tof_response: pd.DataFrame,
                     spe_response: Sequence[float],
+                    s_id: int,
                     time_window: float,
-                    n_sipms: int,
-                    first_sipm: int,
-                    te_tdc: float) -> Sequence[Sequence[float]]:
-    """
-    Apply the spe_response distribution to every sipm and returns a charge
-    matrix of time and n_sipms dimensions.
-    """
-    pe_table = np.zeros((time_window, n_sipms))
-    sel_tof  = tof_response[tof_response.time_bin < time_window]
-    s_ids    = - sel_tof.sensor_id.values - first_sipm
-    pe_table[sel_tof.time_bin.values, s_ids] = sel_tof.charge.values
-
-    conv_table = np.zeros((len(pe_table) + len(spe_response)-1, n_sipms))
-    for i in range(n_sipms):
-        if np.count_nonzero(pe_table[:,i]):
-            conv_table[:,i] = convolve_tof(spe_response, pe_table[0:time_window,i])
-    return conv_table
+                    te_tdc: float) -> Sequence[float]:
+    pe_vect = np.zeros(time_window)
+    sel_tof = tof_response[(tof_response.sensor_id == s_id) &
+                           (tof_response.time_bin < time_window)]
+    pe_vect[sel_tof.time_bin.values] = sel_tof.charge.values
+    tdc_conv = convolve_tof(spe_response, pe_vect)
+    return tdc_conv
 
 
 def translate_charge_matrix_to_wf_df(event_id: int,
