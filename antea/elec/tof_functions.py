@@ -33,7 +33,7 @@ def spe_dist(time: np.array) -> np.array:
 def convolve_tof(spe_response: Sequence[float],
                  signal: Sequence[float]) -> Sequence[float]:
     """
-    Apply the spe_response distribution to the given signal.
+    Computes the spe_response distribution for the given signal.
     """
     if not np.count_nonzero(spe_response):
         print('spe_response values are zero')
@@ -54,6 +54,9 @@ def tdc_convolution(tof_response: pd.DataFrame,
                     s_id: int,
                     time_window: float,
                     te_tdc: float) -> Sequence[float]:
+    """
+    Calculates the tof convolution along the time window for the given sensor_id.
+    """
     pe_vect = np.zeros(time_window)
     sel_tof = tof_response[(tof_response.sensor_id == s_id) &
                            (tof_response.time_bin < time_window)]
@@ -65,6 +68,9 @@ def tdc_convolution(tof_response: pd.DataFrame,
 def translate_charge_conv_to_wf_df(event_id: int,
                                    s_id: int,
                                    conv_vect: Sequence[float]) -> pd.DataFrame:
+    """
+    Translates a given numpy array into a tof type dataframe.
+    """
     keys        = np.array(['event_id', 'sensor_id', 'time_bin', 'charge'])
     t_bin       = np.where(conv_vect>0)[0]
     charge      = conv_vect[conv_vect>0]
