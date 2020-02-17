@@ -112,7 +112,7 @@ def assign_sipms_to_gammas(sns_response: pd.DataFrame,
     if 'SensorID' in DataSiPM_idx.columns:
         DataSiPM_idx = DataSiPM_idx.set_index('SensorID')
     sipms           = DataSiPM_idx.loc[sns_response.sensor_id]
-    sns_ids         = sipms.index.values
+    sns_ids         = sipms.index.astype('int64').values
     sns_closest_pos = [np.array([find_closest_sipm(pos, sipms).X,
                                  find_closest_sipm(pos, sipms).Y,
                                  find_closest_sipm(pos, sipms).Z])
@@ -307,7 +307,7 @@ def reconstruct_coincidences(sns_response: pd.DataFrame,
     max_pos  = np.array([max_sipm.X.values, max_sipm.Y.values, max_sipm.Z.values]).transpose()[0]
 
     sipms         = DataSiPM_idx.loc[sns_response.sensor_id]
-    sns_ids       = sipms.index.values
+    sns_ids       = sipms.index.astype('int64').values
     sns_positions = np.array([sipms.X.values, sipms.Y.values, sipms.Z.values]).transpose()
     sns_charges   = sns_response.charge
 
@@ -322,10 +322,8 @@ def reconstruct_coincidences(sns_response: pd.DataFrame,
         return [], [], [], [], None, None, None, None, None, None, None, None
 
     ### TOF
-    sns1 = -np.array(sns1)
-    sns2 = -np.array(sns2)
-    min1, min_tof1 = find_first_time_of_sensors(tof_response, sns1)
-    min2, min_tof2 = find_first_time_of_sensors(tof_response, sns2)
+    min1, min_tof1 = find_first_time_of_sensors(tof_response, -sns1)
+    min2, min_tof2 = find_first_time_of_sensors(tof_response, -sns2)
 
     true_pos1, true_pos2, true_t1, true_t2, _, _ = find_first_interactions_in_active(particles, hits)
 
