@@ -3,6 +3,8 @@ import pandas as pd
 
 from . mctrue_functions import find_hits_of_given_particles
 
+from antea.core.exceptions import WaveformEmptyTable
+
 from typing import Sequence, Tuple
 
 
@@ -193,6 +195,8 @@ def find_first_time_of_sensors(tof_response: pd.DataFrame,
     min_t  = tof.time_bin.min()
     min_df = tof[tof.time_bin == min_t]
 
+    if len(min_df)==0:
+        raise WaveformEmptyTable("Tof dataframe is empty")
     if len(min_df)>1:
         min_id = min_df[min_df.sensor_id == min_df.sensor_id.min()].sensor_id.values[0]
     else:
