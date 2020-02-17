@@ -274,6 +274,38 @@ def test_find_first_time_of_sensors(ANTEADATADIR):
             assert rf.lower_or_equal(time_from_id, t)
 
 
+def test_change_unsigned_type_sipm(ANTEADATADIR):
+    """
+    Fails when database sensor id values are unsigned.
+    """
+    PATH_IN      = os.path.join(ANTEADATADIR, 'ring_test_1000ev.h5')
+    hits         = load_mchits           (PATH_IN)
+    particles    = load_mcparticles      (PATH_IN)
+    sns_response = load_mcsns_response   (PATH_IN)
+    tof_response = load_mcTOFsns_response(PATH_IN).astype('float64')
+    events       = particles.event_id.unique()
+    charge_range = (1000, 1400)
+    for evt in events[:]:
+        evt_sns = sns_response[sns_response.event_id == evt]
+        evt_sns = rf.find_SiPMs_over_threshold(evt_sns, threshold=2)
+        if len(evt_sns) == 0:
+            continue
+
+        evt_parts = particles   [particles   .event_id == evt]
+        evt_hits  = hits        [hits        .event_id == evt]
+        evt_tof   = tof_response[tof_response.event_id == evt]
+
+        pos1, pos2, q1, q2, _, _, _, _, _, _, _, _ = rf.reconstruct_coincidences(evt_sns,
+                                                                                 evt_tof,
+                                                                                 charge_range,
+                                                                                 DataSiPM_idx,
+                                                                                 evt_parts,
+                                                                                 evt_hits)
+        if len(pos1)!=0 and len(pos2)!=0:
+            assert len(pos1) == len(q1)
+            assert len(pos2) == len(q2)
+
+
 def test_select_coincidences(ANTEADATADIR):
     """
     This test checks that the function reconstruct_coincidences returns the
