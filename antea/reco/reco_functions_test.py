@@ -6,14 +6,16 @@ import hypothesis.strategies as st
 
 from hypothesis  import given
 from hypothesis  import assume
+from pytest      import raises
 from .           import reco_functions   as rf
 from .           import mctrue_functions as mcf
 from .. database import load_db          as db
 
-from .. io.mc_io import load_mchits
-from .. io.mc_io import load_mcparticles
-from .. io.mc_io import load_mcsns_response
-from .. io.mc_io import load_mcTOFsns_response
+from .. io  .mc_io      import load_mchits
+from .. io  .mc_io      import load_mcparticles
+from .. io  .mc_io      import load_mcsns_response
+from .. io  .mc_io      import load_mcTOFsns_response
+from .. core.exceptions import WaveformEmptyTable
 
 
 DataSiPM     = db.DataSiPM('petalo', 0)
@@ -272,6 +274,21 @@ def test_find_first_time_of_sensors(ANTEADATADIR):
         for t in times:
             assert rf.lower_or_equal(result[1], t)
             assert rf.lower_or_equal(time_from_id, t)
+
+
+l = st.lists(st.integers(min_value=-10000, max_value=-1000), min_size=1, max_size=5)
+
+@given(l)
+def test_find_first_time_of_sensors_raises_WaveformEmptyTable(l):
+    """
+    Tests that function find_first_time_of_sensors raises an exception
+    if input tof is empty.
+    """
+    keys  = np.array(['event_id', 'sensor_id', 'time_bin', 'charge'])
+    wf_df = pd.DataFrame({}, columns = keys)
+
+    with raises(WaveformEmptyTable):
+        rf.find_first_time_of_sensors(wf_df, l)
 
 
 def test_change_unsigned_type_sipm(ANTEADATADIR):
