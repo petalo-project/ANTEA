@@ -25,8 +25,9 @@ For image reconstruction, we use a :ref:`3D MLEM algorithm <imgreco>`.
 
 Examples
 --------
-* `Image reconstruction with fast-fast MC <https://github.com/nextic/ANTEA/blob/master/docs/examples/petalo_reconstruction_fastfastmc_example.ipynb>`_
-* `Creation of a NEMA phantom <https://github.com/nextic/ANTEA/blob/master/docs/examples/phantom_NEMA_example.ipynb>`_
+* `TOF computation in the PETALO electronics <https://github.com/nextic/ANTEANB/blob/master/elec/TOF_compute_demo.ipynb>`_
+* `Image reconstruction with fast-fast MC <https://github.com/nextic/ANTEANB/blob/master/fastfastmc/petalo_reconstruction_fastfastmc_example.ipynb>`_
+* `Creation of a NEMA phantom <https://github.com/nextic/ANTEANB/blob/master/phantom/phantom_NEMA_example.ipynb>`_
 
 Code reference
 --------------
