@@ -21,6 +21,8 @@ image can be performed in three different ways:
 2. :ref:`Fast simulation: NEXUS --> Fast MC --> Image Reco <fastmc>`
 3. :ref:`Fast-fast simulation: Fast-fast MC --> Image Reco <fastfastmc>`
 
+For image reconstruction, we use a :ref:`3D MLEM algorithm <imgreco>`.
+
 Examples
 --------
 * `Image reconstruction with fast-fast MC <https://github.com/nextic/ANTEA/blob/master/docs/examples/petalo_reconstruction_fastfastmc_example.ipynb>`_
