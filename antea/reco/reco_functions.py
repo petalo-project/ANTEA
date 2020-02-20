@@ -192,11 +192,12 @@ def find_first_time_of_sensors(tof_response: pd.DataFrame,
     are returned.
     """
     tof = tof_response[tof_response.sensor_id.isin(sns_ids)]
+    if tof.empty:
+        raise WaveformEmptyTable("Tof dataframe is empty")
+
     min_t  = tof.time_bin.min()
     min_df = tof[tof.time_bin == min_t]
 
-    if len(min_df)==0:
-        raise WaveformEmptyTable("Tof dataframe is empty")
     if len(min_df)>1:
         min_id = min_df[min_df.sensor_id == min_df.sensor_id.min()].sensor_id.values[0]
     else:
