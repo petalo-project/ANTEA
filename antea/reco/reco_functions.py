@@ -3,6 +3,8 @@ import pandas as pd
 
 from . mctrue_functions import find_hits_of_given_particles
 
+from antea.core.exceptions import WaveformEmptyTable
+
 from typing import Sequence, Tuple
 
 
@@ -83,13 +85,13 @@ def divide_sipms_in_two_hemispheres(sns_ids: Sequence[int],
         if scalar_prod > 0.:
             q1  .append(charge)
             pos1.append(sns_pos)
-            id1.append(sns_id)
+            id1 .append(sns_id)
         else:
             q2  .append(charge)
             pos2.append(sns_pos)
-            id2.append(sns_id)
+            id2 .append(sns_id)
 
-    return id1, id2, pos1, pos2, np.array(q1), np.array(q2)
+    return np.array(id1), np.array(id2), np.array(pos1), np.array(pos2), np.array(q1), np.array(q2)
 
 
 
@@ -112,7 +114,7 @@ def assign_sipms_to_gammas(sns_response: pd.DataFrame,
     if 'SensorID' in DataSiPM_idx.columns:
         DataSiPM_idx = DataSiPM_idx.set_index('SensorID')
     sipms           = DataSiPM_idx.loc[sns_response.sensor_id]
-    sns_ids         = sipms.index.values
+    sns_ids         = sipms.index.astype('int64').values
     sns_closest_pos = [np.array([find_closest_sipm(pos, sipms).X,
                                  find_closest_sipm(pos, sipms).Y,
                                  find_closest_sipm(pos, sipms).Z])
@@ -190,6 +192,9 @@ def find_first_time_of_sensors(tof_response: pd.DataFrame,
     are returned.
     """
     tof = tof_response[tof_response.sensor_id.isin(sns_ids)]
+    if tof.empty:
+        raise WaveformEmptyTable("Tof dataframe is empty")
+
     min_t  = tof.time_bin.min()
     min_df = tof[tof.time_bin == min_t]
 
@@ -307,7 +312,7 @@ def reconstruct_coincidences(sns_response: pd.DataFrame,
     max_pos  = np.array([max_sipm.X.values, max_sipm.Y.values, max_sipm.Z.values]).transpose()[0]
 
     sipms         = DataSiPM_idx.loc[sns_response.sensor_id]
-    sns_ids       = sipms.index.values
+    sns_ids       = sipms.index.astype('int64').values
     sns_positions = np.array([sipms.X.values, sipms.Y.values, sipms.Z.values]).transpose()
     sns_charges   = sns_response.charge
 
@@ -322,10 +327,8 @@ def reconstruct_coincidences(sns_response: pd.DataFrame,
         return [], [], [], [], None, None, None, None, None, None, None, None
 
     ### TOF
-    sns1 = -np.array(sns1)
-    sns2 = -np.array(sns2)
-    min1, min_tof1 = find_first_time_of_sensors(tof_response, sns1)
-    min2, min_tof2 = find_first_time_of_sensors(tof_response, sns2)
+    min1, min_tof1 = find_first_time_of_sensors(tof_response, -sns1)
+    min2, min_tof2 = find_first_time_of_sensors(tof_response, -sns2)
 
     true_pos1, true_pos2, true_t1, true_t2, _, _ = find_first_interactions_in_active(particles, hits)
 
