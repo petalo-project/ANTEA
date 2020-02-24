@@ -236,12 +236,12 @@ def crc_hot3d(img3d : np.ndarray, true_signal : float, true_bckg : float,
 
 
 def crc_cold2d(img2d : np.ndarray, sig_sphere_r : float, r : float, phi : float,
-               bckg_sphere_r : float, phi0 : float, phi_step : float, nphi : int,
-               x_size : float, y_size : float, xbins : int, ybins : int) -> float:
+               bckg_sphere_r : float, phi0 : float, phi_step : float,
+               nphi : int, x_size : float, y_size : float, xbins : int,
+               ybins : int) -> float:
     """
     Calculates the contrast_recovery_coefficent of an image.
     img2d: 2D np.array with the image.
-    max_intensity: maximum value of original image pixels.
     sig_sphere_r: radius of the sphere of signal.
     r: radial position of both signal and background spheres.
     phi: angular position of signal sphere.
@@ -262,13 +262,12 @@ def crc_cold2d(img2d : np.ndarray, sig_sphere_r : float, r : float, phi : float,
 
 
 def crc_cold3d(img3d : np.ndarray, sig_sphere_r : float, r : float, phi : float,
-               bckg_sphere_r : float, phi0 : float, phi_step : float, nphi : int,
-               x_size : float, y_size : float, z_size : float,
+               bckg_sphere_r : float, phi0 : float, phi_step : float,
+               nphi : int, x_size : float, y_size : float, z_size : float,
                xbins : int, ybins : int, zbins : int) -> float:
     """
     Calculates the contrast_recovery_coefficent of an image.
     img3d: 3D np.array with the image.
-    max_intensity: maximum value of original image pixels.
     sig_sphere_r: radius of the sphere of signal.
     r: radial position of both signal and background spheres.
     phi: angular position of signal sphere.
@@ -276,8 +275,8 @@ def crc_cold3d(img3d : np.ndarray, sig_sphere_r : float, r : float, phi : float,
     phi0: angular position of first background sphere.
     phi_step: angular step of background spheres.
     nphi: number of backgrounds spheres used for average.
-    x_size, y_size: size of the image in length unit.
-    xbins, ybins: number of bins of the image.
+    x_size, y_size, z_size: size of the image in length unit.
+    xbins, ybins, zbins: number of bins of the image.
     """
 
     signal, _ = mean_std_dev_in_sphere3d(img3d, sig_sphere_r, r, phi,
@@ -304,8 +303,8 @@ def snr2d(img2d : np.ndarray,
     phi0: angular position of first background sphere.
     phi_step: angular step of background spheres.
     nphi: number of backgrounds spheres used for average.
-    x_size, y_size, z_size: size of the image in length unit.
-    xbins, ybins, zbins: number of bins of the image.
+    x_size, y_size: size of the image in length unit.
+    xbins, ybins: number of bins of the image.
     """
 
     signal, _    = mean_std_dev_in_sphere2d(img2d, sig_sphere_r, r, phi,
