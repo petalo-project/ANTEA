@@ -36,6 +36,7 @@ Code reference
 
    src/code_mcsim
    src/code_reconstruction
+   src/code_image
    src/code_utils
 
 

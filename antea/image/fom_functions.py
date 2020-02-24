@@ -326,16 +326,16 @@ def snr3d(img3d : np.ndarray,
           xbins : int, ybins : int, zbins : int) -> float:
     """
     Calculates the signal to noise ratio of an image.
-    img3d: 3D np.array with the image.
-    sig_sphere_r: radius of the sphere of signal.
-    r: radial position of both signal and background spheres.
-    phi: angular position of signal sphere.
-    bckg_sphere_r: radius of the sphere of background.
-    phi0: angular position of first background sphere.
-    phi_step: angular step of background spheres.
-    nphi: number of backgrounds spheres used for average.
-    x_size, y_size, z_size: size of the image in length unit.
-    xbins, ybins, zbins: number of bins of the image.
+    :param img3d: 3D np.array with the image.
+    :param sig_sphere_r: radius of the sphere of signal.
+    :param r: radial position of both signal and background spheres.
+    :param phi: angular position of signal sphere.
+    :param bckg_sphere_r: radius of the sphere of background.
+    :param phi0: angular position of first background sphere.
+    :param phi_step: angular step of background spheres.
+    :param nphi: number of backgrounds spheres used for average.
+    :param x_size, y_size, z_size: size of the image in length unit.
+    :param xbins, ybins, zbins: number of bins of the image.
     """
 
     signal, _    = mean_std_dev_in_sphere3d(img3d, sig_sphere_r, r, phi,
