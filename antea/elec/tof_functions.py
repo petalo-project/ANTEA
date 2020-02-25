@@ -4,25 +4,40 @@ import pandas as pd
 from typing import Sequence, Tuple
 
 
-def spe_dist(time: Sequence[float]) -> Sequence[float]:
+def apply_spe_dist(time: np.array) -> Tuple[np.array, float]:
     """
-    Double exponential decay for the sipm response. Returns a normalized array.
+    Returns a normalized array following the double exponential
+    distribution of the sipm response.
     """
-    alfa         = 1.0/15000
-    beta         = 1.0/100
-    t_p          = np.log(beta/alfa)/(beta-alfa)
-    K            = (beta)*np.exp(alfa*t_p)/(beta-alfa)
-    spe_response = K*(np.exp(-alfa*time)-np.exp(-beta*time))
+    spe_response = spe_dist(time)
     if np.sum(spe_response) == 0:
-        return np.zeros(len(time))
-    spe_response = spe_response/np.sum(spe_response) #Normalization
-    return spe_response
+        return np.zeros(len(time)), 0.
+    norm_dist    = np.sum(spe_response)
+    spe_response = spe_response/norm_dist #Normalization
+    return spe_response, norm_dist
 
 
-def convolve_tof(spe_response: Sequence[float], signal: Sequence[float]) -> Sequence[float]:
+def spe_dist(time: np.array) -> np.array:
     """
-    Apply the spe_response distribution to the given signal.
+    Analitic function that calculates the double exponential decay for
+    the sipm response.
     """
+    alfa      = 1.0/15000
+    beta      = 1.0/100
+    t_p       = np.log(beta/alfa)/(beta-alfa)
+    K         = (beta)*np.exp(alfa*t_p)/(beta-alfa)
+    time_dist = K*(np.exp(-alfa*time)-np.exp(-beta*time))
+    return time_dist
+
+
+def convolve_tof(spe_response: Sequence[float],
+                 signal: Sequence[float]) -> Sequence[float]:
+    """
+    Computes the spe_response distribution for the given signal.
+    """
+    if not np.count_nonzero(spe_response):
+        print('spe_response values are zero')
+        return np.zeros(len(spe_response)+len(signal)-1)
     conv_first = np.hstack([spe_response, np.zeros(len(signal)-1)])
     conv_res   = np.zeros(len(signal)+len(spe_response)-1)
     pe_pos     = np.argwhere(signal > 0)
@@ -34,35 +49,35 @@ def convolve_tof(spe_response: Sequence[float], signal: Sequence[float]) -> Sequ
     return conv_res
 
 
-def tdc_convolution(tof_response: pd.DataFrame, spe_response: Sequence[float], time_window: float, n_sipms: int, first_sipm: int, te_tdc: float) -> Sequence[Sequence[float]]:
+def tdc_convolution(tof_response: pd.DataFrame,
+                    spe_response: Sequence[float],
+                    s_id: int,
+                    time_window: float,
+                    te_tdc: float) -> Sequence[float]:
     """
-    Apply the spe_response distribution to every sipm and returns a charge matrix of time and n_sipms dimensions.
+    Calculates the tof convolution along the time window for the given sensor_id.
     """
-    pe_table  = np.zeros((time_window, n_sipms))
-    for i, wf in tof_response.iterrows():
-        if wf.time_bin < time_window:
-            s_id = - wf.sensor_id - first_sipm
-            pe_table[wf.time_bin, s_id] = wf.charge
+    pe_vect = np.zeros(time_window)
+    sel_tof = tof_response[(tof_response.sensor_id == s_id) &
+                           (tof_response.time_bin < time_window)]
+    pe_vect[sel_tof.time_bin.values] = sel_tof.charge.values
+    tdc_conv = convolve_tof(spe_response, pe_vect)
+    return tdc_conv
 
-    conv_table = np.zeros((len(pe_table) + len(spe_response)-1, n_sipms))
-    for i in range(n_sipms):
-        if np.count_nonzero(pe_table[:,i]):
-            conv_table[:,i] = convolve_tof(spe_response, pe_table[0:time_window,i])
-    return conv_table
 
-
-def translate_charge_matrix_to_wf_df(conv_table: Sequence[Sequence[float]]) -> pd.DataFrame:
+def translate_charge_conv_to_wf_df(event_id: int,
+                                   s_id: int,
+                                   conv_vect: Sequence[float]) -> pd.DataFrame:
     """
-    Transform the charge matrix into a tof dataframe.
+    Translates a given numpy array into a tof type dataframe.
     """
-    list_wf = []
-    for t in range(len(conv_table)):
-        for s_id in range(conv_table.shape[1]):
-            charge = conv_table[t,s_id]
-            s_id = - s_id - first_sipm
-            if charge > 0.:
-                list_wf.append(np.array([evt, s_id, t, charge]))
-    a_wf  = np.array(list_wf)
-    keys  = np.array(['event_id', 'sensor_id', 'time_bin', 'charge'])
-    wf_df = pd.DataFrame(a_wf, columns = keys)
+    keys        = np.array(['event_id', 'sensor_id', 'time_bin', 'charge'])
+    t_bin       = np.where(conv_vect>0)[0]
+    charge      = conv_vect[conv_vect>0]
+    evt         = np.full(len(t_bin), event_id)
+    sns_id_full = np.full(len(t_bin), s_id)
+    a_wf        = np.array([evt, sns_id_full, t_bin, charge])
+    wf_df       = pd.DataFrame(a_wf.T, columns=keys).astype({'event_id': 'int32',
+                                                            'sensor_id': 'int32',
+                                                            'time_bin' : 'int32'})
     return wf_df
