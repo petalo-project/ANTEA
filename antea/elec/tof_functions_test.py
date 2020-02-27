@@ -9,7 +9,8 @@ from antea.io.mc_io import load_mcTOFsns_response
 from antea.elec     import tof_functions   as tf
 
 
-l = st.lists(st.integers(min_value=1, max_value=10000), min_size=2, max_size=1000)
+tau_sipm = [100, 15000]
+l        = st.lists(st.integers(min_value=1, max_value=10000), min_size=2, max_size=1000)
 
 @given(l)
 def test_apply_spe_dist(l):
@@ -17,7 +18,7 @@ def test_apply_spe_dist(l):
     This test checks that the function apply_spe_dist returns an array with the distribution value for each time.
     """
     l = np.array(l)
-    exp_dist, norm_dist = tf.apply_spe_dist(np.unique(l))
+    exp_dist, norm_dist = tf.apply_spe_dist(np.unique(l), tau_sipm)
 
     assert len(exp_dist) == len(np.unique(l))
     assert (exp_dist >= 0.).all()
@@ -32,7 +33,7 @@ def test_spe_dist(time, time_dist):
     """
     Spe_dist is an analitic function, so this test takes some values and checks that the function returns the correct value for each one.
     """
-    result = tf.spe_dist(time)
+    result = tf.spe_dist(time, tau_sipm)
     assert np.all(result) == np.all(time_dist)
 
 
@@ -43,7 +44,7 @@ def test_convolve_tof(l, s):
     """
     Check that the function convolve_tof returns an array with the adequate length, and, in case the array is not empty, checks that the convoluted signal is normalizated to the initial signal.
     """
-    spe_response, norm = tf.apply_spe_dist(np.unique(np.array(l)))
+    spe_response, norm = tf.apply_spe_dist(np.unique(np.array(l)), tau_sipm)
     conv_res           = tf.convolve_tof(spe_response, np.array(s))
     assert len(conv_res) == len(spe_response) + len(s) - 1
     if np.count_nonzero(spe_response):
@@ -64,7 +65,7 @@ def test_tdc_convolution(ANTEADATADIR, filename):
     time_window    = 10000
     time_bin       = 5
     time           = np.arange(0, 80000, time_bin)
-    spe_resp, norm = tf.apply_spe_dist(time)
+    spe_resp, norm = tf.apply_spe_dist(time, tau_sipm)
     for evt in events:
         evt_tof = tof_response[tof_response.event_id == evt]
         tof_sns = evt_tof.sensor_id.unique()

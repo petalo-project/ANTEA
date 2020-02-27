@@ -4,12 +4,12 @@ import pandas as pd
 from typing import Sequence, Tuple
 
 
-def apply_spe_dist(time: np.array) -> Tuple[np.array, float]:
+def apply_spe_dist(time: np.array, tau_sipm: Tuple[float, float]) -> Tuple[np.array, float]:
     """
     Returns a normalized array following the double exponential
     distribution of the sipm response.
     """
-    spe_response = spe_dist(time)
+    spe_response = spe_dist(time, tau_sipm)
     if np.sum(spe_response) == 0:
         return np.zeros(len(time)), 0.
     norm_dist    = np.sum(spe_response)
@@ -17,13 +17,13 @@ def apply_spe_dist(time: np.array) -> Tuple[np.array, float]:
     return spe_response, norm_dist
 
 
-def spe_dist(time: np.array) -> np.array:
+def spe_dist(time: np.array, tau_sipm: Tuple[float, float]) -> np.array:
     """
     Analitic function that calculates the double exponential decay for
     the sipm response.
     """
-    alfa      = 1.0/15000
-    beta      = 1.0/100
+    alfa      = 1.0/tau_sipm[1]
+    beta      = 1.0/tau_sipm[0]
     t_p       = np.log(beta/alfa)/(beta-alfa)
     K         = (beta)*np.exp(alfa*t_p)/(beta-alfa)
     time_dist = K*(np.exp(-alfa*time)-np.exp(-beta*time))
