@@ -61,7 +61,6 @@ def test_tdc_convolution(ANTEADATADIR, filename):
     PATH_IN        = os.path.join(ANTEADATADIR, filename)
     tof_response   = load_mcTOFsns_response(PATH_IN)
     events         = tof_response.event_id.unique()
-    te_tdc         = 0.25
     time_window    = 10000
     time_bin       = 5
     time           = np.arange(0, 80000, time_bin)
@@ -70,7 +69,7 @@ def test_tdc_convolution(ANTEADATADIR, filename):
         evt_tof = tof_response[tof_response.event_id == evt]
         tof_sns = evt_tof.sensor_id.unique()
         for s_id in tof_sns:
-            tdc_conv = tf.tdc_convolution(tof_response, spe_resp, s_id, time_window, te_tdc)
+            tdc_conv = tf.tdc_convolution(tof_response, spe_resp, s_id, time_window)
             assert len(tdc_conv) == time_window + len(spe_resp) - 1
             if len(tof_response[(tof_response.sensor_id == s_id) &
                             (tof_response.time_bin > time_window)]) == 0:
