@@ -52,8 +52,7 @@ def convolve_tof(spe_response: Sequence[float],
 def tdc_convolution(tof_response: pd.DataFrame,
                     spe_response: Sequence[float],
                     s_id: int,
-                    time_window: float,
-                    te_tdc: float) -> Sequence[float]:
+                    time_window: float) -> Sequence[float]:
     """
     Calculates the tof convolution along the time window for the given sensor_id.
     """
