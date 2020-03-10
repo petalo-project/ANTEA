@@ -208,7 +208,11 @@ def find_first_time_of_sensors(tof_response: pd.DataFrame,
 
 def find_hit_distances_from_true_pos(hits: pd.DataFrame,
                                      true_pos: Tuple[float, float, float]) -> Sequence[float]:
-    positions        = np.array([hits.x, hits.y, hits.z]).transpose()
+    """
+    Calculates the distances of all the hits in the same hemisphere of a given point,
+    from the given point.
+    """
+    positions       = np.array([hits.x, hits.y, hits.z]).transpose()
     scalar_products = positions.dot(true_pos)
     int_hits = hits[scalar_products >= 0]
     pos_hits = np.array([int_hits.x.values, int_hits.y.values, int_hits.z.values]).transpose()
@@ -220,10 +224,10 @@ def find_hit_distances_from_true_pos(hits: pd.DataFrame,
 
 def find_first_interactions_in_active(particles: pd.DataFrame,
                                       hits: pd.DataFrame,
-                                      photo_range: float = 1.) -> Tuple[Tuple[float, float, float],
-                                                                        Tuple[float, float, float],
-                                                                        float, float,
-                                                                        bool, bool]:
+                                      photo_range: float = 1.)-> Tuple[Tuple[float, float, float],
+                                                                       Tuple[float, float, float],
+                                                                       float, float,
+                                                                       bool, bool]:
     """
     Looks for the first interaction of primary gammas in the active volume.
     """
@@ -279,16 +283,16 @@ def find_first_interactions_in_active(particles: pd.DataFrame,
 
 
 def reconstruct_coincidences(sns_response: pd.DataFrame,
-                             tof_response: pd.DataFrame,
                              charge_range: Tuple[float, float],
                              DataSiPM_idx: pd.DataFrame,
                              particles: pd.DataFrame,
-                             hits: pd.DataFrame) -> Tuple[Sequence[Tuple[float, float, float]],
-                                                    Sequence[Tuple[float, float, float]],
-                                                    Sequence[float], Sequence[float],
-                                                    Tuple[float, float, float],
-                                                    Tuple[float, float, float],
-                                                    float, float, int, int, int, int]:
+                             hits: pd.DataFrame)-> Tuple[Sequence[Tuple[float, float, float]],
+                                                   Sequence[Tuple[float, float, float]],
+                                                   Sequence[float], Sequence[float],
+                                                   Tuple[float, float, float],
+                                                   Tuple[float, float, float],
+                                                   float, float,
+                                                   Sequence[int], Sequence[int]]:
     """
     Finds the SiPM with maximum charge. Divide the SiPMs in two groups,
     separated by the plane perpendicular to the line connecting this SiPM
@@ -324,17 +328,13 @@ def reconstruct_coincidences(sns_response: pd.DataFrame,
     sel1 = (tot_q1 > charge_range[0]) & (tot_q1 < charge_range[1])
     sel2 = (tot_q2 > charge_range[0]) & (tot_q2 < charge_range[1])
     if not sel1 or not sel2:
-        return [], [], [], [], None, None, None, None, None, None, None, None
-
-    ### TOF
-    min1, min_tof1 = find_first_time_of_sensors(tof_response, -sns1)
-    min2, min_tof2 = find_first_time_of_sensors(tof_response, -sns2)
+        return [], [], [], [], None, None, None, None, [], []
 
     true_pos1, true_pos2, true_t1, true_t2, _, _ = find_first_interactions_in_active(particles, hits)
 
     if not len(true_pos1) or not len(true_pos2):
         print("Cannot find two true gamma interactions for this event")
-        return [], [], [], [], None, None, None, None, None, None, None, None
+        return [], [], [], [], None, None, None, None, [], []
 
     scalar_prod = true_pos1.dot(max_pos)
     if scalar_prod > 0:
@@ -342,53 +342,27 @@ def reconstruct_coincidences(sns_response: pd.DataFrame,
         int_pos2 = pos2
         int_q1   = q1
         int_q2   = q2
-        int_min1 = min1
-        int_min2 = min2
-        int_tof1 = min_tof1
-        int_tof2 = min_tof2
+        int_sns1 = sns1
+        int_sns2 = sns2
     else:
         int_pos1 = pos2
         int_pos2 = pos1
         int_q1   = q2
         int_q2   = q1
-        int_min1 = min2
-        int_min2 = min1
-        int_tof1 = min_tof2
-        int_tof2 = min_tof1
+        int_sns1 = sns2
+        int_sns2 = sns1
 
-    return int_pos1, int_pos2, int_q1, int_q2, true_pos1, true_pos2, true_t1, true_t2, int_min1, int_min2, int_tof1, int_tof2
+    return int_pos1, int_pos2, int_q1, int_q2, true_pos1, true_pos2, true_t1, true_t2, int_sns1, int_sns2
 
 
-def select_coincidences(sns_response: pd.DataFrame, tof_response: pd.DataFrame,
-                        charge_range: Tuple[float, float],
-                        DataSiPM_idx: pd.DataFrame, particles: pd.DataFrame,
-                        hits: pd.DataFrame)-> Tuple[Sequence[Tuple[float, float, float]],
-                                                    Sequence[Tuple[float, float, float]],
-                                                    Sequence[float], Sequence[float],
-                                                    Tuple[float, float, float],
-                                                    Tuple[float, float, float],
-                                                    float, float]:
+def find_coincidence_timestamps(tof_response: pd.DataFrame,
+                                sns1: Sequence[int],
+                                sns2: Sequence[int])-> Tuple[int, int, int, int]:
     """
-    This function returns positions and charges (true and reconstructed)
-    of two sets of SiPMs, each one corresponding to 1 gamma interaction.
-    DataSiPM_idx is assumed to be indexed on the sensor ids.
+    Finds the first time and sensor of each one of two sets of sensors,
+    given a sensor response dataframe.
     """
-    pos1, pos2, q1, q2, true_pos1, true_pos2, true_t1, true_t2, _, _, _, _ = reconstruct_coincidences(sns_response, tof_response, charge_range, DataSiPM_idx, particles, hits)
+    min1, time1 = find_first_time_of_sensors(tof_response, -sns1)
+    min2, time2 = find_first_time_of_sensors(tof_response, -sns2)
 
-    return pos1, pos2, q1, q2, true_pos1, true_pos2, true_t1, true_t2
-
-
-def find_first_times_of_coincidences(sns_response: pd.DataFrame,
-                                     tof_response: pd.DataFrame,
-                                     charge_range: Tuple[float, float],
-                                     DataSiPM_idx: pd.DataFrame,
-                                     particles: pd.DataFrame,
-                                     hits: pd.DataFrame)-> Tuple[int, int, int, int]:
-    """
-    This function returns the IDs and times of the SiPMs that detect
-    the first photoelectrons.
-    DataSiPM_idx is assumed to be indexed on the sensor ids.
-    """
-    _, _, _, _, _, _, _, _, min1, min2, min_t1, min_t2 = reconstruct_coincidences(sns_response, tof_response, charge_range, DataSiPM_idx, particles, hits)
-
-    return min1, min2, min_t1, min_t2
+    return min1, min2, time1, time2
