@@ -343,13 +343,17 @@ def reconstruct_coincidences(sns_response: pd.DataFrame,
         int_pos2 = pos2
         int_q1   = q1
         int_q2   = q2
+        int_sns1 = sns1
+        int_sns2 = sns2
     else:
         int_pos1 = pos2
         int_pos2 = pos1
         int_q1   = q2
         int_q2   = q1
+        int_sns1 = sns2
+        int_sns2 = sns1
 
-    return int_pos1, int_pos2, int_q1, int_q2, true_pos1, true_pos2, true_t1, true_t2, sns1, sns2
+    return int_pos1, int_pos2, int_q1, int_q2, true_pos1, true_pos2, true_t1, true_t2, int_sns1, int_sns2
 
 
 def find_coincidence_timestamps(tof_response: pd.DataFrame,
