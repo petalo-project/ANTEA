@@ -329,13 +329,13 @@ def reconstruct_coincidences(sns_response: pd.DataFrame,
     sel1 = (tot_q1 > charge_range[0]) & (tot_q1 < charge_range[1])
     sel2 = (tot_q2 > charge_range[0]) & (tot_q2 < charge_range[1])
     if not sel1 or not sel2:
-        return [], [], [], [], None, None, None, None, None, None, None, None
+        return [], [], [], [], None, None, None, None, [], []
 
     true_pos1, true_pos2, true_t1, true_t2, _, _ = find_first_interactions_in_active(particles, hits)
 
     if not len(true_pos1) or not len(true_pos2):
         print("Cannot find two true gamma interactions for this event")
-        return [], [], [], [], None, None, None, None, None, None, None, None
+        return [], [], [], [], None, None, None, None, [], []
 
     scalar_prod = true_pos1.dot(max_pos)
     if scalar_prod > 0:
