@@ -283,7 +283,6 @@ def find_first_interactions_in_active(particles: pd.DataFrame,
 
 
 def reconstruct_coincidences(sns_response: pd.DataFrame,
-                             tof_response: pd.DataFrame,
                              charge_range: Tuple[float, float],
                              DataSiPM_idx: pd.DataFrame,
                              particles: pd.DataFrame,

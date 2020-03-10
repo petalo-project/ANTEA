@@ -310,10 +310,10 @@ def test_change_unsigned_type_sipm(ANTEADATADIR):
 
         evt_parts = particles   [particles   .event_id == evt]
         evt_hits  = hits        [hits        .event_id == evt]
-        evt_tof   = tof_response[tof_response.event_id == evt]
 
-        pos1, pos2, q1, q2, *_ = rf.reconstruct_coincidences(evt_sns, evt_tof, charge_range,
-                                                             DataSiPM_idx, evt_parts, evt_hits)
+        pos1, pos2, q1, q2, *_ = rf.reconstruct_coincidences(evt_sns, charge_range,
+                                                             DataSiPM_idx, evt_parts,
+                                                             evt_hits)
         if len(pos1)!=0 and len(pos2)!=0:
             assert len(pos1) == len(q1)
             assert len(pos2) == len(q2)
@@ -348,9 +348,8 @@ def test_select_coincidences(ANTEADATADIR):
 
         sns = sel_df[sel_df.event_id == evt]
         if len(sns) == 0: continue
-        tof = tof_response[tof_response.event_id == evt]
 
-        pos1, pos2, q1, q2, true_pos1, true_pos2, true_t1, true_t2, *_ = rf.reconstruct_coincidences(sns, tof, charge_range, DataSiPM_idx, evt_parts, evt_hits)
+        pos1, pos2, q1, q2, true_pos1, true_pos2, true_t1, true_t2, *_ = rf.reconstruct_coincidences(sns, charge_range, DataSiPM_idx, evt_parts, evt_hits)
 
         if len(true_pos) == 2:
             scalar_prod1 = np.array([np.dot(true_pos1, p1) for p1 in pos1])
@@ -415,13 +414,8 @@ def test_only_gamma_hits_interaction():
                'time_bin': [0, 0], 'charge': [1100, 1200]}
    sns = pd.DataFrame(sns_data)
 
-   tof_data = {'event_id': [0, 0], 'sensor_id': [-2021, -3503],
-               'time_bin': [151, 200],
-               'charge': [1100, 1200]}
-   tof = pd.DataFrame(tof_data)
-
    charge_range = (1000, 1400)
-   pos1, pos2, q1, q2, true_pos1, true_pos2, _, _, _, _ = rf.reconstruct_coincidences(sns, tof, charge_range, DataSiPM_idx, particles, hits)
+   pos1, pos2, q1, q2, true_pos1, true_pos2, _, _, _, _ = rf.reconstruct_coincidences(sns, charge_range, DataSiPM_idx, particles, hits)
 
    assert len(pos1) != 0
    assert len(pos2) != 0
