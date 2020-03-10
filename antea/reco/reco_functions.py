@@ -339,26 +339,18 @@ def reconstruct_coincidences(sns_response: pd.DataFrame,
         int_pos2 = pos2
         int_q1   = q1
         int_q2   = q2
-        int_min1 = min1
-        int_min2 = min2
-        int_tof1 = min_tof1
-        int_tof2 = min_tof2
     else:
         int_pos1 = pos2
         int_pos2 = pos1
         int_q1   = q2
         int_q2   = q1
-        int_min1 = min2
-        int_min2 = min1
-        int_tof1 = min_tof2
-        int_tof2 = min_tof1
 
     return int_pos1, int_pos2, int_q1, int_q2, true_pos1, true_pos2, true_t1, true_t2, sns1, sns2
 
 
-def find_timestamps(tof_response: pd.DataFrame,
-                    sns1: Sequence[int], sns2: Sequence[int])-> Tuple[int, int,
-                                                                      int, int]:
+def find_coincidence_timestamps(tof_response: pd.DataFrame,
+                                sns1: Sequence[int],
+                                sns2: Sequence[int])-> Tuple[int, int, int, int]:
 
     min1, time1 = find_first_time_of_sensors(tof_response, -sns1)
     min2, time2 = find_first_time_of_sensors(tof_response, -sns2)
