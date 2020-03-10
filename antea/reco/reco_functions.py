@@ -208,7 +208,11 @@ def find_first_time_of_sensors(tof_response: pd.DataFrame,
 
 def find_hit_distances_from_true_pos(hits: pd.DataFrame,
                                      true_pos: Tuple[float, float, float]) -> Sequence[float]:
-    positions        = np.array([hits.x, hits.y, hits.z]).transpose()
+    """
+    Calculates the distances of all the hits in the same hemisphere of a given point,
+    from the given point.
+    """
+    positions       = np.array([hits.x, hits.y, hits.z]).transpose()
     scalar_products = positions.dot(true_pos)
     int_hits = hits[scalar_products >= 0]
     pos_hits = np.array([int_hits.x.values, int_hits.y.values, int_hits.z.values]).transpose()
@@ -220,10 +224,10 @@ def find_hit_distances_from_true_pos(hits: pd.DataFrame,
 
 def find_first_interactions_in_active(particles: pd.DataFrame,
                                       hits: pd.DataFrame,
-                                      photo_range: float = 1.) -> Tuple[Tuple[float, float, float],
-                                                                        Tuple[float, float, float],
-                                                                        float, float,
-                                                                        bool, bool]:
+                                      photo_range: float = 1.)-> Tuple[Tuple[float, float, float],
+                                                                       Tuple[float, float, float],
+                                                                       float, float,
+                                                                       bool, bool]:
     """
     Looks for the first interaction of primary gammas in the active volume.
     """
@@ -351,7 +355,10 @@ def reconstruct_coincidences(sns_response: pd.DataFrame,
 def find_coincidence_timestamps(tof_response: pd.DataFrame,
                                 sns1: Sequence[int],
                                 sns2: Sequence[int])-> Tuple[int, int, int, int]:
-
+    """
+    Finds the first time and sensor of each one of two sets of sensors,
+    given a sensor response dataframe.
+    """
     min1, time1 = find_first_time_of_sensors(tof_response, -sns1)
     min2, time2 = find_first_time_of_sensors(tof_response, -sns2)
 
