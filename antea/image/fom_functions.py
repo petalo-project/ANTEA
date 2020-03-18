@@ -176,9 +176,10 @@ def average_mean_error_in_bckg3d(img3d : np.ndarray,
 def crc_hot2d(img2d : np.ndarray, true_signal : float, true_bckg : float,
               sig_sphere_r : float, r : float, phi : float,
               bckg_sphere_r : float, phi0 : float, phi_step : float, nphi : int,
-              x_size : float, y_size : float, xbins : int, ybins : int) -> float:
+              x_size : float, y_size : float,
+              xbins : int, ybins : int) -> Tuple[float, float]:
     """
-    Calculates the contrast_recovery_coefficent of hot circle.
+    Calculates the contrast_recovery_coefficent of hot circle and its error.
 
     :param img2d: 2D np.array with the image.
     :param true_signal: maximum value of original image pixels.
@@ -196,24 +197,25 @@ def crc_hot2d(img2d : np.ndarray, true_signal : float, true_bckg : float,
     :param ybins: number of bins of the image in the y axis.
     """
 
-    signal, _ = mean_error_in_sphere2d(img2d, sig_sphere_r, r, phi,
-                                       x_size, y_size, xbins, ybins)
-    bckg, _, _, _   = average_mean_error_in_bckg2d(img2d, bckg_sphere_r, r,
-                                                   phi0, phi_step, nphi,
-                                                   x_size, y_size,  xbins, ybins)
+    sig, err_sig = mean_error_in_sphere2d(img2d, sig_sphere_r, r, phi,
+                                          x_size, y_size, xbins, ybins)
+    mean_bckg, err_mean_bckg, _, _ = average_mean_error_in_bckg2d(img2d, bckg_sphere_r, r, phi0, phi_step, nphi, x_size, y_size,  xbins, ybins)
 
     alpha = true_signal / true_bckg
 
-    return (signal/bckg - 1)/(alpha - 1)
+    crc = (sig/mean_bckg - 1)/(alpha - 1)
+    err = np.sqrt((err_sig/mean_bckg)**2 + (err_mean_bckg*sig/mean_bckg**2)**2)/(alpha - 1)
+
+    return crc, err
 
 
 def crc_hot3d(img3d : np.ndarray, true_signal : float, true_bckg : float,
               sig_sphere_r : float, r : float, phi : float,
               bckg_sphere_r : float, phi0 : float, phi_step : float, nphi : int,
               x_size : float, y_size : float, z_size : float,
-              xbins : int, ybins : int, zbins : int):
+              xbins : int, ybins : int, zbins : int) -> Tuple[float, float]:
     """
-    Calculates the contrast_recovery_coefficent of hot sphere.
+    Calculates the contrast_recovery_coefficent of hot sphere and its error.
 
     :param img3d: 3D np.array with the image.
     :param true_signal: maximum value of original image pixels.
@@ -233,25 +235,26 @@ def crc_hot3d(img3d : np.ndarray, true_signal : float, true_bckg : float,
     :param zbins: number of bins of the image in the z axis.
     """
 
-    signal, _ = mean_error_in_sphere3d(img3d, sig_sphere_r, r, phi,
-                                       x_size, y_size, z_size,
-                                       xbins, ybins, zbins)
-    bckg, _, _, _   = average_mean_error_in_bckg3d(img3d, bckg_sphere_r, r, phi0,
-                                                   phi_step, nphi, x_size, y_size,
-                                                   z_size, xbins, ybins, zbins)
+    sig, err_sig = mean_error_in_sphere3d(img3d, sig_sphere_r, r, phi,
+                                          x_size, y_size, z_size,
+                                          xbins, ybins, zbins)
+    mean_bckg, err_mean_bckg, _, _ = average_mean_error_in_bckg3d(img3d, bckg_sphere_r, r, phi0, phi_step, nphi, x_size, y_size, z_size, xbins, ybins, zbins)
 
     alpha = true_signal / true_bckg
 
-    return (signal/bckg - 1)/(alpha - 1)
+    crc = (sig/mean_bckg - 1)/(alpha - 1)
+    err = np.sqrt((err_sig/mean_bckg)**2 + (err_mean_bckg*sig/mean_bckg**2)**2)/(alpha - 1)
+
+    return crc, err
 
 
 
 def crc_cold2d(img2d : np.ndarray, sig_sphere_r : float, r : float, phi : float,
                bckg_sphere_r : float, phi0 : float, phi_step : float,
                nphi : int, x_size : float, y_size : float, xbins : int,
-               ybins : int) -> float:
+               ybins : int) -> Tuple[float, float]:
     """
-    Calculates the contrast_recovery_coefficent of a cold circle.
+    Calculates the contrast_recovery_coefficent of a cold circle and its error.
 
     :param img2d: 2D np.array with the image.
     :param sig_sphere_r: radius of the sphere of signal.
@@ -267,21 +270,25 @@ def crc_cold2d(img2d : np.ndarray, sig_sphere_r : float, r : float, phi : float,
     :param ybins: number of bins of the image in the y axis.
     """
 
-    signal, _ = mean_error_in_sphere2d(img2d, sig_sphere_r, r, phi,
-                                       x_size, y_size, xbins, ybins)
-    bckg, _, _, _   = average_mean_error_in_bckg2d(img2d, bckg_sphere_r, r, phi0,
-                                                   phi_step, nphi, x_size, y_size,
-                                                   xbins, ybins)
+    sig, err_sig = mean_error_in_sphere2d(img2d, sig_sphere_r, r, phi,
+                                          x_size, y_size, xbins, ybins)
+    mean_bckg, err_mean_bckg, _, _ = average_mean_error_in_bckg2d(img2d, bckg_sphere_r,
+                                                                  r, phi0, phi_step,
+                                                                  nphi, x_size, y_size,
+                                                                  xbins, ybins)
 
-    return 1 - signal / bckg
+    crc = 1 - sig / mean_bckg
+    err = np.sqrt((err_sig/mean_bckg)**2 + (err_mean_bckg*sig/mean_bckg**2)**2)
+
+    return crc, err
 
 
 def crc_cold3d(img3d : np.ndarray, sig_sphere_r : float, r : float, phi : float,
                bckg_sphere_r : float, phi0 : float, phi_step : float,
                nphi : int, x_size : float, y_size : float, z_size : float,
-               xbins : int, ybins : int, zbins : int) -> float:
+               xbins : int, ybins : int, zbins : int) -> Tuple[float, float]:
     """
-    Calculates the contrast_recovery_coefficent of a cold sphere.
+    Calculates the contrast_recovery_coefficent of a cold sphere and its error.
 
     :param img3d: 3D np.array with the image.
     :param sig_sphere_r: radius of the sphere of signal.
@@ -299,23 +306,27 @@ def crc_cold3d(img3d : np.ndarray, sig_sphere_r : float, r : float, phi : float,
     :param zbins: number of bins of the image in the z axis.
     """
 
-    signal, _ = mean_error_in_sphere3d(img3d, sig_sphere_r, r, phi,
-                                       x_size, y_size, z_size,
-                                       xbins, ybins, zbins)
-    bckg, _, _, _   = average_mean_error_in_bckg3d(img3d, bckg_sphere_r, r, phi0,
-                                                   phi_step, nphi, x_size, y_size,
-                                                   z_size, xbins, ybins, zbins)
+    sig, err_sig = mean_error_in_sphere3d(img3d, sig_sphere_r, r, phi,
+                                          x_size, y_size, z_size,
+                                          xbins, ybins, zbins)
+    mean_bckg, err_mean_bckg, _, _ = average_mean_error_in_bckg3d(img3d, bckg_sphere_r,
+                                                                  r, phi0, phi_step,
+                                                                  nphi, x_size, y_size,
+                                                                  z_size, xbins, ybins,
+                                                                  zbins)
 
-    return 1 - signal / bckg
+    crc = 1 - sig / mean_bckg
+    err = np.sqrt((err_sig/mean_bckg)**2 + (err_mean_bckg*sig/mean_bckg**2)**2)
+
+    return crc, err
 
 
-def snr2d(img2d : np.ndarray,
-          sig_sphere_r : float, r : float, phi : float,
+def snr2d(img2d : np.ndarray, sig_sphere_r : float, r : float, phi : float,
           bckg_sphere_r : float, phi0 : float, phi_step : float, nphi : int,
           x_size : float, y_size : float,
-          xbins : int, ybins : int) -> float:
+          xbins : int, ybins : int) -> Tuple[float, float]:
     """
-    Calculates the signal to noise ratio of a 2D image.
+    Calculates the signal to noise ratio of a 2D image and its error.
 
     :param img2d: 2D np.array with the image.
     :param sig_sphere_r: radius of the sphere of signal.
@@ -331,23 +342,22 @@ def snr2d(img2d : np.ndarray,
     :param ybins: number of bins of the image in the y axis.
     """
 
-    signal, _ = mean_error_in_sphere2d(img2d, sig_sphere_r, r, phi,
-                                       x_size, y_size, xbins, ybins)
-    bckg, err_bckg, _, _ = average_mean_error_in_bckg2d(img2d, bckg_sphere_r, r,
-                                                        phi0, phi_step, nphi,
-                                                        x_size, y_size,  xbins,
-                                                        ybins)
+    sig, err_sig = mean_error_in_sphere2d(img2d, sig_sphere_r, r, phi,
+                                          x_size, y_size, xbins, ybins)
+    mean_bckg, err_mean_bckg, mean_err_bckg, err_err_bckg = average_mean_error_in_bckg2d(img2d, bckg_sphere_r, r, phi0, phi_step, nphi, x_size, y_size,  xbins, ybins)
 
-    return (signal - bckg) / err_bckg
+    snr = (sig - mean_bckg) / mean_err_bckg
+    err = np.sqrt((err_sig/mean_err_bckg)**2 + (err_mean_bckg/mean_err_bckg)**2 + ((sig-mean_bckg)/mean_err_bckg**2*err_err_bckg)**2)
+
+    return snr, err
 
 
-def snr3d(img3d : np.ndarray,
-          sig_sphere_r : float, r : float, phi : float,
+def snr3d(img3d : np.ndarray, sig_sphere_r : float, r : float, phi : float,
           bckg_sphere_r : float, phi0 : float, phi_step : float, nphi : int,
           x_size : float, y_size : float, z_size : float,
-          xbins : int, ybins : int, zbins : int) -> float:
+          xbins : int, ybins : int, zbins : int) -> Tuple[float, float]:
     """
-    Calculates the signal to noise ratio of a 3D image.
+    Calculates the signal to noise ratio of a 3D image and its error.
 
     :param img3d: 3D np.array with the image.
     :param sig_sphere_r: radius of the sphere of signal.
@@ -365,12 +375,12 @@ def snr3d(img3d : np.ndarray,
     :param zbins: number of bins of the image in the z axis.
     """
 
-    signal, _ = mean_error_in_sphere3d(img3d, sig_sphere_r, r, phi,
-                                       x_size, y_size, z_size,
-                                       xbins, ybins, zbins)
-    bckg, err_bckg, _, _ = average_mean_error_in_bckg3d(img3d, bckg_sphere_r, r,
-                                                        phi0, phi_step, nphi,
-                                                        x_size, y_size, z_size,
-                                                        xbins, ybins, zbins)
+    sig, err_sig = mean_error_in_sphere3d(img3d, sig_sphere_r, r, phi,
+                                          x_size, y_size, z_size,
+                                          xbins, ybins, zbins)
+    mean_bckg, err_mean_bckg, mean_err_bckg, err_err_bckg = average_mean_error_in_bckg3d(img3d, bckg_sphere_r, r, phi0, phi_step, nphi, x_size, y_size, z_size, xbins, ybins, zbins)
 
-    return (signal - bckg) / err_bckg
+    snr = (sig - mean_bckg) / mean_err_bckg
+    err = np.sqrt((err_sig/mean_err_bckg)**2 + (err_mean_bckg/mean_err_bckg)**2 + ((sig-mean_bckg)/mean_err_bckg**2*err_err_bckg)**2)
+
+    return snr, err
