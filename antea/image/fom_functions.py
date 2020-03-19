@@ -48,7 +48,7 @@ def mean_error_in_sphere2d(img2d : np.ndarray,
 
     circle = img2d[img_bins[:, 0], img_bins[:, 1]]
 
-    return np.average(circle), np.std(circle)/len(circle)
+    return np.average(circle), np.std(circle)/np.sqrt(len(circle))
 
 
 def mean_error_in_sphere3d(img3d : np.ndarray,
@@ -97,7 +97,7 @@ def mean_error_in_sphere3d(img3d : np.ndarray,
 
     sphere = img3d[img_bins[:, 0], img_bins[:, 1], img_bins[:, 2]]
 
-    return np.average(sphere), np.std(sphere)/len(sphere)
+    return np.average(sphere), np.std(sphere)/np.sqrt(len(sphere))
 
 
 def average_mean_error_in_bckg2d(img2d : np.ndarray,
@@ -132,7 +132,7 @@ def average_mean_error_in_bckg2d(img2d : np.ndarray,
         mean_bckgs.append(mean_bckg)
         err_bckgs.append(err_bckg)
 
-    return np.average(mean_bckgs), np.std(mean_bckgs)/n_phi, np.average(err_bckgs), np.std(err_bckgs)/n_phi
+    return np.average(mean_bckgs), np.std(mean_bckgs)/np.sqrt(n_phi), np.average(err_bckgs), np.std(err_bckgs)/np.sqrt(n_phi)
 
 
 def average_mean_error_in_bckg3d(img3d : np.ndarray,
@@ -170,7 +170,7 @@ def average_mean_error_in_bckg3d(img3d : np.ndarray,
         mean_bckgs.append(mean_bckg)
         err_bckgs.append(err_bckg)
 
-    return np.average(mean_bckgs), np.std(mean_bckgs)/n_phi, np.average(err_bckgs), np.std(err_bckgs)/n_phi
+    return np.average(mean_bckgs), np.std(mean_bckgs)/np.sqrt(n_phi), np.average(err_bckgs), np.std(err_bckgs)/np.sqrt(n_phi)
 
 
 def crc_hot2d(img2d : np.ndarray, true_signal : float, true_bckg : float,
