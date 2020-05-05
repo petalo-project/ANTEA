@@ -1,4 +1,4 @@
-from invisible_cities.reco.corrections import Correction
+from .corrections import Correction
 from invisible_cities.io.dst_io   import load_dst
 
 
