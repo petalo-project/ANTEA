@@ -1,5 +1,5 @@
-from .corrections import Correction
-from invisible_cities.io.dst_io   import load_dst
+from antea.utils.corrections    import Correction
+from invisible_cities.io.dst_io import load_dst
 
 
 def load_rpos(filename, group = "Radius",

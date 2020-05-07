@@ -1,11 +1,11 @@
-from functools   import partial
-from itertools   import product
-from collections import namedtuple
-
 import numpy as np
-from scipy.interpolate import griddata
 
-from ..core.exceptions import ParameterNotSet
+from functools             import partial
+from itertools             import product
+from collections           import namedtuple
+from scipy.interpolate     import griddata
+
+from antea.core.exceptions import ParameterNotSet
 
 
 opt_nearest = {"interp_method": "nearest"}
@@ -40,18 +40,18 @@ class Correction:
 
     def __init__(self,
                  xs, fs, us,
-                   norm_strategy = None,
-                   norm_opts     = {},
-                 interp_method   = "nearest",
-                 default_f       = 0,
-                 default_u       = 0):
+                 norm_strategy = None,
+                 norm_opts     = {},
+                 interp_method = "nearest",
+                 default_f     = 0,
+                 default_u     = 0):
 
         self._xs = [np.array( x, dtype=float) for x in xs]
         self._fs =  np.array(fs, dtype=float)
         self._us =  np.array(us, dtype=float)
 
-        self.norm_strategy   =   norm_strategy
-        self.norm_opts       =   norm_opts
+        self.norm_strategy   = norm_strategy
+        self.norm_opts       = norm_opts
         self.interp_method   = interp_method
         self.default_f       = default_f
         self.default_u       = default_u
