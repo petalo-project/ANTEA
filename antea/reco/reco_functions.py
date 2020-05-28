@@ -233,7 +233,7 @@ def find_first_interactions_in_active(particles: pd.DataFrame,
     """
     ### select electrons, primary gammas daughters in ACTIVE
     sel_volume   = (particles.initial_volume == 'ACTIVE') & (particles.final_volume == 'ACTIVE')
-    sel_name     = particles.name == 'e-'
+    sel_name     = particles.particle_name == 'e-'
     sel_vol_name = particles[sel_volume & sel_name]
     primaries = particles[particles.primary == True]
     sel_all   = sel_vol_name[sel_vol_name.mother_id.isin(primaries.particle_id.values)]

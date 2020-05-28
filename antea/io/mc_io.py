@@ -78,14 +78,14 @@ def load_mcparticles(file_name: str) -> pd.DataFrame:
 
 def load_mcsns_response(file_name: str) -> pd.DataFrame:
 
-    sns_response = pd.read_hdf(file_name, 'MC/waveforms')
+    sns_response = pd.read_hdf(file_name, 'MC/sns_response')
 
     return sns_response
 
 
 def load_mcTOFsns_response(file_name: str) -> pd.DataFrame:
 
-    sns_response = pd.read_hdf(file_name, 'MC/tof_waveforms')
+    sns_response = pd.read_hdf(file_name, 'MC/tof_sns_response')
 
     return sns_response
 
