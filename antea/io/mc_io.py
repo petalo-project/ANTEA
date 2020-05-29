@@ -7,7 +7,10 @@ from invisible_cities.io.mcinfo_io import units_dict
 from typing import Mapping
 
 str_length = 20
-
+units_dict = {'picosecond' : units.picosecond,  'ps' : units.picosecond,
+              'nanosecond' : units.nanosecond,  'ns' : units.nanosecond,
+              'microsecond': units.microsecond, 'mus': units.microsecond,
+              'millisecond': units.millisecond, 'ms' : units.millisecond}
 
 class mc_sns_response_writer:
     """Add MC sensor response info to existing file."""
