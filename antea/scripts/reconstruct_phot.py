@@ -3,8 +3,7 @@ import numpy  as np
 import pandas as pd
 import tables as tb
 
-from invisible_cities.core         import system_of_units as units
-from invisible_cities.io.mcinfo_io import units_dict
+from invisible_cities.core import system_of_units as units
 
 import antea.database.load_db      as db
 import antea.reco.reco_functions   as rf
