@@ -1,9 +1,10 @@
 import tables as tb
 import numpy  as np
 
+from . mc_io  import units_dict
+
 from invisible_cities.core            import system_of_units as units
 from invisible_cities.evm.event_model import Waveform
-from invisible_cities.io.mcinfo_io    import units_dict
 
 from typing import Mapping
 

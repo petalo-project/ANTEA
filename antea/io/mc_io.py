@@ -1,8 +1,7 @@
 import tables as tb
 import pandas as pd
 
-from invisible_cities.core         import system_of_units as units
-from invisible_cities.io.mcinfo_io import units_dict
+from invisible_cities.core import system_of_units as units
 
 from typing import Mapping
 
