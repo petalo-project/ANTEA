@@ -6,10 +6,6 @@ from invisible_cities.core import system_of_units as units
 from typing import Mapping
 
 str_length = 20
-units_dict = {'picosecond' : units.picosecond,  'ps' : units.picosecond,
-              'nanosecond' : units.nanosecond,  'ns' : units.nanosecond,
-              'microsecond': units.microsecond, 'mus': units.microsecond,
-              'millisecond': units.millisecond, 'ms' : units.millisecond}
 
 class mc_sns_response_writer:
     """Add MC sensor response info to existing file."""
@@ -81,7 +77,7 @@ def read_sensor_bin_width_from_conf(h5f, tof=False):
         if param_name.find(binning) >= 0:
             param_value = row['param_value'].decode('utf-8','ignore')
             numb, unit  = param_value.split()
-            bin_width = float(numb) * units_dict[unit]
+            bin_width = float(numb) * getattr(units, unit)
 
     return bin_width
 
