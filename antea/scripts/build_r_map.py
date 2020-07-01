@@ -30,7 +30,7 @@ for ifile in range(start, start+numb):
 
     file_name = file_full.format(ifile)
     try:
-        sns_response = pd.read_hdf(file_name, 'MC/waveforms')
+        sns_response = pd.read_hdf(file_name, 'MC/sns_response')
     except ValueError:
         print('File {} not found'.format(file_name))
         continue
@@ -38,7 +38,7 @@ for ifile in range(start, start+numb):
         print('File {} not found'.format(file_name))
         continue
     except KeyError:
-        print('No object named MC/waveforms in file {0}'.format(file_name))
+        print('No object named MC/sns_response in file {0}'.format(file_name))
         continue
     print('Analyzing file {0}'.format(file_name))
 
@@ -56,10 +56,10 @@ for ifile in range(start, start+numb):
         select, true_pos = mcf.select_photoelectric(evt_parts, evt_hits)
         if not select: continue
 
-        waveforms = sel_df[sel_df.event_id == evt]
-        if len(waveforms) == 0: continue
+        sns_resp = sel_df[sel_df.event_id == evt]
+        if len(sns_resp) == 0: continue
 
-        _, _, pos1, pos2, q1, q2 = rf.assign_sipms_to_gammas(waveforms, true_pos, DataSiPM_idx)
+        _, _, pos1, pos2, q1, q2 = rf.assign_sipms_to_gammas(sns_resp, true_pos, DataSiPM_idx)
 
         if len(pos1) > 0:
             pos_phi    = rf.from_cartesian_to_cyl(np.array(pos1))[:,1]

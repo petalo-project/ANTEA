@@ -178,10 +178,10 @@ def test_assign_sipms_to_gammas(ANTEADATADIR):
         if not select: continue
         if (len(true_pos) == 1) & (evt_hits.energy.sum() > 0.511): continue
 
-        waveforms = sel_df[sel_df.event_id == evt]
-        if len(waveforms) == 0: continue
+        sns_response = sel_df[sel_df.event_id == evt]
+        if len(sns_response) == 0: continue
 
-        _, _, pos1, pos2, q1, q2 = rf.assign_sipms_to_gammas(waveforms, true_pos, DataSiPM_idx)
+        _, _, pos1, pos2, q1, q2 = rf.assign_sipms_to_gammas(sns_response, true_pos, DataSiPM_idx)
 
         sipms           = DataSiPM_idx.loc[sns_response.sensor_id]
         sns_closest_pos = np.array([rf.find_closest_sipm(true_pos[0], sipms).X,
