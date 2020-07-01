@@ -10,6 +10,7 @@ from . mc_io import load_mchits, load_mcparticles, load_configuration
 from . mc_io import load_mcsns_response
 from . mc_io import load_mcTOFsns_response
 from . mc_io import mc_writer, mc_sns_response_writer
+from . mc_io import read_sensor_bin_width_from_conf
 
 
 def test_read_sensor_response(ANTEADATADIR):
@@ -93,3 +94,23 @@ def test_write_sns_info(tmpdir):
     assert events        == np.array([event_id])
     assert np.all(sns    == list(sns_response[event_id].keys()))
     assert np.all(charge == list(sns_response[event_id].values()))
+
+
+def test_read_sensor_bin_width_from_conf(ANTEADATADIR):
+    """
+    Checks that the function read_sensor_bin_width_from_conf
+    returns the bin size of the sensors for the tof and not tof
+    cases with the correct units.
+    """
+    test_file    = os.path.join(ANTEADATADIR, 'full_body_1ev.h5')
+    bin_size     = read_sensor_bin_width_from_conf(test_file)
+    tof_bin_size = read_sensor_bin_width_from_conf(test_file, True)
+
+    assert bin_size and tof_bin_size
+
+    for bin_w in (bin_size, tof_bin_size):
+        bin_size_ms  = bin_w / units.millisecond
+        bin_size_mus = bin_w / units.microsecond
+
+        assert  int(bin_size_mus/bin_size_ms) == 1000
+
