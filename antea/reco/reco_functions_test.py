@@ -392,7 +392,7 @@ def test_only_gamma_hits_interaction():
     """
 
    data = {'event_id': [0, 0, 0, 0], 'particle_id': [1, 2, 3, 4],
-           'name': ['gamma', 'gamma', 'e-', 'e-'], 'primary': [1, 1, 0, 0],
+           'particle_name': ['gamma', 'gamma', 'e-', 'e-'], 'primary': [1, 1, 0, 0],
            'mother_id': [0, 0, 1, 1], 'initial_x': [0.0, 0.0, -162.5, -181.8],
            'initial_y': [0.0, 0.0, 6.4, 20.2],
            'initial_z': [0.0, 0.0, -46.7, -69.2],

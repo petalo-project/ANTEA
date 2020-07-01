@@ -58,7 +58,7 @@ class mc_writer:
         self.store.append('MC/hits',      evt_hits,      format='t', data_columns=True,
                           min_itemsize={'label' : str_length})
         self.store.append('MC/particles', evt_particles, format='t', data_columns=True,
-                          min_itemsize={'name' : str_length, 'initial_volume' : str_length,
+                          min_itemsize={'particle_name' : str_length, 'initial_volume' : str_length,
                                         'final_volume' : str_length, 'creator_proc': str_length})
 
 
