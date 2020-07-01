@@ -6,7 +6,7 @@ import tables as tb
 from pandas      import DataFrame
 from collections import namedtuple
 
-from invisible_cities.core.system_of_units_c import units
+from invisible_cities.core import system_of_units as units
 
 db_data  = namedtuple('db_data', 'detector nsipms')
 
