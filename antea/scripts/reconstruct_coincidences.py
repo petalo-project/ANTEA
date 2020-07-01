@@ -67,9 +67,7 @@ for ifile in range(start, start+numb):
         continue
     print('Analyzing file {0}'.format(file_name))
 
-    h5f = tb.open_file(file_name, mode='r')
-    tof_bin_size = read_sensor_bin_width_from_conf(h5f)
-    h5f.close()
+    tof_bin_size = read_sensor_bin_width_from_conf(file_name)
 
     particles = pd.read_hdf(file_name, 'MC/particles')
     hits      = pd.read_hdf(file_name, 'MC/hits')
