@@ -99,18 +99,13 @@ def test_write_sns_info(tmpdir):
 def test_read_sensor_bin_width_from_conf(ANTEADATADIR):
     """
     Checks that the function read_sensor_bin_width_from_conf
-    returns the bin size of the sensors for the tof and not tof
-    cases with the correct units.
+    returns the correct bin size of the sensors for the tof and
+    not tof cases.
     """
     test_file    = os.path.join(ANTEADATADIR, 'full_body_1ev.h5')
     bin_size     = read_sensor_bin_width_from_conf(test_file)
     tof_bin_size = read_sensor_bin_width_from_conf(test_file, True)
 
-    assert bin_size and tof_bin_size
-
-    for bin_w in (bin_size, tof_bin_size):
-        bin_size_ms  = bin_w / units.millisecond
-        bin_size_mus = bin_w / units.microsecond
-
-        assert  int(bin_size_mus/bin_size_ms) == 1000
+    assert int(    bin_size / units.mus) == 1
+    assert int(tof_bin_size / units.ps ) == 5
 
