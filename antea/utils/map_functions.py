@@ -1,11 +1,14 @@
-import numpy as np
+import numpy  as np
+import tables as tb
 
-from functools             import partial
-from itertools             import product
-from collections           import namedtuple
-from scipy.interpolate     import griddata
+from functools                    import partial
+from itertools                    import product
+from collections                  import namedtuple
+from scipy.interpolate            import griddata
 
-from antea.core.exceptions import ParameterNotSet
+from antea.core.exceptions        import ParameterNotSet
+from invisible_cities.io.dst_io   import load_dst
+from invisible_cities.io.table_io import make_table
 
 
 opt_nearest = {"interp_method": "nearest"}
@@ -18,15 +21,15 @@ opt_cubic   = {"interp_method":  "cubic" ,
 
 Measurement = namedtuple('Measurement', 'value uncertainty')
 
-class Correction:
+class Map:
     """
-    Interface for accessing any kind of corrections.
+    Interface for accessing any kind of correspondence between variables.
     Parameters
     ----------
     xs : np.ndarray
-        Array of coordinates corresponding to each correction.
+        Array of coordinates corresponding to each correlation.
     fs : np.ndarray
-        Array of corrections or the values used for computing them.
+        Array of correlations or the values used for computing them.
     us : np.ndarray
         Array of uncertainties or the values used for computing them.
     norm_strategy : False or string
@@ -35,7 +38,7 @@ class Correction:
         - "max":    Normalize to maximum energy encountered.
         - "index":  Normalize to the energy placed to index (i,j).
     default_f, default_u : floats
-        Default correction and uncertainty for missing values (where fs = 0).
+        Default correlation and uncertainty for missing values (where fs = 0).
     """
 
     def __init__(self,
@@ -62,7 +65,7 @@ class Correction:
 
     def __call__(self, *xs):
         """
-        Compute the correction factor.
+        Compute the correlation factor.
         Parameters
         ----------
         *x: Sequence of nd.arrays
@@ -155,3 +158,61 @@ class Correction:
 
         return True
 
+
+class ZRfactors(tb.IsDescription):
+    z            = tb.Float32Col(pos=0)
+    r            = tb.Float32Col(pos=1)
+    factor       = tb.Float32Col(pos=2)
+    uncertainty  = tb.Float32Col(pos=3)
+    nevt         = tb. UInt32Col(pos=4)
+
+
+def zr_writer(hdf5_file, **kwargs):
+    zr_table = make_table(hdf5_file,
+                          fformat = ZRfactors,
+                          **kwargs)
+
+    def write_zr(zs, rs, fs, us, ns):
+        row = zr_table.row
+        for i, z in enumerate(zs):
+            for j, r in enumerate(rs):
+                row["z"]           = z
+                row["r"]           = r
+                row["factor"]      = fs[i,j]
+                row["uncertainty"] = us[i,j]
+                row["nevt"]        = ns[i,j]
+                row.append()
+    return write_zr
+
+
+def zr_correction_writer(hdf5_file, * ,
+                         group       = "Corrections",
+                         table_name  = "ZRcorrections",
+                         compression = 'ZLIB4'):
+    return zr_writer(hdf5_file,
+                     group        = group,
+                     name         = table_name,
+                     description  = "ZR corrections",
+                     compression  = compression)
+
+
+def load_zr_corrections(filename, *,
+                        group = "Corrections",
+                        node  = "ZRcorrections",
+                        **kwargs):
+    dst  = load_dst(filename, group, node)
+    z, r = np.unique(dst.z.values), np.unique(dst.r.values)
+    f, u = dst.factor.values, dst.uncertainty.values
+
+    return Map((z, r),
+               f.reshape(z.size, r.size),
+               u.reshape(z.size, r.size),
+               **kwargs)
+
+
+def load_rpos(filename, group = "Radius",
+                        node  = "f100bins"):
+    dst = load_dst(filename, group, node)
+    return Map((dst.RmsPhi     .values,),
+                dst.Rpos       .values,
+                dst.Uncertainty.values)
