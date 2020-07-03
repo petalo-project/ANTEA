@@ -4,14 +4,13 @@ import pandas as pd
 import tables as tb
 
 from invisible_cities.core         import system_of_units as units
-from invisible_cities.io.mcinfo_io import units_dict
 
 import antea.database.load_db      as db
 import antea.reco.reco_functions   as rf
 import antea.reco.mctrue_functions as mcf
 
 from antea.utils.table_functions import load_rpos
-from antea.io.mc_io import read_sensor_bin_width_from_conf
+from antea.io.mc_io              import read_sensor_bin_width_from_conf
 
 
 ### read sensor positions from database
@@ -68,9 +67,7 @@ for ifile in range(start, start+numb):
         continue
     print('Analyzing file {0}'.format(file_name))
 
-    h5f = tb.open_file(file_name, mode='r')
-    tof_bin_size = read_sensor_bin_width_from_conf(h5f)
-    h5f.close()
+    tof_bin_size = read_sensor_bin_width_from_conf(file_name)
 
     particles = pd.read_hdf(file_name, 'MC/particles')
     hits      = pd.read_hdf(file_name, 'MC/hits')
