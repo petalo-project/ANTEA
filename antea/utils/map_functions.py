@@ -240,10 +240,17 @@ def map_writer(hdf5_file,
         row[us] = u
         row.append()
 
+    return write_map
 
-def load_rpos(filename, group = "Radius",
-                        node  = "f100bins"):
+
+
+def load_map(filename,
+             group = 'Radius',
+             node = 'f100bins',
+             xs = 'PhiRms',
+             ys = 'Rpos',
+             us = 'RposUncertainty'):
     dst = load_dst(filename, group, node)
-    return Map((dst.RmsPhi     .values,),
-                dst.Rpos       .values,
-                dst.Uncertainty.values)
+    return Map((dst[xs].values,),
+                dst[ys].values,
+                dst[us].values)
