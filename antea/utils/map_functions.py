@@ -11,6 +11,12 @@ from invisible_cities.io.dst_io   import load_dst
 from invisible_cities.io.table_io import make_table
 
 
+class RPhiRmsDependence(tb.IsDescription):
+    PhiRms          = tb.Float32Col(pos=0)
+    Rpos            = tb.Float32Col(pos=0)
+    RposUncertainty = tb.Float32Col(pos=0)
+
+
 opt_nearest = {"interp_method": "nearest"}
 opt_linear  = {"interp_method": "linear" ,
                "default_f"    :     1    ,
@@ -208,6 +214,31 @@ def load_zr_corrections(filename, *,
                f.reshape(z.size, r.size),
                u.reshape(z.size, r.size),
                **kwargs)
+
+
+def map_writer(hdf5_file,
+               group       = "Radius",
+               table_name  = "rphirms_dep",
+               data_type   = RPhiRmsDependence,
+               description = "RPhiRms Dependence",
+               compression = 'ZLIB4',
+               xs = 'PhiRms',
+               ys = 'Rpos',
+               us = 'RposUncertainty'):
+
+    my_table = make_table(hdf5_file,
+                          group,
+                          table_name,
+                          data_type,
+                          description,
+                          compression)
+
+    def write_map(phi_rms, r, u):
+        row = my_table.row
+        row[xs] = phi_rms
+        row[ys] = r
+        row[us] = u
+        row.append()
 
 
 def load_rpos(filename, group = "Radius",
