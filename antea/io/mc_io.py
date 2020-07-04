@@ -9,7 +9,7 @@ str_length = 20
 
 class mc_sns_response_writer:
     """Add MC sensor response info to existing file."""
-    def __init__(self, filename: str, sns_df_name: str = 'waveforms_lut'):
+    def __init__(self, filename: str, sns_df_name: str = 'sns_resp_lut'):
 
         self.filename = filename
         self.sns_df_name = sns_df_name
@@ -27,12 +27,12 @@ class mc_sns_response_writer:
 
     def __call__(self, sns_response: Mapping[int, Mapping[int, float]], evt_number: int):
 
-        waveforms_dict = sns_response[evt_number]
-        waveforms = pd.DataFrame({'event_id':  [evt_number for i in range(len(waveforms_dict))],
-                                  'sensor_id': list(waveforms_dict.keys()),
-                                  'time_bin':  [0 for i in range(len(waveforms_dict))],
-                                  'charge':    list(waveforms_dict.values())})
-        self.store.append('MC/'+self.sns_df_name, waveforms, format='t', data_columns=True)
+        sns_resp_dict = sns_response[evt_number]
+        sns_resp = pd.DataFrame({'event_id':  [evt_number for i in range(len(sns_resp_dict))],
+                                  'sensor_id': list(sns_resp_dict.keys()),
+                                  'time_bin':  [0 for i in range(len(sns_resp_dict))],
+                                  'charge':    list(sns_resp_dict.values())})
+        self.store.append('MC/'+self.sns_df_name, sns_resp, format='t', data_columns=True)
 
 
 class mc_writer:
@@ -58,7 +58,7 @@ class mc_writer:
         self.store.append('MC/hits',      evt_hits,      format='t', data_columns=True,
                           min_itemsize={'label' : str_length})
         self.store.append('MC/particles', evt_particles, format='t', data_columns=True,
-                          min_itemsize={'name' : str_length, 'initial_volume' : str_length,
+                          min_itemsize={'particle_name' : str_length, 'initial_volume' : str_length,
                                         'final_volume' : str_length, 'creator_proc': str_length})
 
 
@@ -78,14 +78,14 @@ def load_mcparticles(file_name: str) -> pd.DataFrame:
 
 def load_mcsns_response(file_name: str) -> pd.DataFrame:
 
-    sns_response = pd.read_hdf(file_name, 'MC/waveforms')
+    sns_response = pd.read_hdf(file_name, 'MC/sns_response')
 
     return sns_response
 
 
 def load_mcTOFsns_response(file_name: str) -> pd.DataFrame:
 
-    sns_response = pd.read_hdf(file_name, 'MC/tof_waveforms')
+    sns_response = pd.read_hdf(file_name, 'MC/tof_sns_response')
 
     return sns_response
 

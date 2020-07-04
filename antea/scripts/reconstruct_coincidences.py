@@ -55,7 +55,7 @@ for ifile in range(start, start+numb):
 
     file_name = file_full.format(ifile)
     try:
-        sns_response = pd.read_hdf(file_name, 'MC/waveforms')
+        sns_response = pd.read_hdf(file_name, 'MC/sns_response')
     except ValueError:
         print('File {} not found'.format(file_name))
         continue
@@ -63,7 +63,7 @@ for ifile in range(start, start+numb):
         print('File {} not found'.format(file_name))
         continue
     except KeyError:
-        print('No object named MC/waveforms in file {0}'.format(file_name))
+        print('No object named MC/sns_response in file {0}'.format(file_name))
         continue
     print('Analyzing file {0}'.format(file_name))
 
@@ -71,7 +71,7 @@ for ifile in range(start, start+numb):
 
     particles = pd.read_hdf(file_name, 'MC/particles')
     hits      = pd.read_hdf(file_name, 'MC/hits')
-    tof_response = pd.read_hdf(file_name, 'MC/tof_waveforms')
+    tof_response = pd.read_hdf(file_name, 'MC/tof_sns_response')
 
     events = particles.event_id.unique()
     print(len(events))

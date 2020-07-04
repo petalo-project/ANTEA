@@ -178,10 +178,10 @@ def test_assign_sipms_to_gammas(ANTEADATADIR):
         if not select: continue
         if (len(true_pos) == 1) & (evt_hits.energy.sum() > 0.511): continue
 
-        waveforms = sel_df[sel_df.event_id == evt]
-        if len(waveforms) == 0: continue
+        sns_response = sel_df[sel_df.event_id == evt]
+        if len(sns_response) == 0: continue
 
-        _, _, pos1, pos2, q1, q2 = rf.assign_sipms_to_gammas(waveforms, true_pos, DataSiPM_idx)
+        _, _, pos1, pos2, q1, q2 = rf.assign_sipms_to_gammas(sns_response, true_pos, DataSiPM_idx)
 
         sipms           = DataSiPM_idx.loc[sns_response.sensor_id]
         sns_closest_pos = np.array([rf.find_closest_sipm(true_pos[0], sipms).X,
@@ -392,7 +392,7 @@ def test_only_gamma_hits_interaction():
     """
 
    data = {'event_id': [0, 0, 0, 0], 'particle_id': [1, 2, 3, 4],
-           'name': ['gamma', 'gamma', 'e-', 'e-'], 'primary': [1, 1, 0, 0],
+           'particle_name': ['gamma', 'gamma', 'e-', 'e-'], 'primary': [1, 1, 0, 0],
            'mother_id': [0, 0, 1, 1], 'initial_x': [0.0, 0.0, -162.5, -181.8],
            'initial_y': [0.0, 0.0, 6.4, 20.2],
            'initial_z': [0.0, 0.0, -46.7, -69.2],

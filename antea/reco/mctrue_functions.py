@@ -18,7 +18,7 @@ def select_photoelectric(evt_parts: pd.DataFrame, evt_hits: pd.DataFrame) -> Tup
     Select only the events where one or two photoelectric events occur, and nothing else.
     """
     sel_volume   = (evt_parts.initial_volume == 'ACTIVE') & (evt_parts.final_volume == 'ACTIVE')
-    sel_name     =  evt_parts.name == 'e-'
+    sel_name     =  evt_parts.particle_name == 'e-'
     sel_vol_name = evt_parts[sel_volume & sel_name]
     ids          = sel_vol_name.particle_id.values
 
