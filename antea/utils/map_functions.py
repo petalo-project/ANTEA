@@ -218,15 +218,15 @@ def map_writer(hdf5_file,
                ys = 'Rpos',
                us = 'RposUncertainty'):
 
-    my_table = make_table(hdf5_file,
-                          group,
-                          table_name,
-                          data_type,
-                          description,
-                          compression)
+    map_table = make_table(hdf5_file,
+                           group,
+                           table_name,
+                           data_type,
+                           description,
+                           compression)
 
     def write_map(phi_rms, r, u):
-        row = my_table.row
+        row = map_table.row
         row[xs] = phi_rms
         row[ys] = r
         row[us] = u
