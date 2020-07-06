@@ -17,6 +17,14 @@ class RPhiRmsDependence(tb.IsDescription):
     RposUncertainty = tb.Float32Col(pos=0)
 
 
+class XYfactors(tb.IsDescription):
+    X            = tb.Float32Col(pos=0)
+    Y            = tb.Float32Col(pos=1)
+    Factor       = tb.Float32Col(pos=2)
+    Uncertainty  = tb.Float32Col(pos=3)
+    NEvt         = tb. UInt32Col(pos=4)
+
+
 opt_nearest = {"interp_method": "nearest"}
 opt_linear  = {"interp_method": "linear" ,
                "default_f"    :     1    ,
@@ -165,55 +173,39 @@ class Map:
         return True
 
 
-class ZRfactors(tb.IsDescription):
-    z            = tb.Float32Col(pos=0)
-    r            = tb.Float32Col(pos=1)
-    factor       = tb.Float32Col(pos=2)
-    uncertainty  = tb.Float32Col(pos=3)
-    nevt         = tb. UInt32Col(pos=4)
+def correction_writer(hdf5_file, * ,
+                      group       = "Corrections",
+                      table_name  = "XYcorrections",
+                      data_type   = XYfactors,
+                      description = "XY Corrections",
+                      compression = 'ZLIB4',
+                      xs = 'X',
+                      ys = 'Y',
+                      fs = 'Factor',
+                      us = 'Uncertainty',
+                      ns = 'NEvt'):
 
+    xy_table = make_table(hdf5_file,
+                          group,
+                          table_name,
+                          data_type,
+                          description,
+                          compression)
 
-def zr_writer(hdf5_file, **kwargs):
-    zr_table = make_table(hdf5_file,
-                          fformat = ZRfactors,
-                          **kwargs)
-
-    def write_zr(zs, rs, fs, us, ns):
-        row = zr_table.row
-        for i, z in enumerate(zs):
-            for j, r in enumerate(rs):
-                row["z"]           = z
-                row["r"]           = r
-                row["factor"]      = fs[i,j]
-                row["uncertainty"] = us[i,j]
-                row["nevt"]        = ns[i,j]
+    def write_corr(xs, ys, fs, us, ns):
+        row = xy_table.row
+        for i, x in enumerate(xs):
+            for j, y in enumerate(ys):
+                row[xs] = x
+                row[ys] = y
+                row[fs] = fs[i,j]
+                row[us] = us[i,j]
+                row[ns] = ns[i,j]
                 row.append()
-    return write_zr
+
+    return write_corr
 
 
-def zr_correction_writer(hdf5_file, * ,
-                         group       = "Corrections",
-                         table_name  = "ZRcorrections",
-                         compression = 'ZLIB4'):
-    return zr_writer(hdf5_file,
-                     group        = group,
-                     name         = table_name,
-                     description  = "ZR corrections",
-                     compression  = compression)
-
-
-def load_zr_corrections(filename, *,
-                        group = "Corrections",
-                        node  = "ZRcorrections",
-                        **kwargs):
-    dst  = load_dst(filename, group, node)
-    z, r = np.unique(dst.z.values), np.unique(dst.r.values)
-    f, u = dst.factor.values, dst.uncertainty.values
-
-    return Map((z, r),
-               f.reshape(z.size, r.size),
-               u.reshape(z.size, r.size),
-               **kwargs)
 
 
 def map_writer(hdf5_file,
@@ -241,7 +233,6 @@ def map_writer(hdf5_file,
         row.append()
 
     return write_map
-
 
 
 def load_map(filename,
