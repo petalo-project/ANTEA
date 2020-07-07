@@ -206,6 +206,24 @@ def correction_writer(hdf5_file, * ,
     return write_corr
 
 
+def load_corrections(filename, *,
+                 group = "Corrections",
+                 node  = "XYcorrections",
+                 xs = 'X',
+                 ys = 'Y',
+                 fs = 'Factor',
+                 us = 'Uncertainty',
+                 ns = 'NEvt',
+                **kwargs):
+
+    dst  = load_dst(filename, group, node)
+    x, y = np.unique(dst[xs].values), np.unique(dst[ys].values)
+    f, u = dst[fs].values, dst[us].values
+    n    = dst[ns].values
+
+    return Map((x, y),
+               f.reshape(x.size, y.size),
+               u.reshape(x.size, y.size))
 
 
 def map_writer(hdf5_file,
