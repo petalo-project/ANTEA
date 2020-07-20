@@ -179,11 +179,11 @@ def correction_writer(hdf5_file, * ,
                       data_type   = XYfactors,
                       description = "XY Corrections",
                       compression = 'ZLIB4',
-                      xs = 'X',
-                      ys = 'Y',
-                      fs = 'Factor',
-                      us = 'Uncertainty',
-                      ns = 'NEvt'):
+                      x_name = 'X',
+                      y_name = 'Y',
+                      f_name = 'Factor',
+                      u_name = 'Uncertainty',
+                      n_name = 'NEvt'):
 
     xy_table = make_table(hdf5_file,
                           group,
@@ -196,11 +196,11 @@ def correction_writer(hdf5_file, * ,
         row = xy_table.row
         for i, x in enumerate(xs):
             for j, y in enumerate(ys):
-                row[xs] = x
-                row[ys] = y
-                row[fs] = fs[i,j]
-                row[us] = us[i,j]
-                row[ns] = ns[i,j]
+                row[x_name] = x
+                row[y_name] = y
+                row[f_name] = fs[i,j]
+                row[u_name] = us[i,j]
+                row[n_name] = ns[i,j]
                 row.append()
 
     return write_corr
@@ -209,21 +209,22 @@ def correction_writer(hdf5_file, * ,
 def load_corrections(filename, *,
                  group = "Corrections",
                  node  = "XYcorrections",
-                 xs = 'X',
-                 ys = 'Y',
-                 fs = 'Factor',
-                 us = 'Uncertainty',
-                 ns = 'NEvt',
+                 x_name = 'X',
+                 y_name = 'Y',
+                 f_name = 'Factor',
+                 u_name = 'Uncertainty',
+                 n_name = 'NEvt',
                 **kwargs):
 
     dst  = load_dst(filename, group, node)
-    x, y = np.unique(dst[xs].values), np.unique(dst[ys].values)
-    f, u = dst[fs].values, dst[us].values
-    n    = dst[ns].values
+    x, y = np.unique(dst[x_name].values), np.unique(dst[y_name].values)
+    f, u = dst[f_name].values, dst[u_name].values
+    n    = dst[n_name].values
 
     return Map((x, y),
                f.reshape(x.size, y.size),
-               u.reshape(x.size, y.size))
+               u.reshape(x.size, y.size),
+               **kwargs)
 
 
 def map_writer(hdf5_file,
@@ -232,9 +233,9 @@ def map_writer(hdf5_file,
                data_type   = RPhiRmsDependence,
                description = "RPhiRms Dependence",
                compression = 'ZLIB4',
-               xs = 'PhiRms',
-               ys = 'Rpos',
-               us = 'RposUncertainty'):
+               x_name = 'PhiRms',
+               y_name = 'Rpos',
+               u_name = 'RposUncertainty'):
 
     map_table = make_table(hdf5_file,
                            group,
@@ -245,21 +246,21 @@ def map_writer(hdf5_file,
 
     def write_map(phi_rms, r, u):
         row = map_table.row
-        row[xs] = phi_rms
-        row[ys] = r
-        row[us] = u
+        row[x_name] = phi_rms
+        row[y_name] = r
+        row[u_name] = u
         row.append()
 
     return write_map
 
 
 def load_map(filename,
-             group = 'Radius',
-             node = 'f100bins',
-             xs = 'PhiRms',
-             ys = 'Rpos',
-             us = 'RposUncertainty'):
+             group = "Radius",
+             node  = "f100bins",
+             x_name = 'PhiRms',
+             y_name = 'Rpos',
+             u_name = 'RposUncertainty'):
     dst = load_dst(filename, group, node)
-    return Map((dst[xs].values,),
-                dst[ys].values,
-                dst[us].values)
+    return Map((dst[x_name].values,),
+                dst[y_name].values,
+                dst[u_name].values)
