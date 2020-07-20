@@ -73,9 +73,9 @@ class Map:
         self.default_f       = default_f
         self.default_u       = default_u
 
-        self._normalize        (  norm_strategy,
-                                  norm_opts    )
-        self._init_interpolator(interp_method  , default_f, default_u)
+        self._normalize        (norm_strategy,
+                                norm_opts    )
+        self._init_interpolator(interp_method, default_f, default_u)
 
     def __call__(self, *xs):
         """
@@ -207,14 +207,14 @@ def correction_writer(hdf5_file, * ,
 
 
 def load_corrections(filename, *,
-                 group = "Corrections",
-                 node  = "XYcorrections",
-                 x_name = 'X',
-                 y_name = 'Y',
-                 f_name = 'Factor',
-                 u_name = 'Uncertainty',
-                 n_name = 'NEvt',
-                **kwargs):
+                     group  = "Corrections",
+                     node   = "XYcorrections",
+                     x_name = 'X',
+                     y_name = 'Y',
+                     f_name = 'Factor',
+                     u_name = 'Uncertainty',
+                     n_name = 'NEvt',
+                     **kwargs):
 
     dst  = load_dst(filename, group, node)
     x, y = np.unique(dst[x_name].values), np.unique(dst[y_name].values)
@@ -233,9 +233,9 @@ def map_writer(hdf5_file,
                data_type   = RPhiRmsDependence,
                description = "RPhiRms Dependence",
                compression = 'ZLIB4',
-               x_name = 'PhiRms',
-               y_name = 'Rpos',
-               u_name = 'RposUncertainty'):
+               x_name      = 'PhiRms',
+               y_name      = 'Rpos',
+               u_name      = 'RposUncertainty'):
 
     map_table = make_table(hdf5_file,
                            group,
@@ -255,8 +255,8 @@ def map_writer(hdf5_file,
 
 
 def load_map(filename,
-             group = "Radius",
-             node  = "f100bins",
+             group  = "Radius",
+             node   = "f100bins",
              x_name = 'PhiRms',
              y_name = 'Rpos',
              u_name = 'RposUncertainty'):
