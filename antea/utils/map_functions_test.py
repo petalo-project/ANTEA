@@ -27,6 +27,33 @@ def corr_toy_data(ANTEADATADIR):
     return corr_filename, (x, y, E, U, N)
 
 
+def test_correction_writer(config_tmpdir, corr_toy_data):
+    output_file = os.path.join(config_tmpdir, "test_corr.h5")
+
+    _, (x, y, F, U, N) = corr_toy_data
+
+    group = "Corrections"
+    name  = "XYcorrections"
+
+    with tb.open_file(output_file, 'w') as h5out:
+        write = correction_writer(h5out,
+                                  group      = group,
+                                  table_name = name)
+        write(x, y, F, U, N)
+
+    x, y    = np.repeat(x, y.size), np.tile(y, x.size)
+    F, U, N = F.flatten(), U.flatten(), N.flatten()
+
+    dst = load_dst(output_file,
+                   group = group,
+                   node  = name)
+    assert_allclose(x, dst.X          .values)
+    assert_allclose(y, dst.Y          .values)
+    assert_allclose(F, dst.Factor     .values)
+    assert_allclose(U, dst.Uncertainty.values)
+    assert_allclose(N, dst.NEvt       .values)
+
+
 @mark.parametrize("normalization",
                   ({}, {"norm_strategy": "const",
                         "norm_opts"    : {"value": 1}}))
