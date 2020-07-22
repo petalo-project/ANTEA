@@ -14,6 +14,7 @@ from antea.utils.map_functions  import opt_nearest
 from antea.utils.map_functions  import correction_writer
 from antea.utils.map_functions  import load_corrections
 from antea.utils.map_functions  import map_writer
+from antea.utils.map_functions  import load_map
 
 from invisible_cities.io.dst_io import load_dst
 
@@ -118,3 +119,14 @@ def test_map_writer(config_tmpdir, map_toy_data):
     assert_allclose(y, dst.Rpos           .values)
     assert_allclose(u, dst.RposUncertainty.values)
 
+
+@mark.parametrize("bins, pos",
+                 ((100, 0),
+                  (200, 1)))
+def test_load_map(map_toy_data, bins, pos):
+    filename, true_data = map_toy_data
+    sigmas, rs, us      = true_data
+    rmap                = load_map(filename,
+                                   group="Radius",
+                                   node=f"f2pes{bins}bins")
+    assert rmap == Map((sigmas[pos],), rs[pos], us[pos])
