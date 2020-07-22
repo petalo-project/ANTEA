@@ -10,9 +10,10 @@ from collections   import namedtuple
 from numpy.testing import assert_allclose
 
 from antea.utils.map_functions  import Map
-from antea.utils.map_functions  import load_corrections
-from antea.utils.map_functions  import correction_writer
 from antea.utils.map_functions  import opt_nearest
+from antea.utils.map_functions  import correction_writer
+from antea.utils.map_functions  import load_corrections
+from antea.utils.map_functions  import map_writer
 
 from invisible_cities.io.dst_io import load_dst
 
@@ -89,3 +90,31 @@ def test_load_corrections(corr_toy_data, normalization):
                                          node = "XYcorrections",
                                          **normalization)
   assert corr == Map((x,y), E, U, **normalization)
+
+
+def test_map_writer(config_tmpdir, map_toy_data):
+    output_file = os.path.join(config_tmpdir, "test_map.h5")
+
+    _, (xs, ys, us) = map_toy_data
+
+    group = "Radius"
+    name  = "f100bins"
+
+    with tb.open_file(output_file, 'w') as h5out:
+        write = map_writer(h5out,
+                           group      = group,
+                           table_name = name)
+        for x, y, u in zip(xs[0], ys[0], us[0]):
+            write(x, y, u)
+
+    x = np.linspace( 100,  200, 100)
+    y = np.linspace(-200, -100, 100)
+    u = np.linspace( 0.1,  0.2, 100)
+
+    dst = load_dst(output_file,
+                   group = group,
+                   node  = name)
+    assert_allclose(x, dst.PhiRms         .values)
+    assert_allclose(y, dst.Rpos           .values)
+    assert_allclose(u, dst.RposUncertainty.values)
+
