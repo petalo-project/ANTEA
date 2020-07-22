@@ -41,6 +41,17 @@ def corr_toy_data(ANTEADATADIR):
     return corr_filename, (x, y, E, U, N)
 
 
+@pytest.fixture(scope='session')
+def map_toy_data(ANTEADATADIR):
+    nbins = [100, 200]
+    xs    = np.array([np.linspace( 100,  200, n) for n in nbins])
+    ys    = np.array([np.linspace(-200, -100, n) for n in nbins])
+    us    = np.array([np.linspace( 0.1,  0.2, n) for n in nbins])
+
+    corr_filename = os.path.join(ANTEADATADIR, "toy_map.h5")
+    return corr_filename, (xs, ys, us)
+
+
 def test_correction_writer(config_tmpdir, corr_toy_data):
     output_file = os.path.join(config_tmpdir, "test_corr.h5")
 
