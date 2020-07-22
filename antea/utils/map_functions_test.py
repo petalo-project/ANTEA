@@ -5,14 +5,28 @@ import tables as tb
 
 from pytest        import fixture
 from pytest        import mark
+from pytest        import raises
 from collections   import namedtuple
 from numpy.testing import assert_allclose
 
 from antea.utils.map_functions  import Map
 from antea.utils.map_functions  import load_corrections
 from antea.utils.map_functions  import correction_writer
+from antea.utils.map_functions  import opt_nearest
 
 from invisible_cities.io.dst_io import load_dst
+
+
+def test_map_raises_exception_when_data_is_invalid():
+    x   = np.arange(  0, 10)
+    y   = np.arange(-10,  0)
+    z   = np.zeros ((x.size, y.size))
+    u_z = np.ones  ((x.size, y.size))
+    with raises(AssertionError):
+        Map((x, y), z, u_z,
+                   norm_strategy =  "index",
+                   norm_opts     = {"index": (0, 0)},
+                   **opt_nearest)
 
 
 @pytest.fixture(scope='session')
