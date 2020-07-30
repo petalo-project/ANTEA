@@ -1,8 +1,6 @@
 import numpy  as np
 import pandas as pd
 
-from . mctrue_functions import find_hits_of_given_particles
-
 from antea.core.exceptions import WaveformEmptyTable
 
 from typing import Sequence, Tuple
