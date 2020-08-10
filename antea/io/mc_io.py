@@ -97,6 +97,13 @@ def load_configuration(file_name: str) -> pd.DataFrame:
     return conf
 
 
+def load_sns_positions(file_name: str) -> pd.DataFrame:
+
+    sns_positions = pd.read_hdf(file_name, 'MC/sns_positions')
+
+    return sns_positions
+
+
 def read_sensor_bin_width_from_conf(filename, tof=False):
     """
     Return the time bin width (either TOF or no TOF) with units.
