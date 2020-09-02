@@ -85,11 +85,10 @@ def test_correction_writer(config_tmpdir, corr_toy_data):
                   ({}, {"norm_strategy": "const",
                         "norm_opts"    : {"value": 1}}))
 def test_load_corrections(corr_toy_data, normalization):
-  filename, true_data = corr_toy_data
-  x, y, E, U, _       = true_data
-  corr                = load_corrections(filename,
-                                         node = "XYcorrections",
-                                         **normalization)
+  filename, (x, y, E, U, _) = corr_toy_data
+  corr                      = load_corrections(filename,
+                                               node = "XYcorrections",
+                                               **normalization)
   assert corr == Map((x,y), E, U, **normalization)
 
 
@@ -124,9 +123,8 @@ def test_map_writer(config_tmpdir, map_toy_data):
                  ((100, 0),
                   (200, 1)))
 def test_load_map(map_toy_data, bins, pos):
-    filename, true_data = map_toy_data
-    sigmas, rs, us      = true_data
-    rmap                = load_map(filename,
-                                   group="Radius",
-                                   node=f"f2pes{bins}bins")
+    filename, (sigmas, rs, us) = map_toy_data
+    rmap                       = load_map(filename,
+                                          group="Radius",
+                                          node=f"f2pes{bins}bins")
     assert rmap == Map((sigmas[pos],), rs[pos], us[pos])
