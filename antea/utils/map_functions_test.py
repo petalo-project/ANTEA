@@ -92,33 +92,36 @@ def test_load_corrections(corr_toy_data, normalization):
   assert corr == Map((x,y), E, U, **normalization)
 
 
-def test_map_writer(config_tmpdir, map_toy_data):
+@mark.parametrize("bins, pos",
+                 ( (100, 0),
+                   (200, 1)))
+def test_map_writer(config_tmpdir, map_toy_data, bins, pos):
     output_file = os.path.join(config_tmpdir, "test_map.h5")
 
     _, (xs, ys, us) = map_toy_data
 
     group = "Radius"
-    name  = "f100bins"
+    name  = f"f{bins}bins"
 
     with tb.open_file(output_file, 'w') as h5out:
         write = map_writer(h5out,
                            group      = group,
                            table_name = name)
-        for x, y, u in zip(xs[0], ys[0], us[0]):
+        for x, y, u in zip(xs[pos], ys[pos], us[pos]):
             write(x, y, u)
 
     dst = load_dst(output_file,
                    group = group,
                    node  = name)
 
-    assert_allclose(xs[0], dst.PhiRms         .values)
-    assert_allclose(ys[0], dst.Rpos           .values)
-    assert_allclose(us[0], dst.RposUncertainty.values)
+    assert_allclose(xs[pos], dst.PhiRms         .values)
+    assert_allclose(ys[pos], dst.Rpos           .values)
+    assert_allclose(us[pos], dst.RposUncertainty.values)
 
 
 @mark.parametrize("bins, pos",
-                 ((100, 0),
-                  (200, 1)))
+                 ( (100, 0),
+                   (200, 1)))
 def test_load_map(map_toy_data, bins, pos):
     filename, (sigmas, rs, us) = map_toy_data
     rmap                       = load_map(filename,
