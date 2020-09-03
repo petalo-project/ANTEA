@@ -107,16 +107,13 @@ def test_map_writer(config_tmpdir, map_toy_data):
         for x, y, u in zip(xs[0], ys[0], us[0]):
             write(x, y, u)
 
-    x = np.linspace( 100,  200, 100)
-    y = np.linspace(-200, -100, 100)
-    u = np.linspace( 0.1,  0.2, 100)
-
     dst = load_dst(output_file,
                    group = group,
                    node  = name)
-    assert_allclose(x, dst.PhiRms         .values)
-    assert_allclose(y, dst.Rpos           .values)
-    assert_allclose(u, dst.RposUncertainty.values)
+
+    assert_allclose(xs[0], dst.PhiRms         .values)
+    assert_allclose(ys[0], dst.Rpos           .values)
+    assert_allclose(us[0], dst.RposUncertainty.values)
 
 
 @mark.parametrize("bins, pos",
