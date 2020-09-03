@@ -25,6 +25,14 @@ class XYfactors(tb.IsDescription):
     NEvt         = tb. UInt32Col(pos=4)
 
 
+class ZRfactors(tb.IsDescription):
+    Z            = tb.Float32Col(pos=0)
+    R            = tb.Float32Col(pos=1)
+    Factor       = tb.Float32Col(pos=2)
+    Uncertainty  = tb.Float32Col(pos=3)
+    NEvt         = tb. UInt32Col(pos=4)
+
+
 opt_nearest = {"interp_method": "nearest"}
 opt_linear  = {"interp_method": "linear" ,
                "default_f"    :     1    ,
