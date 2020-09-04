@@ -10,3 +10,6 @@ class NoInputFiles(ANTEAException):
 
 class WaveformEmptyTable(ANTEAException):
     pass
+
+class ParameterNotSet(ANTEAException):
+    pass
