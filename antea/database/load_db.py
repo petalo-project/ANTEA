@@ -49,10 +49,14 @@ def DataSiPMsim_only(db_file, run_number=1e5, conf_label='P7R410Z1950mm'):
 
     conn = sqlite3.connect(get_db(db_file))
 
-    sql = '''select pos.SensorID, pos.X, pos.Y, pos.Z, mtrx.PhiNumber, mtrx.ZNumber
-from ChannelPosition{0} as pos INNER JOIN ChannelMatrix{0} as mtrx
+    sql = '''select pos.SensorID, pos.X, pos.Y, pos.Z,
+gain.Centroid "adc_to_pes", gain.Sigma,
+mtrx.PhiNumber, mtrx.ZNumber
+from ChannelPosition{0} as pos INNER JOIN ChannelGain{0} as gain
+ON pos.SensorID = gain.SensorID INNER JOIN ChannelMatrix{0} as mtrx
 ON pos.SensorID = mtrx.SensorID
 where mtrx.MinRun <= {1} and {1} <= mtrx.MaxRun
+and gain.MinRun <= {1} and {1} <= gain.MaxRun
 order by pos.SensorID
 '''.format(conf_label, abs(run_number))
     data = pd.read_sql_query(sql, conn)
