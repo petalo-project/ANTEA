@@ -13,6 +13,8 @@ import antea.elec.tof_functions as tf
 
 from antea.utils.map_functions import load_map
 from antea.io.mc_io import read_sensor_bin_width_from_conf
+from antea.io.mc_io import load_mcparticles, load_mchits
+from antea.io.mc_io import load_mcsns_response, load_mcTOFsns_response
 
 ### read sensor positions from database
 #DataSiPM     = db.DataSiPM('petalo', 0) # ring
@@ -78,7 +80,7 @@ for ifile in range(start, start+numb):
 
     file_name = file_full.format(ifile)
     try:
-        sns_response = pd.read_hdf(file_name, 'MC/sns_response')
+        sns_response = load_mcsns_response(file_name)
     except ValueError:
         print('File {} not found'.format(file_name))
         continue
@@ -92,9 +94,9 @@ for ifile in range(start, start+numb):
 
     tof_bin_size = read_sensor_bin_width_from_conf(file_name, tof=True)
 
-    particles    = pd.read_hdf(file_name, 'MC/particles')
-    hits         = pd.read_hdf(file_name, 'MC/hits')
-    tof_response = pd.read_hdf(file_name, 'MC/tof_sns_response')
+    particles    = load_mcparticles(file_name)
+    hits         = load_mchits(file_name)
+    tof_response = load_mcTOFsns_response(file_name)
 
     events = particles.event_id.unique()
     charge_range = (1000, 1400) # range to select photopeak - to be adjusted to the specific case
