@@ -27,6 +27,7 @@ tau_sipm       = [100, 15000]
 time_window    = 10000
 time_bin       = 5 # ps
 time           = np.arange(0, 80000, time_bin)
+time           = np.array(time) + time_bin/2.
 spe_resp, norm = tf.apply_spe_dist(time, tau_sipm)
 
 
