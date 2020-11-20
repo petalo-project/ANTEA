@@ -130,9 +130,12 @@ for ifile in range(start, start+numb):
         if len(evt_sns) == 0:
             continue
 
+        ids_over_thr = evt_sns.sensor_id.astype('int64').values
+
         evt_parts = particles[particles.event_id       == evt]
         evt_hits  = hits[hits.event_id                 == evt]
         evt_tof   = tof_response[tof_response.event_id == evt]
+        evt_tof   = evt_tof[evt_tof.sensor_id.isin(-ids_over_thr)]
 
         pos1, pos2, q1, q2, true_pos1, true_pos2, true_t1, true_t2, sns1, sns2 = rf.reconstruct_coincidences(evt_sns, charge_range, DataSiPM_idx, evt_parts, evt_hits)
         if len(pos1) == 0 or len(pos2) == 0:
