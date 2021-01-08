@@ -1,10 +1,22 @@
+# Byte-compiled / optimized
 *.pyc
+.cache
 *.o
+
+# C extensions
 *.so
 *.c
-.cache
+
+# Distribution / packaging
 *.egg-info
-*.*~
-__*__
 environment?.?.yml
+
+# Unit test / coverage reports
+.hypothesis/
+
+# Backup files
+*~
+__*__
+
+# macOS
 .DS_Store
