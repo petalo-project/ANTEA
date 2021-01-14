@@ -20,7 +20,7 @@ def test_number_of_sensors_is_the_same(ANTEADATADIR):
 
     fluct_sns_response = apply_charge_fluctuation(sns_response, DataSiPM_idx)
 
-    original   = sns_response.groupby(['event_id']).sensor_id.nunique()
+    original   = sns_response      .groupby(['event_id']).sensor_id.nunique()
     fluctuated = fluct_sns_response.groupby(['event_id']).sensor_id.nunique()
 
     pd.testing.assert_series_equal(original, fluctuated)
