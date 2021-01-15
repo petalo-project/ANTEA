@@ -14,6 +14,7 @@ from antea.utils.map_functions import load_map
 from antea.io.mc_io import read_sensor_bin_width_from_conf
 from antea.io.mc_io import load_mcparticles, load_mchits
 from antea.io.mc_io import load_mcsns_response, load_mcTOFsns_response
+from antea.mcsim.sensor_functions import apply_charge_fluctuation
 
 ### read sensor positions from database
 #DataSiPM     = db.DataSiPM('petalo', 0) # ring
@@ -92,6 +93,8 @@ for ifile in range(start, start+numb):
         continue
     print('Analyzing file {0}'.format(file_name))
 
+    fluct_sns_response = apply_charge_fluctuation(sns_response, DataSiPM_idx)
+
     tof_bin_size = read_sensor_bin_width_from_conf(file_name, tof=True)
 
     particles    = load_mcparticles(file_name)
@@ -103,30 +106,8 @@ for ifile in range(start, start+numb):
 
     for evt in events:
 
-        evt_sns = sns_response[sns_response.event_id == evt]
-
-        # fluctuate charge according to charge resolution
-        sum_sns = evt_sns.groupby(['event_id','sensor_id'])[['charge']].sum()
-        sum_sns = sum_sns.reset_index()
-        charges = sum_sns.charge.values
-        sipmrd  = charges[:, np.newaxis] # to use IC functions, that expect a waveform
-
-        pe_resolution = DataSiPM_idx.Sigma / DataSiPM_idx.adc_to_pes
-        touched_sipms = sum_sns.sensor_id.values
-        pe_res        = pe_resolution[touched_sipms]
-        if len(pe_res) != len(sipmrd) :
-            print('Error in charge fluctuation!')
-            exit()
-
-        sipm_fluct = np.array(tuple(map(charge_fluctuation, sipmrd, pe_res)))
-
-        evts         = np.repeat(evt, len(sipmrd))
-        t_bins       = np.repeat(0, len(sipmrd))
-        fluct_charge = sipm_fluct.flatten()
-        fluct_sns    = pd.DataFrame({'event_id': evts, 'sensor_id': touched_sipms,
-                                     'time_bin': t_bins, 'charge': fluct_charge})
-
-        evt_sns = rf.find_SiPMs_over_threshold(fluct_sns, threshold=2)
+        evt_sns = fluct_sns_response[fluct_sns_response.event_id == evt]
+        evt_sns = rf.find_SiPMs_over_threshold(evt_sns, threshold=2)
         if len(evt_sns) == 0:
             continue
 
