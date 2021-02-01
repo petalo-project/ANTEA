@@ -43,11 +43,10 @@ def test_detected_charge_is_not_greater_than_original(ANTEADATADIR, pde):
     det_sns_response = apply_sipm_pde(sns_response, pde)
 
     events = sns_response.event_id.unique()
-    for evt in events[:]:
+    for evt in events:
         sns_evt     = sns_response[sns_response.event_id == evt]
         det_sns_evt = det_sns_response[det_sns_response.event_id == evt]
-
-        sum_sns = sns_evt.charge.sum()
-        det_sns = det_sns_evt.charge.sum()
+        sum_sns     = sns_evt.charge.sum()
+        det_sns     = det_sns_evt.charge.sum()
 
         assert det_sns <= sum_sns
