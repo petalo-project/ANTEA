@@ -1,0 +1,37 @@
+# This workflow will install ANTEA and run all the tests with pytest
+
+name: Test suite
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: [3.7]
+        platform: [ubuntu-18.04]
+    runs-on: ${{ matrix.platform }}
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: Get LFS files
+      run: git lfs pull
+    - name: Install IC
+      run: |
+        git clone https://github.com/nextic/IC $HOME/IC
+        cd $HOME/IC
+        source $CONDA/etc/profile.d/conda.sh
+        source manage.sh work_in_python_version_no_tests ${{ matrix.python-version }}
+        cd -
+    - name: Run tests
+      run: |
+        source $CONDA/etc/profile.d/conda.sh
+        cd $HOME/IC
+        source manage.sh work_in_python_version_no_tests ${{ matrix.python-version }}
+        cd -
+        source antea_setup.sh
+        HYPOTHESIS_PROFILE=hard pytest -v --instafail --no-success-flaky-report
+
