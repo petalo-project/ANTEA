@@ -14,7 +14,7 @@ from . import load_db as DB
 def test_sipm_pd(db):
     """Check that we retrieve the correct number of SiPMs."""
     sipms = DB.DataSiPM(db.detector)
-    columns = ['SensorID', 'ChannelID', 'Active', 'X', 'Y', 'Z', 'adc_to_pes', 'Sigma', 'PhiNumber', 'ZNumber']
+    columns = ['SensorID', 'CardID', 'TofpetID', 'ChannelID', 'Active', 'X', 'Y', 'Z', 'adc_to_pes', 'Sigma']
     assert columns == list(sipms)
     assert sipms.shape[0] == db.nsipms
 
