@@ -8,7 +8,7 @@ from collections import namedtuple
 
 from invisible_cities.core import system_of_units as units
 
-db_data  = namedtuple('db_data', 'detector nsipms')
+db_data  = namedtuple('db_data', 'detector nsipms conf_label')
 
 
 @pytest.fixture(scope = 'session')
@@ -32,14 +32,15 @@ def output_tmpdir(tmpdir_factory):
 
 
 @pytest.fixture(scope='session',
-                params=[db_data('petalo' ,  3500)],
-                ids=["petit"])
+                params=[db_data('petalo' ,  3500, 'P7R195Z140mm'),
+                        db_data('petalo' ,   128, 'PB')],
+                ids=["petit", "petbox"])
 def db(request):
     return request.param
 
 
 @pytest.fixture(scope='session',
-                params=[db_data('petalo' ,  102304)],
+                params=[db_data('petalo' ,  102304, 'P7R410Z1950mm')],
                 ids=["sim-only"])
 def db_sim_only(request):
     return request.param
