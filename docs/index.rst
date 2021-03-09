@@ -21,7 +21,7 @@ image can be performed in three different ways:
 2. :ref:`Fast simulation: NEXUS --> Fast MC --> Image Reco <fastmc>`
 3. :ref:`Fast-fast simulation: Fast-fast MC --> Image Reco <fastfastmc>`
 
-For image reconstruction, we use a :ref:`3D MLEM algorithm <imgreco>`.
+For image reconstruction, we use a 3D MLEM algorithm (`code <https://github.com/jerenner/tofpet3d>`_, `docs <https://tofpet3d.readthedocs.io>`_).
 
 Examples
 --------
