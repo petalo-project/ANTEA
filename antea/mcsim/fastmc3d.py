@@ -15,7 +15,7 @@ from antea.mcsim.errmat3d import errmat3d
 import antea.reco.reco_functions as rf
 
 def get_reco_interaction(r: float, phi: float, z: float, t: float,
-                         errmat_r: errmat, errmat_ph: errmati, errmat_z: errmat, errmat_t: errmat):
+                         errmat_r: errmat, errmat_ph: errmat, errmat_z: errmat, errmat_t: errmat):
     """
     Extract the spatial coordinates and time for one interaction, using error matrices.
     """
