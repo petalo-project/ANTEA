@@ -11,7 +11,18 @@ from invisible_cities.core import system_of_units as units
 
 from antea.mcsim.errmat import errmat
 import antea.reco.reco_functions as rf
-from antea.mcsim.fastmc3d import get_reco_interaction
+
+def get_reco_interaction(r: float, phi: float, z: float, t: float,
+                         errmat_r: errmat, errmat_phi: errmat, errmat_z: errmat, errmat_t: errmat):
+    """
+    Extract the spatial coordinates and time for one interaction, using error matrices.
+    """
+    reco_r   = errmat_r.get_random_error(r)
+    reco_phi = errmat_phi.get_random_error(phi)
+    reco_z   = errmat_z.get_random_error(z)
+    reco_t   = errmat_t.get_random_error(t)
+
+    return reco_r, reco_phi, reco_z, reco_t
 
 
 def simulate_reco_event(evt_id: int, hits: pd.DataFrame, particles: pd.DataFrame,
