@@ -40,56 +40,14 @@ def simulate_reco_event(evt_id: int, hits: pd.DataFrame, particles: pd.DataFrame
     evt_hits  = hits     [hits.event_id      == evt_id]
     energy    = evt_hits.energy.sum()
     if energy < true_e_threshold:
-        events = pd.DataFrame({'event_id':  [float(evt_id)],
-                               'true_energy': [energy],
-                               'true_r1':   [0.],
-                               'true_phi1': [0.],
-                               'true_z1':   [0.],
-                               'true_t1':   [0.],
-                               'true_r2':   [0.],
-                               'true_phi2': [0.],
-                               'true_z2':   [0.],
-                               'true_t2':   [0.],
-                               'phot_like1':[0.],
-                               'phot_like2':[0.],
-                               'reco_r1':   [0.],
-                               'reco_phi1': [0.],
-                               'reco_z1':   [0.],
-                               'reco_t1':   [0.],
-                               'reco_r2':   [0.],
-                               'reco_phi2': [0.],
-                               'reco_z2':   [0.],
-                               'reco_t2':   [0.]
-                               })
-        return events
+        return None
 
     pos1, pos2, t1, t2, phot1, phot2 = rf.find_first_interactions_in_active(evt_parts, evt_hits, photo_range)
 
     no_reco_positions = len(pos1) == 0 or len(pos2) == 0
     no_phot_interactions = not phot1 or not phot2
     if no_reco_positions or (only_phot and no_phot_interactions):
-        events = pd.DataFrame({'event_id':  [float(evt_id)],
-                               'true_energy': [energy],
-                               'true_r1':   [0.],
-                               'true_phi1': [0.],
-                               'true_z1':   [0.],
-                               'true_t1':   [0.],
-                               'true_r2':   [0.],
-                               'true_phi2': [0.],
-                               'true_z2':   [0.],
-                               'true_t2':   [0.],
-                               'phot_like1':[0.],
-                               'phot_like2':[0.],
-                               'reco_r1':   [0.],
-                               'reco_phi1': [0.],
-                               'reco_z1':   [0.],
-                               'reco_t1':   [0.],
-                               'reco_r2':   [0.],
-                               'reco_phi2': [0.],
-                               'reco_z2':   [0.],
-                               'reco_t2':   [0.]
-                               })
-        return events
+        return None
 
     t1 = t1 / units.ps
     t2 = t2 / units.ps
@@ -116,28 +74,7 @@ def simulate_reco_event(evt_id: int, hits: pd.DataFrame, particles: pd.DataFrame
         er2, ephi2, ez2, et2 = get_reco_interaction(r2, phi2, z2, t2, errmat_c_r, errmat_c_phi, errmat_c_z, errmat_c_t)
 
     if er1 == None or ephi1 == None or ez1 == None or et1 == None or er2 == None or ephi2 == None or ez2 == None or et2 == None:
-        events = pd.DataFrame({'event_id':  [float(evt_id)],
-                               'true_energy': [energy],
-                               'true_r1':   [0.],
-                               'true_phi1': [0.],
-                               'true_z1':   [0.],
-                               'true_t1':   [0.],
-                               'true_r2':   [0.],
-                               'true_phi2': [0.],
-                               'true_z2':   [0.],
-                               'true_t2':   [0.],
-                               'phot_like1':[0.],
-                               'phot_like2':[0.],
-                               'reco_r1':   [0.],
-                               'reco_phi1': [0.],
-                               'reco_z1':   [0.],
-                               'reco_t1':   [0.],
-                               'reco_r2':   [0.],
-                               'reco_phi2': [0.],
-                               'reco_z2':   [0.],
-                               'reco_t2':   [0.]
-                               })
-        return events
+        return None
 
 
     # Compute reconstructed quantities.
