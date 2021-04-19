@@ -17,10 +17,10 @@ def get_reco_interaction(r: float, phi: float, z: float, t: float,
     """
     Extract the spatial coordinates and time for one interaction, using error matrices.
     """
-    reco_r   = errmat_r.get_random_error(r)
+    reco_r   = errmat_r  .get_random_error(r)
     reco_phi = errmat_phi.get_random_error(phi)
-    reco_z   = errmat_z.get_random_error(z)
-    reco_t   = errmat_t.get_random_error(t)
+    reco_z   = errmat_z  .get_random_error(z)
+    reco_t   = errmat_t  .get_random_error(t)
 
     return reco_r, reco_phi, reco_z, reco_t
 
