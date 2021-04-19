@@ -37,7 +37,7 @@ def simulate_reco_event(evt_id: int, hits: pd.DataFrame, particles: pd.DataFrame
     """
 
     evt_parts = particles[particles.event_id == evt_id]
-    evt_hits  = hits     [hits.event_id      == evt_id]
+    evt_hits  = hits     [hits     .event_id == evt_id]
     energy    = evt_hits.energy.sum()
     if energy < true_e_threshold:
         return None
