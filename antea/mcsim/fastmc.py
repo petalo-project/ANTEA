@@ -12,11 +12,25 @@ from invisible_cities.core import system_of_units as units
 from antea.mcsim.errmat import errmat
 import antea.reco.reco_functions as rf
 
+def get_reco_interaction(r: float, phi: float, z: float, t: float,
+                         errmat_r: errmat, errmat_phi: errmat, errmat_z: errmat, errmat_t: errmat):
+    """
+    Extract the spatial coordinates and time for one interaction, using error matrices.
+    """
+    reco_r   = errmat_r  .get_random_error(r)
+    reco_phi = errmat_phi.get_random_error(phi)
+    reco_z   = errmat_z  .get_random_error(z)
+    reco_t   = errmat_t  .get_random_error(t)
+
+    return reco_r, reco_phi, reco_z, reco_t
+
+
 def simulate_reco_event(evt_id: int, hits: pd.DataFrame, particles: pd.DataFrame,
                         errmat_p_r: errmat, errmat_p_phi: errmat, errmat_p_z: errmat,
                         errmat_p_t: errmat, errmat_c_r: errmat, errmat_c_phi: errmat,
                         errmat_c_z: errmat, errmat_c_t: errmat,
-                        true_e_threshold: float = 0., photo_range: float = 1.) -> pd.DataFrame:
+                        true_e_threshold: float = 0., photo_range: float = 1.,
+                        only_phot: bool = False) -> pd.DataFrame:
     """
     Simulate the reconstructed coordinates for 1 coincidence from true GEANT4 dataframes.
     Notice that the time binning must be provided in ps.
@@ -51,7 +65,9 @@ def simulate_reco_event(evt_id: int, hits: pd.DataFrame, particles: pd.DataFrame
 
     pos1, pos2, t1, t2, phot1, phot2 = rf.find_first_interactions_in_active(evt_parts, evt_hits, photo_range)
 
-    if len(pos1) == 0 or len(pos2) == 0:
+    no_reco_positions = len(pos1) == 0 or len(pos2) == 0
+    no_phot_interactions = not phot1 or not phot2
+    if no_reco_positions or (only_phot and no_phot_interactions):
         events = pd.DataFrame({'event_id':  [float(evt_id)],
                                'true_energy': [energy],
                                'true_r1':   [0.],
@@ -90,26 +106,15 @@ def simulate_reco_event(evt_id: int, hits: pd.DataFrame, particles: pd.DataFrame
 
     # Get all errors.
     if phot1:
-        er1   = errmat_p_r.get_random_error(r1)
-        ephi1 = errmat_p_phi.get_random_error(phi1)
-        ez1   = errmat_p_z.get_random_error(z1)
-        et1   = errmat_p_t.get_random_error(t1)
+        er1, ephi1, ez1, et1 = get_reco_interaction(r1, phi1, z1, t1, errmat_p_r, errmat_p_phi, errmat_p_z, errmat_p_t)
     else:
-        er1   = errmat_c_r.get_random_error(r1)
-        ephi1 = errmat_c_phi.get_random_error(phi1)
-        ez1   = errmat_c_z.get_random_error(z1)
-        et1   = errmat_c_t.get_random_error(t1)
+        er1, ephi1, ez1, et1 = get_reco_interaction(r1, phi1, z1, t1, errmat_c_r, errmat_c_phi, errmat_c_z, errmat_c_t)
 
     if phot2:
-        er2   = errmat_p_r.get_random_error(r2)
-        ephi2 = errmat_p_phi.get_random_error(phi2)
-        ez2   = errmat_p_z.get_random_error(z2)
-        et2   = errmat_p_t.get_random_error(t2)
+        er2, ephi2, ez2, et2 = get_reco_interaction(r2, phi2, z2, t2, errmat_p_r, errmat_p_phi, errmat_p_z, errmat_p_t)
     else:
-        er2   = errmat_c_r.get_random_error(r2)
-        ephi2 = errmat_c_phi.get_random_error(phi2)
-        ez2   = errmat_c_z.get_random_error(z2)
-        et2   = errmat_c_t.get_random_error(t2)
+        er2, ephi2, ez2, et2 = get_reco_interaction(r2, phi2, z2, t2, errmat_c_r, errmat_c_phi, errmat_c_z, errmat_c_t)
+
 
     # Compute reconstructed quantities.
     r1_reco = r1 - er1
