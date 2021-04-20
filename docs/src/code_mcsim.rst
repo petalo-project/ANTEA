@@ -22,7 +22,7 @@ matrices produced in an independent NEXUS full simulation for the same
 geometric configuration. The PET image can then be reconstructed using functions
 from antea.reco.
 
-.. automodule:: antea.mcsim.fastmc
+.. automodule:: antea.mcsim.fastmc3d
    :members:
 
 .. _fastfastmc:
