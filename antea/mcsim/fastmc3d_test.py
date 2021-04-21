@@ -73,4 +73,4 @@ def test_simulate_reco_event(ANTEADATADIR):
             assert evt_df0 is None
 
     sel = (reco1.phot_like1.values==1) & (reco1.phot_like2.values==1)
-    assert reco0.event_id.values != reco1[sel].event_id.values
+    assert reco0.event_id.values == reco1[sel].event_id.values
