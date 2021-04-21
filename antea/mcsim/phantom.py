@@ -71,7 +71,9 @@ def create_cylinder(radius: float, halfheight: float) -> np.ndarray:
     return vol
 
 
-def circular_profile(img2d: np.ndarray, r: float, bins: int) -> np.ndarray:
+def circular_profile(img2d: np.ndarray, r: float, bins: int, start_angle: float,
+                     x_size : float, y_size : float,
+                     xbins : int, ybins : int) -> np.ndarray:
     """
     Extract the circular profile with radius r from the specified 2D image.
 
@@ -80,19 +82,22 @@ def circular_profile(img2d: np.ndarray, r: float, bins: int) -> np.ndarray:
     :param bins: the number of bins in the profile
     """
 
-    # Get the center point.
+    # Get the center bin.
     cx = int((img2d.shape[0]-1)/2)
     cy = int((img2d.shape[1]-1)/2)
 
     # Set up the profile histogram.
-    phis = np.arange(0,2*np.pi,2*np.pi/bins)
+    phis = np.arange(start_angle, start_angle+2*np.pi, 2*np.pi/bins)
     prof = np.zeros(bins)
 
     # Extract the profile by picking out values at radius r for different phi.
-    for i,phi in enumerate(phis):
+    x_bin_width = int(x_size / xbins)
+    y_bin_width = int(y_size / ybins)
 
-        x = cx + int(r*np.cos(phi))
-        y = cy + int(r*np.sin(phi))
+    for i, phi in enumerate(phis):
+
+        x = cx + int(r*np.cos(phi)/x_bin_width)
+        y = cy + int(r*np.sin(phi)/y_bin_width)
 
         prof[i] = img2d[x,y]
 
