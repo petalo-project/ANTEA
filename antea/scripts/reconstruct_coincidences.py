@@ -245,19 +245,13 @@ for ifile in range(start, start+numb):
                     phot1 = True
 
         ## extract information about the interaction being photoelectric-like
-        positions         = np.array([evt_hits.x, evt_hits.y, evt_hits.z]).transpose()
-        scalar_products1 = positions.dot(true_pos1)
-        hits1 = evt_hits[scalar_products1 >= 0]
-        pos_hits1  = np.array([hits1.x, hits1.y, hits1.z]).transpose()
-        distances1 = np.linalg.norm(np.subtract(pos_hits1, true_pos1), axis=1)
+        distances1 = rf.find_hit_distances_from_true_pos(evt_hits, true_pos1)
         if len(distances1[distances1 > 1.]): ## hits at <1 mm distance are considered of the same point
             phot_like1 = False
         else:
             phot_like1 = True
 
-        hits2 = evt_hits[scalar_products1 < 0]
-        pos_hits2  = np.array([hits2.x, hits2.y, hits2.z]).transpose()
-        distances2 = np.linalg.norm(np.subtract(pos_hits2, true_pos2), axis=1)
+        distances2 = rf.find_hit_distances_from_true_pos(evt_hits, true_pos2)
 
         if len(distances2[distances2 > 1.]):
             phot_like2 = False
