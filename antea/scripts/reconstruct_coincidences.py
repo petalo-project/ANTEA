@@ -68,11 +68,11 @@ first_sipm1 = [[] for i in range(0, len(timestamp_thr))]
 first_sipm2 = [[] for i in range(0, len(timestamp_thr))]
 first_time1 = [[] for i in range(0, len(timestamp_thr))]
 first_time2 = [[] for i in range(0, len(timestamp_thr))]
-true_time1, true_time2          = [], []
-touched_sipms1, touched_sipms2  = [], []
-photo1, photo_like1             = [], []
-photo2, photo_like2             = [], []
-hit_energy1, hit_energy2        = [], []
+true_time1, true_time2               = [], []
+touched_sipms1, touched_sipms2       = [], []
+photo1, photo_like1                  = [], []
+max_hit_distance1, max_hit_distance2 = [], []
+hit_energy1, hit_energy2             = [], []
 
 event_ids = []
 
@@ -246,17 +246,9 @@ for ifile in range(start, start+numb):
 
         ## extract information about the interaction being photoelectric-like
         distances1 = rf.find_hit_distances_from_true_pos(evt_hits, true_pos1)
-        if len(distances1[distances1 > 1.]): ## hits at <1 mm distance are considered of the same point
-            phot_like1 = False
-        else:
-            phot_like1 = True
-
+        max_dist1  = distances1.max()
         distances2 = rf.find_hit_distances_from_true_pos(evt_hits, true_pos2)
-
-        if len(distances2[distances2 > 1.]):
-            phot_like2 = False
-        else:
-            phot_like2 = True
+        max_dist2  = distances2.max()
 
         tot_hit_energy1 = hits1.energy.sum()
         tot_hit_energy2 = hits2.energy.sum()
@@ -272,7 +264,7 @@ for ifile in range(start, start+numb):
         touched_sipms1.append(len(q1e))
         true_time1.append(true_t1/units.ps)
         photo1.append(phot1)
-        photo_like1.append(phot_like1)
+        max_hit_distance1.append(max_dist1)
         hit_energy1.append(tot_hit_energy1)
         reco_r2.append(r2)
         reco_phi2.append(phi2)
@@ -284,7 +276,7 @@ for ifile in range(start, start+numb):
         touched_sipms2.append(len(q2e))
         true_time2.append(true_t2/units.ps)
         photo2.append(phot2)
-        photo_like2.append(phot_like2)
+        max_hit_distance2.append(max_dist2)
         hit_energy2.append(tot_hit_energy2)
 
 
@@ -306,7 +298,7 @@ a_first_sipm1_4 = np.array(first_sipm1[3])
 a_first_time1_4 = np.array(first_time1[3])
 a_true_time1  = np.array(true_time1)
 a_photo1    = np.array(photo1)
-a_photo_like1    = np.array(photo_like1)
+a_max_hit_distance1 = np.array(max_hit_distance1)
 a_hit_energy1 = np.array(hit_energy1)
 
 a_true_r2   = np.array(true_r2)
@@ -327,7 +319,7 @@ a_first_sipm2_4 = np.array(first_sipm2[3])
 a_first_time2_4 = np.array(first_time2[3])
 a_true_time2  = np.array(true_time2)
 a_photo2    = np.array(photo2)
-a_photo_like2    = np.array(photo_like2)
+a_max_hit_distance2 = np.array(max_hit_distance2)
 a_hit_energy2 = np.array(hit_energy2)
 
 a_event_ids = np.array(event_ids)
@@ -349,7 +341,7 @@ np.savez(evt_file,
          a_first_sipm2_4=a_first_sipm2_4, a_first_time2_4=a_first_time2_4,
          a_true_time1=a_true_time1, a_true_time2=a_true_time2,
          a_photo1=a_photo1, a_photo2=a_photo2,
-         a_photo_like1=a_photo_like1, a_photo_like2=a_photo_like2,
+         a_max_hit_distance1=a_max_hit_distance1, a_max_hit_distance2=a_max_hit_distance2,
          a_hit_energy1=a_hit_energy1, a_hit_energy2=a_hit_energy2, a_event_ids=a_event_ids)
 
 print('Not a coincidence: {}'.format(c0))
