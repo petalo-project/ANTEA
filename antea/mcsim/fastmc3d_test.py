@@ -52,11 +52,11 @@ def test_simulate_reco_event(ANTEADATADIR):
         evt_df0 = fmc.simulate_reco_event(evt, hits, particles,
                                           errmat_r_phot,  errmat_phi_phot,  errmat_z_phot,  errmat_t_th_phot,
                                           errmat_r_compt, errmat_phi_compt, errmat_z_compt, errmat_t_th_compt,
-                                          energy_threshold, only_phot=True)
+                                          energy_threshold, photo_range=1., only_phot=True)
         evt_df1 = fmc.simulate_reco_event(evt, hits, particles,
                                           errmat_r_phot,  errmat_phi_phot,  errmat_z_phot,  errmat_t_th_phot,
                                           errmat_r_compt, errmat_phi_compt, errmat_z_compt, errmat_t_th_compt,
-                                          energy_threshold, only_phot=False)
+                                          energy_threshold, photo_range=1., only_phot=False)
 
         reco0 = pd.concat([reco0, evt_df0])
         reco1 = pd.concat([reco1, evt_df1])
