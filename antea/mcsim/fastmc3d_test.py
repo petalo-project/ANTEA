@@ -11,7 +11,7 @@ from . errmat3d import errmat3d
 
 def test_simulate_reco_event(ANTEADATADIR):
 
-    PATH_IN = os.path.join(ANTEADATADIR, 'full_body_test.h5')
+    PATH_IN = os.path.join(ANTEADATADIR, 'full_body_fastsim_test.h5')
 
     # Construct the error matrix objects.
     err_r_phot_file     = os.path.join(ANTEADATADIR, 'errmat_test_r_phot_like.npz')
