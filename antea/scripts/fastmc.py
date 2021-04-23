@@ -75,7 +75,7 @@ for file_number in range(start, start+numb_of_files):
         evt_df = fmc.simulate_reco_event(evt, hits, particles, errmat_r_phot,
                                          errmat_phi_phot,  errmat_z_phot,  errmat_t_phot,  errmat_r_compt,
                                          errmat_phi_compt, errmat_z_compt, errmat_t_compt, energy_threshold,
-                                         energy_threshold, only_phot=False)
+                                         energy_threshold, photo_range=1., only_phot=False)
         reco = pd.concat([reco, evt_df])
 
     store = pd.HDFStore(out_file, "w", complib=str("zlib"), complevel=4)
