@@ -45,7 +45,7 @@ def test_simulate_reco_event(ANTEADATADIR):
     reco0 = pd.DataFrame(columns=cols)
     reco1 = pd.DataFrame(columns=cols)
 
-    energy_threshold = 0.98
+    energy_threshold = 1.
 
     for evt in events:
 
