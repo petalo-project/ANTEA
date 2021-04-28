@@ -72,7 +72,6 @@ true_time1, true_time2               = [], []
 touched_sipms1, touched_sipms2       = [], []
 photo1, photo2                  = [], []
 max_hit_distance1, max_hit_distance2 = [], []
-hit_energy1, hit_energy2             = [], []
 
 event_ids = []
 
@@ -250,9 +249,6 @@ for ifile in range(start, start+numb):
         distances2 = rf.find_hit_distances_from_true_pos(evt_hits, true_pos2)
         max_dist2  = distances2.max()
 
-        tot_hit_energy1 = hits1.energy.sum()
-        tot_hit_energy2 = hits2.energy.sum()
-
         event_ids.append(evt)
         reco_r1.append(r1)
         reco_phi1.append(phi1)
@@ -265,7 +261,6 @@ for ifile in range(start, start+numb):
         true_time1.append(true_t1/units.ps)
         photo1.append(phot1)
         max_hit_distance1.append(max_dist1)
-        hit_energy1.append(tot_hit_energy1)
         reco_r2.append(r2)
         reco_phi2.append(phi2)
         reco_z2.append(z2)
@@ -277,7 +272,6 @@ for ifile in range(start, start+numb):
         true_time2.append(true_t2/units.ps)
         photo2.append(phot2)
         max_hit_distance2.append(max_dist2)
-        hit_energy2.append(tot_hit_energy2)
 
 
 a_true_r1   = np.array(true_r1)
@@ -299,7 +293,6 @@ a_first_time1_4 = np.array(first_time1[3])
 a_true_time1  = np.array(true_time1)
 a_photo1    = np.array(photo1)
 a_max_hit_distance1 = np.array(max_hit_distance1)
-a_hit_energy1 = np.array(hit_energy1)
 
 a_true_r2   = np.array(true_r2)
 a_true_phi2 = np.array(true_phi2)
@@ -320,7 +313,6 @@ a_first_time2_4 = np.array(first_time2[3])
 a_true_time2  = np.array(true_time2)
 a_photo2    = np.array(photo2)
 a_max_hit_distance2 = np.array(max_hit_distance2)
-a_hit_energy2 = np.array(hit_energy2)
 
 a_event_ids = np.array(event_ids)
 
@@ -342,7 +334,7 @@ np.savez(evt_file,
          a_true_time1=a_true_time1, a_true_time2=a_true_time2,
          a_photo1=a_photo1, a_photo2=a_photo2,
          a_max_hit_distance1=a_max_hit_distance1, a_max_hit_distance2=a_max_hit_distance2,
-         a_hit_energy1=a_hit_energy1, a_hit_energy2=a_hit_energy2, a_event_ids=a_event_ids)
+         a_event_ids=a_event_ids)
 
 print('Not a coincidence: {}'.format(c0))
 print('Not passing threshold r = {}, phi = {}, z = {}, E = {}'.format(c1, c2, c3, c4))
