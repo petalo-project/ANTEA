@@ -70,7 +70,7 @@ first_time1 = [[] for i in range(0, len(timestamp_thr))]
 first_time2 = [[] for i in range(0, len(timestamp_thr))]
 true_time1, true_time2               = [], []
 touched_sipms1, touched_sipms2       = [], []
-photo1, photo_like1                  = [], []
+photo1, photo2                  = [], []
 max_hit_distance1, max_hit_distance2 = [], []
 hit_energy1, hit_energy2             = [], []
 
