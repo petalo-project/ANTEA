@@ -80,6 +80,11 @@ def circular_profile(img2d: np.ndarray, r: float, bins: int, start_angle: float,
     :param img2d: the 2D image from which to extract the profile
     :param r: the radius at which to draw the profile
     :param bins: the number of bins in the profile
+    :param start_angle: the angle where the contour starts (0 degrees is x=x_max, y=0)
+    :param x_size: x size of the image in length unit.
+    :param y_size: y size of the image in length unit.
+    :param xbins: number of bins of the image in the x axis.
+    :param ybins: number of bins of the image in the y axis.
     """
 
     # Get the center bin.
