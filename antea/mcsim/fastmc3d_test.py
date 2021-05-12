@@ -1,12 +1,48 @@
 
 import os
 import pandas as pd
+import numpy  as np
 
 from .. reco    import reco_functions as rf
 from .. io      import mc_io          as mcio
 from .          import fastmc3d       as fmc
 from . errmat   import errmat
 from . errmat3d import errmat3d
+
+
+def test_compute_error_mat_2d():
+
+    r      = np.random.uniform(low=380, high=410, size=(50,))
+    err    = np.random.uniform(low=-1,  high=1,   size=(50,))
+    bins   = (30, 100)
+    ranges = (380, 410), (-1, 1)
+    h, eff, xmin, ymin, dx, dy = fmc.compute_error_mat_2d(r, err, bins, ranges)
+
+    assert h.shape == bins
+    assert eff     == 1
+    assert xmin    == ranges[0][0]
+    assert ymin    == ranges[1][0]
+    assert np.isclose(dx, (ranges[0][1] - ranges[0][0])/bins[0])
+    assert np.isclose(dy, (ranges[1][1] - ranges[1][0])/bins[1])
+
+
+def test_compute_error_mat_3d():
+
+    r      = np.random.uniform(low=380,   high=410,  size=(50,))
+    phi    = np.random.uniform(low=-3.15, high=3.15, size=(50,))
+    err    = np.random.uniform(low=-1,    high=1,    size=(50,))
+    bins   = (30, 100, 100)
+    ranges = (380, 410), (-3.15, 3.15), (-1, 1)
+    h, eff, xmin, ymin, zmin, dx, dy, dz = fmc.compute_error_mat_3d(r, phi, err, bins, ranges)
+
+    assert h.shape == bins
+    assert eff     == 1
+    assert xmin    == ranges[0][0]
+    assert ymin    == ranges[1][0]
+    assert zmin    == ranges[2][0]
+    assert np.isclose(dx, (ranges[0][1] - ranges[0][0])/bins[0])
+    assert np.isclose(dy, (ranges[1][1] - ranges[1][0])/bins[1])
+    assert np.isclose(dz, (ranges[2][1] - ranges[2][0])/bins[2])
 
 
 def test_simulate_reco_event(ANTEADATADIR):
