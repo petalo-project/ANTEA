@@ -163,23 +163,19 @@ ave_speed_in_LXe = 0.210 #* units.mm / units.ps
 ### Positions
 pos_1 = np.array([reco_x1, reco_y1, reco_z1]).transpose()
 pos_2 = np.array([reco_x2, reco_y2, reco_z2]).transpose()
-dist1 = []
-dist2 = []
 
 sipm_pos_1 = np.array([DataSiPM_idx.loc[first_sipm1].X, DataSiPM_idx.loc[first_sipm1].Y, DataSiPM_idx.loc[first_sipm1].Z]).transpose()
 sipm_pos_2 = np.array([DataSiPM_idx.loc[first_sipm2].X, DataSiPM_idx.loc[first_sipm2].Y, DataSiPM_idx.loc[first_sipm2].Z]).transpose()
 
 ### Distance of the interaction point from the SiPM seeing the first photon
-dist1.append(np.linalg.norm(np.subtract(pos_1, sipm_pos_1), axis=1))
-dist2.append(np.linalg.norm(np.subtract(pos_2, sipm_pos_2), axis=1))
+dist1 = np.linalg.norm(np.subtract(pos_1, sipm_pos_1), axis=1)
+dist2 = np.linalg.norm(np.subtract(pos_2, sipm_pos_2), axis=1)
 
-reco_t1   = np.array(first_time1) - (np.array(dist1)/ave_speed_in_LXe)
-reco_t2   = np.array(first_time2) - (np.array(dist2)/ave_speed_in_LXe)
+reco_t1   = first_time1 - dist1/ave_speed_in_LXe
+reco_t2   = first_time2 - dist2/ave_speed_in_LXe
 
-diff_t_matrix      = []
-diff_reco_t_matrix = []
-diff_t_matrix     .append((diff_and_concatenate(true_t1, true_t2, first_time1, first_time2)).flatten())
-diff_reco_t_matrix.append((diff_and_concatenate(true_t1, true_t2,     reco_t1,     reco_t2)).flatten())
+diff_t_matrix      = (diff_and_concatenate(true_t1, true_t2, first_time1, first_time2)).flatten()
+diff_reco_t_matrix = (diff_and_concatenate(true_t1, true_t2,     reco_t1,     reco_t2)).flatten()
 
 
 d1 = 1 #mm Phot like events
