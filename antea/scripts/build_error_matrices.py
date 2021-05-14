@@ -198,7 +198,7 @@ diff_reco_t_matrix.append((diff_and_concatenate(true_t1, true_t2,     reco_t1,  
 
 
 d1 = 1 #mm Phot like events
-sel_phot_like  = max_hit_distance < d1
+sel_phot_like  = max_hit_distance <= d1
 sel_compt_like = max_hit_distance > d1
 
 print(f'Number of interactions for phot = {len(true_x[sel_phot_like])}')
