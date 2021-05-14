@@ -30,10 +30,7 @@ first_sipm1, first_sipm2 = [], []
 first_time1, first_time2 = [], []
 
 true_t1, true_t2                     = [], []
-touched_sipms1, touched_sipms2       = [], []
-phot1, phot2                         = [], []
 max_hit_distance1, max_hit_distance2 = [], []
-hit_energy1, hit_energy2             = [], []
 
 event_ids = []
 
@@ -62,17 +59,11 @@ for filename in os.listdir(filepath):
         true_t1 = np.concatenate((true_t1, d['a_true_time1']))
         true_t2 = np.concatenate((true_t2, d['a_true_time2']))
 
-        touched_sipms1 = np.concatenate((touched_sipms1, d['a_touched_sipms1']))
-        touched_sipms2 = np.concatenate((touched_sipms2, d['a_touched_sipms2']))
         sns_response1  = np.concatenate((sns_response1,  d['a_sns_response1']))
         sns_response2  = np.concatenate((sns_response2,  d['a_sns_response2']))
 
-        phot1             = np.concatenate((phot1, d['a_photo1']))
-        phot2             = np.concatenate((phot2, d['a_photo2']))
         max_hit_distance1 = np.concatenate((max_hit_distance1, d['a_max_hit_distance1']))
         max_hit_distance2 = np.concatenate((max_hit_distance2, d['a_max_hit_distance2']))
-        hit_energy1       = np.concatenate((hit_energy1, d['a_hit_energy1']))
-        hit_energy2       = np.concatenate((hit_energy2, d['a_hit_energy2']))
 
         event_ids = np.concatenate((event_ids, d['a_event_ids']))
 
@@ -110,12 +101,8 @@ first_sipm2 = np.array(first_sipm2)
 sns_response1 = np.array(sns_response1)
 sns_response2 = np.array(sns_response2)
 
-phot1             = np.array(phot1)
-phot2             = np.array(phot2)
 max_hit_distance1 = np.array(max_hit_distance1)
 max_hit_distance2 = np.array(max_hit_distance2)
-hit_energy1       = np.array(hit_energy1)
-hit_energy2       = np.array(hit_energy2)
 
 event_ids = np.array(event_ids)
 
@@ -148,9 +135,7 @@ reco_z   = np.concatenate((reco_z1, reco_z2))
 true_t = np.concatenate((true_t1, true_t2))
 
 sns_response     = np.concatenate((sns_response1, sns_response2))
-phot             = np.concatenate((phot1, phot2))
 max_hit_distance = np.concatenate((max_hit_distance1, max_hit_distance2))
-hit_energy       = np.concatenate((hit_energy1, hit_energy2))
 
 n_int = len(true_x) # number of interactions
 
