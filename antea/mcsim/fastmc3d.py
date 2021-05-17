@@ -8,11 +8,61 @@
 import numpy  as np
 import pandas as pd
 
+from typing import Sequence, Tuple
+
 from invisible_cities.core import system_of_units as units
 
 from antea.mcsim.errmat   import errmat
 from antea.mcsim.errmat3d import errmat3d
 import antea.reco.reco_functions as rf
+
+
+def compute_error_mat_2d(x: Sequence[float], diff_mat: Sequence[float], bins: Tuple[float, float],
+                         ranges: Tuple[Tuple[float, float], Tuple[float, float]]) -> Tuple[Sequence[float],
+                                                                                           float,
+                                                                                           float,
+                                                                                           float,
+                                                                                           float,
+                                                                                           float]:
+    """
+    Compute the 2d histogram and its edges for a variable and its errors to build the error matrices.
+    """
+    h, edges = np.histogramdd((x, diff_mat), bins=bins, range=ranges)
+    eff      = np.array([1])
+    xedges   = edges[0]
+    yedges   = edges[1]
+    xmin     = xedges[0]; xmin = np.array(xmin)
+    ymin     = yedges[0]; ymin = np.array(ymin)
+    dx       = xedges[1:]-xedges[:-1]; dx = np.array(dx[0])
+    dy       = yedges[1:]-yedges[:-1]; dy = np.array(dy[0])
+    return h, eff, xmin, ymin, dx, dy
+
+
+def compute_error_mat_3d(x: Sequence[float], y: Sequence[float], diff_mat: Sequence[float], bins: Tuple[float, float, float],
+                         ranges: Tuple[Tuple[float, float], Tuple[float, float], Tuple[float, float]]) -> Tuple[Sequence[float],
+                                                                                                                float,
+                                                                                                                float,
+                                                                                                                float,
+                                                                                                                float,
+                                                                                                                float,
+                                                                                                                float,
+                                                                                                                float]:
+    """
+    Compute the 3d histogram and its edges for a variable and its errors to build the error matrices.
+    """
+    h, edges = np.histogramdd((x, y, diff_mat), bins=bins, range=ranges)
+    eff      = np.array([1])
+    xedges   = edges[0]
+    yedges   = edges[1]
+    zedges   = edges[2]
+    xmin     = xedges[0]; xmin = np.array(xmin)
+    ymin     = yedges[0]; ymin = np.array(ymin)
+    zmin     = zedges[0]; zmin = np.array(zmin)
+    dx       = xedges[1:]-xedges[:-1]; dx = np.array(dx[0])
+    dy       = yedges[1:]-yedges[:-1]; dy = np.array(dy[0])
+    dz       = zedges[1:]-zedges[:-1]; dz = np.array(dz[0])
+    return h, eff, xmin, ymin, zmin, dx, dy, dz
+
 
 def get_reco_interaction(r: float, phi: float, z: float, t: float,
                          errmat_r: errmat, errmat_phi: errmat3d, errmat_z: errmat3d, errmat_t: errmat):
