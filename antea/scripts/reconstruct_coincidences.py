@@ -40,6 +40,20 @@ thr_z   = float(sys.argv[5]) # threshold on charge to reconstruct z
 thr_e   = float(sys.argv[6]) # threshold on charge
 
 
+def sel_coord(pos1, pos2, qs1, qs2, th):
+    sel1 = qs1 > th
+    sel2 = qs2 > th
+    return pos1[sel1], pos2[sel2], qs1[sel1], qs2[sel2]
+
+def get_phi(pos, qs):
+    pos_phi  = rf.from_cartesian_to_cyl(np.array(pos))[:,1]
+    diff_sign = min(pos_phi) < 0 < max(pos_phi)
+    if diff_sign & (np.abs(np.min(pos_phi))>np.pi/2.):
+        pos_phi[pos_phi<0] = np.pi + np.pi + pos_phi[pos_phi<0]
+    mean_phi = np.average(pos_phi, weights=qs)
+    var_phi  = np.average((pos_phi-mean_phi)**2, weights=qs)
+    return var_phi
+
 folder = '/path/to/sim/folder/'
 file_full = folder + 'petalo_sim.{0:03d}.pet.h5'
 evt_file  = '/path/to/analysis/folder/coincidences_{0}_{1}_{2}_{3}_{4}_{5}'.format(start, numb, int(thr_r), int(thr_phi), int(thr_z), int(thr_e))
@@ -130,39 +144,18 @@ for ifile in range(start, start+numb):
         ## Calculate R
         r1 = r2 = None
 
-        sel1_r = q1>thr_r
-        q1r    = q1[sel1_r]
-        pos1r  = pos1[sel1_r]
-        sel2_r = q2>thr_r
-        q2r    = q2[sel2_r]
-        pos2r  = pos2[sel2_r]
+        pos1r, pos2r, q1r, q2r = sel_coord(pos1, pos2, q1, q2, thr_r)
         if len(pos1r) == 0 or len(pos2r) == 0:
             c1 += 1
             continue
 
-        pos1_phi = rf.from_cartesian_to_cyl(np.array(pos1r))[:,1]
-        diff_sign = min(pos1_phi ) < 0 < max(pos1_phi)
-        if diff_sign & (np.abs(np.min(pos1_phi))>np.pi/2.):
-            pos1_phi[pos1_phi<0] = np.pi + np.pi + pos1_phi[pos1_phi<0]
-        mean_phi = np.average(pos1_phi, weights=q1r)
-        var_phi1 = np.average((pos1_phi-mean_phi)**2, weights=q1r)
+        var_phi1 = get_phi(pos1r, q1r)
         r1  = Rpos(np.sqrt(var_phi1)).value
 
-        pos2_phi = rf.from_cartesian_to_cyl(np.array(pos2r))[:,1]
-        diff_sign = min(pos2_phi ) < 0 < max(pos2_phi)
-        if diff_sign & (np.abs(np.min(pos2_phi))>np.pi/2.):
-            pos2_phi[pos2_phi<0] = np.pi + np.pi + pos2_phi[pos2_phi<0]
-        mean_phi = np.average(pos2_phi, weights=q2r)
-        var_phi2 = np.average((pos2_phi-mean_phi)**2, weights=q2r)
+        var_phi2 = get_phi(pos2r, q2r)
         r2  = Rpos(np.sqrt(var_phi2)).value
 
-
-        sel1_phi = q1>thr_phi
-        q1phi    = q1[sel1_phi]
-        pos1phi  = pos1[sel1_phi]
-        sel2_phi = q2>thr_phi
-        q2phi    = q2[sel2_phi]
-        pos2phi  = pos2[sel2_phi]
+        pos1phi, pos2phi, q1phi, q2phi = sel_coord(pos1, pos2, q1, q2, thr_phi)
         if len(q1phi) == 0 or len(q2phi) == 0:
             c2 += 1
             continue
@@ -174,12 +167,7 @@ for ifile in range(start, start+numb):
         phi2 = np.arctan2(reco_cart_pos[1], reco_cart_pos[0])
 
 
-        sel1_z = q1>thr_z
-        q1z    = q1[sel1_z]
-        pos1z  = pos1[sel1_z]
-        sel2_z = q2>thr_z
-        q2z    = q2[sel2_z]
-        pos2z  = pos2[sel2_z]
+        pos1z, pos2z, q1z, q2z = sel_coord(pos1, pos2, q1, q2, thr_z)
         if len(q1z) == 0 or len(q2z) == 0:
             c3 += 1
             continue
@@ -190,10 +178,8 @@ for ifile in range(start, start+numb):
         reco_cart_pos = np.average(pos2z, weights=q2z, axis=0)
         z2 = reco_cart_pos[2]
 
-        sel1_e = q1>thr_e
-        q1e    = q1[sel1_e]
-        sel2_e = q2>thr_e
-        q2e    = q2[sel2_e]
+
+        _, _, q1e, q2e = sel_coord(pos1, pos2, q1, q2, thr_e)
         if len(q1e) == 0 or len(q2e) == 0:
             c4 += 1
             continue

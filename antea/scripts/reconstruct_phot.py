@@ -25,15 +25,32 @@ thr_phi = float(sys.argv[4])
 thr_z   = float(sys.argv[5])
 thr_e   = float(sys.argv[6])
 
+def sel_coord(pos1, pos2, qs1, qs2, th):
+    sel1 = qs1 > th
+    sel2 = qs2 > th
+    return pos1[sel1], pos2[sel2], qs1[sel1], qs2[sel2]
+
+def get_phi(pos, qs):
+    pos_phi  = rf.from_cartesian_to_cyl(np.array(pos))[:,1]
+    diff_sign = min(pos_phi) < 0 < max(pos_phi)
+    if diff_sign & (np.abs(np.min(pos_phi))>np.pi/2.):
+        pos_phi[pos_phi<0] = np.pi + np.pi + pos_phi[pos_phi<0]
+    mean_phi = np.average(pos_phi, weights=qs)
+    var_phi  = np.average((pos_phi-mean_phi)**2, weights=qs)
+    return var_phi
+
 folder = 'in_folder_name'
 file_full = folder + '/full_body_195cm_center.{0:03d}.pet.h5'
 evt_file  = 'out_folder_name/full_body_195cm_center_phot_{0}_{1}_{2}_{3}_{4}_{5}'.format(start, numb, int(thr_r), int(thr_phi), int(thr_z), int(thr_e))
 
 rpos_file = 'table_folder_name/r_table_full_body_195cm_thr{}pes.h5'.format(int(thr_r))
 
-Rpos = load_rpos(rpos_file,
-                 group = "Radius",
-                 node  = "f{}pes200bins".format(int(thr_r)))
+Rpos = load_map(rpos_file,
+                 group  = "Radius",
+                 node   = "f{}pes200bins".format(int(thr_r)),
+                 x_name = "PhiRms",
+                 y_name = "Rpos",
+                 u_name = "RposUncertainty")
 
 c1 = c2 = c3 = c4 = 0
 bad = 0
