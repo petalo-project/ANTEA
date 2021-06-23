@@ -11,6 +11,8 @@ import antea.reco.mctrue_functions as mcf
 
 from antea.utils.table_functions import load_rpos
 from antea.io.mc_io import read_sensor_bin_width_from_conf
+from antea.scripts.reconstruct_coincidences import sel_coord
+from antea.scripts.reconstruct_coincidences import get_phi
 
 
 ### read sensor positions from database
@@ -115,21 +117,11 @@ for ifile in range(start, start+numb):
             c1 += 1
         r1 = r2 = None
         if len(pos1) > 0:
-            pos1_phi = rf.from_cartesian_to_cyl(np.array(pos1))[:,1]
-            diff_sign = min(pos1_phi ) < 0 < max(pos1_phi)
-            if diff_sign & (np.abs(np.min(pos1_phi))>np.pi/2.):
-                pos1_phi[pos1_phi<0] = np.pi + np.pi + pos1_phi[pos1_phi<0]
-            mean_phi = np.average(pos1_phi, weights=q1)
-            var_phi1 = np.average((pos1_phi-mean_phi)**2, weights=q1)
-            r1  = Rpos(np.sqrt(var_phi1)).value
+            var_phi1 = get_phi(pos1, q1)
+            r1       = Rpos(np.sqrt(var_phi1)).value
         if len(pos2) > 0:
-            pos2_phi = rf.from_cartesian_to_cyl(np.array(pos2))[:,1]
-            diff_sign = min(pos2_phi ) < 0 < max(pos2_phi)
-            if diff_sign & (np.abs(np.min(pos2_phi))>np.pi/2.):
-                pos2_phi[pos2_phi<0] = np.pi + np.pi + pos2_phi[pos2_phi<0]
-            mean_phi = np.average(pos2_phi, weights=q2)
-            var_phi2 = np.average((pos2_phi-mean_phi)**2, weights=q2)
-            r2  = Rpos(np.sqrt(var_phi2)).value
+            var_phi2 = get_phi(pos2, q2)
+            r2       = Rpos(np.sqrt(var_phi2)).value
 
 
         _, _, pos1, pos2, q1, q2 = rf.assign_sipms_to_gammas(sns_resp_phi, true_pos, DataSiPM_idx)
