@@ -29,8 +29,13 @@ def phi_mean_var(pos_phi: Sequence[float],
         pos_phi[pos_phi<0] = np.pi + np.pi + pos_phi[pos_phi<0]
     mean_phi = np.average(pos_phi, weights=q)
     var_phi  = np.average((pos_phi-mean_phi)**2, weights=q)
-
     return mean_phi, var_phi
+
+
+def sel_coord(pos: Sequence[float], q: Sequence[float],
+              threshold: float) -> Tuple[Sequence[float], Sequence[float]]:
+    sel = q > threshold
+    return pos[sel], q[sel]
 
 
 def find_SiPMs_over_threshold(df: pd.DataFrame,

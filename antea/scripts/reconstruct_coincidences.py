@@ -40,20 +40,6 @@ thr_z   = float(sys.argv[5]) # threshold on charge to reconstruct z
 thr_e   = float(sys.argv[6]) # threshold on charge
 
 
-def sel_coord(pos1, pos2, qs1, qs2, th):
-    sel1 = qs1 > th
-    sel2 = qs2 > th
-    return pos1[sel1], pos2[sel2], qs1[sel1], qs2[sel2]
-
-def get_phi(pos, qs):
-    pos_phi  = rf.from_cartesian_to_cyl(np.array(pos))[:,1]
-    diff_sign = min(pos_phi) < 0 < max(pos_phi)
-    if diff_sign & (np.abs(np.min(pos_phi))>np.pi/2.):
-        pos_phi[pos_phi<0] = np.pi + np.pi + pos_phi[pos_phi<0]
-    mean_phi = np.average(pos_phi, weights=qs)
-    var_phi  = np.average((pos_phi-mean_phi)**2, weights=qs)
-    return var_phi
-
 folder = '/path/to/sim/folder/'
 file_full = folder + 'petalo_sim.{0:03d}.pet.h5'
 evt_file  = '/path/to/analysis/folder/coincidences_{0}_{1}_{2}_{3}_{4}_{5}'.format(start, numb, int(thr_r), int(thr_phi), int(thr_z), int(thr_e))
