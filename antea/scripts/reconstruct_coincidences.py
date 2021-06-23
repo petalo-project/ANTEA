@@ -32,6 +32,37 @@ time           = np.array(time) + time_bin/2.
 spe_resp, norm = tf.apply_spe_dist(time, tau_sipm)
 
 
+def reconstruct_position(q, pos, thr_r, thr_phi, thr_z):
+    ## Calculate R
+    posr, qr = rf.sel_coord(pos, q, thr_r)
+    if len(posr) != 0:
+        pos_phi = rf.from_cartesian_to_cyl(np.array(posr))[:,1]
+        _, var_phi = rf.phi_mean_var(pos_phi, qr)
+        r = Rpos(np.sqrt(var_phi)).value
+    else:
+        return 1.e9, 1.e9, 1.e9
+
+    ## Calculate phi
+    posphi, qphi = rf.sel_coord(pos, q, thr_phi)
+
+    if len(qphi) != 0:
+        reco_cart_pos = np.average(posphi, weights=qphi, axis=0)
+        phi           = np.arctan2(reco_cart_pos[1], reco_cart_pos[0])
+    else:
+        return 1.e9, 1.e9, 1.e9
+
+    ## Calculate z
+    posz, qz = rf.sel_coord(pos, q, thr_z)
+
+    if len(qz) != 0:
+        reco_cart_pos = np.average(posz, weights=qz, axis=0)
+        z             = reco_cart_pos[2]
+    else:
+        return 1.e9, 1.e9, 1.e9
+
+    return r, phi, z
+
+
 start   = int(sys.argv[1])
 numb    = int(sys.argv[2])
 thr_r   = float(sys.argv[3]) # threshold use to create R map
@@ -52,7 +83,7 @@ Rpos = load_map(rpos_file,
                 y_name = "Rpos",
                 u_name = "RposUncertainty")
 
-c0 = c1 = c2 = c3 = c4 = 0
+c0 = c1 = 0
 bad = 0
 
 true_r1, true_phi1, true_z1 = [], [], []
@@ -116,6 +147,8 @@ for ifile in range(start, start+numb):
         evt_hits  = hits        [hits        .event_id == evt]
         evt_tof   = tof_response[tof_response.event_id == evt]
         evt_tof   = evt_tof     [evt_tof     .sensor_id.isin(-ids_over_thr)]
+        if len(evt_tof) == 0:
+            continue
 
         pos1, pos2, q1, q2, true_pos1, true_pos2, true_t1, true_t2, sns1, sns2 = rf.reconstruct_coincidences(evt_sns, charge_range, DataSiPM_idx, evt_parts, evt_hits)
         if len(pos1) == 0 or len(pos2) == 0:
@@ -127,51 +160,11 @@ for ifile in range(start, start+numb):
         pos1 = np.array(pos1)
         pos2 = np.array(pos2)
 
-        ## Calculate R
-        r1 = r2 = None
+        r1, phi1, z1 = reconstruct_position(q1, pos1, thr_r, thr_phi, thr_z)
+        r2, phi2, z2 = reconstruct_position(q2, pos2, thr_r, thr_phi, thr_z)
 
-        pos1r, q1r = rf.sel_coord(pos1, q1, thr_r)
-        pos2r, q2r = rf.sel_coord(pos2, q2, thr_r)
-        if len(pos1r) == 0 or len(pos2r) == 0:
+        if (r1 > 1.e8) or (r2 > 1.e8):
             c1 += 1
-            continue
-
-        _, var_phi1 = rf.phi_mean_var(pos1, q1)
-        r1          = Rpos(np.sqrt(var_phi1)).value
-
-        _, var_phi2 = rf.phi_mean_var(pos2, q2)
-        r2          = Rpos(np.sqrt(var_phi2)).value
-
-        pos1phi, q1phi = rf.sel_coord(pos1, q1, thr_phi)
-        pos2phi, q2phi = rf.sel_coord(pos2, q2, thr_phi)
-        if len(q1phi) == 0 or len(q2phi) == 0:
-            c2 += 1
-            continue
-
-        phi1 = phi2 = None
-        reco_cart_pos = np.average(pos1phi, weights=q1phi, axis=0)
-        phi1 = np.arctan2(reco_cart_pos[1], reco_cart_pos[0])
-        reco_cart_pos = np.average(pos2phi, weights=q2phi, axis=0)
-        phi2 = np.arctan2(reco_cart_pos[1], reco_cart_pos[0])
-
-
-        pos1z, q1z = rf.sel_coord(pos1, q1, thr_z)
-        pos2z, q2z = rf.sel_coord(pos2, q2, thr_z)
-        if len(q1z) == 0 or len(q2z) == 0:
-            c3 += 1
-            continue
-
-        z1 = z2 = None
-        reco_cart_pos = np.average(pos1z, weights=q1z, axis=0)
-        z1 = reco_cart_pos[2]
-        reco_cart_pos = np.average(pos2z, weights=q2z, axis=0)
-        z2 = reco_cart_pos[2]
-
-
-        _, q1e = rf.sel_coord(pos1, q1, thr_e)
-        _, q2e = rf.sel_coord(pos2, q2, thr_e)
-        if len(q1e) == 0 or len(q2e) == 0:
-            c4 += 1
             continue
 
 
@@ -190,6 +183,7 @@ for ifile in range(start, start+numb):
             try:
                 min_id1, min_id2, min_t1, min_t2 = rf.find_coincidence_timestamps(evt_tof_exp_dist, sns1, sns2)
             except:
+                print(f'TOF dataframe has no minimum time for event {evt}')
                 min_id1, min_id2, min_t1, min_t2 = -1, -1, -1, -1
 
             first_sipm1[k].append(min_id1)
@@ -312,5 +306,5 @@ np.savez(evt_file,
          a_max_hit_distance1=a_max_hit_distance1, a_max_hit_distance2=a_max_hit_distance2,
          a_event_ids=a_event_ids)
 
-print('Not a coincidence: {}'.format(c0))
-print('Not passing threshold r = {}, phi = {}, z = {}, E = {}'.format(c1, c2, c3, c4))
+print(f'Not a coincidence: {c0}')
+print(f'Not passing threshold to reconstruct position = {c1}')
