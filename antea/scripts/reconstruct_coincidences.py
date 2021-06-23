@@ -20,8 +20,8 @@ from antea.mcsim.sensor_functions import apply_charge_fluctuation
 #DataSiPM     = db.DataSiPM('petalo', 0) # ring
 DataSiPM     = db.DataSiPMsim_only('petalo', 0) # full body PET
 DataSiPM_idx = DataSiPM.set_index('SensorID')
-n_sipms        = len(DataSiPM)
-first_sipm     = DataSiPM_idx.index.min()
+n_sipms      = len(DataSiPM)
+first_sipm   = DataSiPM_idx.index.min()
 
 ### parameters for single photoelectron convolution in SiPM response
 tau_sipm       = [100, 15000]
@@ -30,6 +30,37 @@ time_bin       = 5 # ps
 time           = np.arange(0, 80000, time_bin)
 time           = np.array(time) + time_bin/2.
 spe_resp, norm = tf.apply_spe_dist(time, tau_sipm)
+
+
+def reconstruct_position(q, pos, thr_r, thr_phi, thr_z):
+    ## Calculate R
+    posr, qr = rf.sel_coord(pos, q, thr_r)
+    if len(posr) != 0:
+        pos_phi = rf.from_cartesian_to_cyl(np.array(posr))[:,1]
+        _, var_phi = rf.phi_mean_var(pos_phi, qr)
+        r = Rpos(np.sqrt(var_phi)).value
+    else:
+        return 1.e9, 1.e9, 1.e9
+
+    ## Calculate phi
+    posphi, qphi = rf.sel_coord(pos, q, thr_phi)
+
+    if len(qphi) != 0:
+        reco_cart_pos = np.average(posphi, weights=qphi, axis=0)
+        phi           = np.arctan2(reco_cart_pos[1], reco_cart_pos[0])
+    else:
+        return 1.e9, 1.e9, 1.e9
+
+    ## Calculate z
+    posz, qz = rf.sel_coord(pos, q, thr_z)
+
+    if len(qz) != 0:
+        reco_cart_pos = np.average(posz, weights=qz, axis=0)
+        z             = reco_cart_pos[2]
+    else:
+        return 1.e9, 1.e9, 1.e9
+
+    return r, phi, z
 
 
 start   = int(sys.argv[1])
@@ -46,13 +77,13 @@ evt_file  = '/path/to/analysis/folder/coincidences_{0}_{1}_{2}_{3}_{4}_{5}'.form
 rpos_file = '/path/to/tables/r_table_thr{0}pes.h5'.format(int(thr_r))
 
 Rpos = load_map(rpos_file,
-                 group  = "Radius",
-                 node   = "f{}pes200bins".format(int(thr_r)),
-                 x_name = "PhiRms",
-                 y_name = "Rpos",
-                 u_name = "RposUncertainty")
+                group  = "Radius",
+                node   = "f{}pes200bins".format(int(thr_r)),
+                x_name = "PhiRms",
+                y_name = "Rpos",
+                u_name = "RposUncertainty")
 
-c0 = c1 = c2 = c3 = c4 = 0
+c0 = c1 = 0
 bad = 0
 
 true_r1, true_phi1, true_z1 = [], [], []
@@ -96,8 +127,8 @@ for ifile in range(start, start+numb):
 
     tof_bin_size = read_sensor_bin_width_from_conf(file_name, tof=True)
 
-    particles    = load_mcparticles(file_name)
-    hits         = load_mchits(file_name)
+    particles    = load_mcparticles      (file_name)
+    hits         = load_mchits           (file_name)
     tof_response = load_mcTOFsns_response(file_name)
 
     events = particles.event_id.unique()
@@ -112,90 +143,28 @@ for ifile in range(start, start+numb):
 
         ids_over_thr = evt_sns.sensor_id.astype('int64').values
 
-        evt_parts = particles[particles.event_id       == evt]
-        evt_hits  = hits[hits.event_id                 == evt]
+        evt_parts = particles   [particles   .event_id == evt]
+        evt_hits  = hits        [hits        .event_id == evt]
         evt_tof   = tof_response[tof_response.event_id == evt]
-        evt_tof   = evt_tof[evt_tof.sensor_id.isin(-ids_over_thr)]
+        evt_tof   = evt_tof     [evt_tof     .sensor_id.isin(-ids_over_thr)]
+        if len(evt_tof) == 0:
+            continue
 
         pos1, pos2, q1, q2, true_pos1, true_pos2, true_t1, true_t2, sns1, sns2 = rf.reconstruct_coincidences(evt_sns, charge_range, DataSiPM_idx, evt_parts, evt_hits)
         if len(pos1) == 0 or len(pos2) == 0:
             c0 += 1
             continue
 
-        q1   = np.array(q1);
-        q2   = np.array(q2);
-        pos1 = np.array(pos1);
-        pos2 = np.array(pos2);
+        q1   = np.array(q1)
+        q2   = np.array(q2)
+        pos1 = np.array(pos1)
+        pos2 = np.array(pos2)
 
-        ## Calculate R
-        r1 = r2 = None
+        r1, phi1, z1 = reconstruct_position(q1, pos1, thr_r, thr_phi, thr_z)
+        r2, phi2, z2 = reconstruct_position(q2, pos2, thr_r, thr_phi, thr_z)
 
-        sel1_r = q1>thr_r
-        q1r    = q1[sel1_r]
-        pos1r  = pos1[sel1_r]
-        sel2_r = q2>thr_r
-        q2r    = q2[sel2_r]
-        pos2r  = pos2[sel2_r]
-        if len(pos1r) == 0 or len(pos2r) == 0:
+        if (r1 > 1.e8) or (r2 > 1.e8):
             c1 += 1
-            continue
-
-        pos1_phi = rf.from_cartesian_to_cyl(np.array(pos1r))[:,1]
-        diff_sign = min(pos1_phi ) < 0 < max(pos1_phi)
-        if diff_sign & (np.abs(np.min(pos1_phi))>np.pi/2.):
-            pos1_phi[pos1_phi<0] = np.pi + np.pi + pos1_phi[pos1_phi<0]
-        mean_phi = np.average(pos1_phi, weights=q1r)
-        var_phi1 = np.average((pos1_phi-mean_phi)**2, weights=q1r)
-        r1  = Rpos(np.sqrt(var_phi1)).value
-
-        pos2_phi = rf.from_cartesian_to_cyl(np.array(pos2r))[:,1]
-        diff_sign = min(pos2_phi ) < 0 < max(pos2_phi)
-        if diff_sign & (np.abs(np.min(pos2_phi))>np.pi/2.):
-            pos2_phi[pos2_phi<0] = np.pi + np.pi + pos2_phi[pos2_phi<0]
-        mean_phi = np.average(pos2_phi, weights=q2r)
-        var_phi2 = np.average((pos2_phi-mean_phi)**2, weights=q2r)
-        r2  = Rpos(np.sqrt(var_phi2)).value
-
-
-        sel1_phi = q1>thr_phi
-        q1phi    = q1[sel1_phi]
-        pos1phi  = pos1[sel1_phi]
-        sel2_phi = q2>thr_phi
-        q2phi    = q2[sel2_phi]
-        pos2phi  = pos2[sel2_phi]
-        if len(q1phi) == 0 or len(q2phi) == 0:
-            c2 += 1
-            continue
-
-        phi1 = phi2 = None
-        reco_cart_pos = np.average(pos1phi, weights=q1phi, axis=0)
-        phi1 = np.arctan2(reco_cart_pos[1], reco_cart_pos[0])
-        reco_cart_pos = np.average(pos2phi, weights=q2phi, axis=0)
-        phi2 = np.arctan2(reco_cart_pos[1], reco_cart_pos[0])
-
-
-        sel1_z = q1>thr_z
-        q1z    = q1[sel1_z]
-        pos1z  = pos1[sel1_z]
-        sel2_z = q2>thr_z
-        q2z    = q2[sel2_z]
-        pos2z  = pos2[sel2_z]
-        if len(q1z) == 0 or len(q2z) == 0:
-            c3 += 1
-            continue
-
-        z1 = z2 = None
-        reco_cart_pos = np.average(pos1z, weights=q1z, axis=0)
-        z1 = reco_cart_pos[2]
-        reco_cart_pos = np.average(pos2z, weights=q2z, axis=0)
-        z2 = reco_cart_pos[2]
-
-        sel1_e = q1>thr_e
-        q1e    = q1[sel1_e]
-        sel2_e = q2>thr_e
-        q2e    = q2[sel2_e]
-        if len(q1e) == 0 or len(q2e) == 0:
-            c4 += 1
             continue
 
 
@@ -214,6 +183,7 @@ for ifile in range(start, start+numb):
             try:
                 min_id1, min_id2, min_t1, min_t2 = rf.find_coincidence_timestamps(evt_tof_exp_dist, sns1, sns2)
             except:
+                print(f'TOF dataframe has no minimum time for event {evt}')
                 min_id1, min_id2, min_t1, min_t2 = -1, -1, -1, -1
 
             first_sipm1[k].append(min_id1)
@@ -249,28 +219,28 @@ for ifile in range(start, start+numb):
         distances2 = rf.find_hit_distances_from_true_pos(evt_hits, true_pos2)
         max_dist2  = distances2.max()
 
-        event_ids.append(evt)
-        reco_r1.append(r1)
-        reco_phi1.append(phi1)
-        reco_z1.append(z1)
-        true_r1.append(np.sqrt(true_pos1[0]**2 + true_pos1[1]**2))
-        true_phi1.append(np.arctan2(true_pos1[1], true_pos1[0]))
-        true_z1.append(true_pos1[2])
-        sns_response1.append(sum(q1e))
-        touched_sipms1.append(len(q1e))
-        true_time1.append(true_t1/units.ps)
-        photo1.append(phot1)
+        event_ids        .append(evt)
+        reco_r1          .append(r1)
+        reco_phi1        .append(phi1)
+        reco_z1          .append(z1)
+        true_r1          .append(np.sqrt(true_pos1[0]**2 + true_pos1[1]**2))
+        true_phi1        .append(np.arctan2(true_pos1[1], true_pos1[0]))
+        true_z1          .append(true_pos1[2])
+        sns_response1    .append(sum(q1e))
+        touched_sipms1   .append(len(q1e))
+        true_time1       .append(true_t1/units.ps)
+        photo1           .append(phot1)
         max_hit_distance1.append(max_dist1)
-        reco_r2.append(r2)
-        reco_phi2.append(phi2)
-        reco_z2.append(z2)
-        true_r2.append(np.sqrt(true_pos2[0]**2 + true_pos2[1]**2))
-        true_phi2.append(np.arctan2(true_pos2[1], true_pos2[0]))
-        true_z2.append(true_pos2[2])
-        sns_response2.append(sum(q2e))
-        touched_sipms2.append(len(q2e))
-        true_time2.append(true_t2/units.ps)
-        photo2.append(phot2)
+        reco_r2          .append(r2)
+        reco_phi2        .append(phi2)
+        reco_z2          .append(z2)
+        true_r2          .append(np.sqrt(true_pos2[0]**2 + true_pos2[1]**2))
+        true_phi2        .append(np.arctan2(true_pos2[1], true_pos2[0]))
+        true_z2          .append(true_pos2[2])
+        sns_response2    .append(sum(q2e))
+        touched_sipms2   .append(len(q2e))
+        true_time2       .append(true_t2/units.ps)
+        photo2           .append(phot2)
         max_hit_distance2.append(max_dist2)
 
 
@@ -290,8 +260,8 @@ a_first_sipm1_3 = np.array(first_sipm1[2])
 a_first_time1_3 = np.array(first_time1[2])
 a_first_sipm1_4 = np.array(first_sipm1[3])
 a_first_time1_4 = np.array(first_time1[3])
-a_true_time1  = np.array(true_time1)
-a_photo1    = np.array(photo1)
+a_true_time1    = np.array(true_time1)
+a_photo1        = np.array(photo1)
 a_max_hit_distance1 = np.array(max_hit_distance1)
 
 a_true_r2   = np.array(true_r2)
@@ -310,8 +280,8 @@ a_first_sipm2_3 = np.array(first_sipm2[2])
 a_first_time2_3 = np.array(first_time2[2])
 a_first_sipm2_4 = np.array(first_sipm2[3])
 a_first_time2_4 = np.array(first_time2[3])
-a_true_time2  = np.array(true_time2)
-a_photo2    = np.array(photo2)
+a_true_time2    = np.array(true_time2)
+a_photo2        = np.array(photo2)
 a_max_hit_distance2 = np.array(max_hit_distance2)
 
 a_event_ids = np.array(event_ids)
@@ -336,5 +306,5 @@ np.savez(evt_file,
          a_max_hit_distance1=a_max_hit_distance1, a_max_hit_distance2=a_max_hit_distance2,
          a_event_ids=a_event_ids)
 
-print('Not a coincidence: {}'.format(c0))
-print('Not passing threshold r = {}, phi = {}, z = {}, E = {}'.format(c1, c2, c3, c4))
+print(f'Not a coincidence: {c0}')
+print(f'Not passing threshold to reconstruct position = {c1}')

@@ -48,11 +48,11 @@ for ifile in range(start, start+numb):
     hits      = pd.read_hdf(file_name, 'MC/hits')
     events    = particles.event_id.unique()
 
-    for evt in events[:]:
+    for evt in events:
 
         ### Select photoelectric events only
         evt_parts = particles[particles.event_id == evt]
-        evt_hits  = hits[hits.event_id           == evt]
+        evt_hits  = hits     [hits     .event_id == evt]
         select, true_pos = mcf.select_photoelectric(evt_parts, evt_hits)
         if not select: continue
 
@@ -70,19 +70,18 @@ for ifile in range(start, start+numb):
             var_z  = np.average((pos_z-mean_z)**2, weights=q1)
 
             reco_cart = np.average(pos1, weights=q1, axis=0)
-
-            var_phi1.append(var_phi)
-            var_z1.append(var_z)
-            touched_sipms1.append(len(pos1))
-
             r = np.sqrt(true_pos[0][0]**2 + true_pos[0][1]**2)
-            true_r1.append(r)
+
+            var_phi1      .append(var_phi)
+            var_z1        .append(var_z)
+            touched_sipms1.append(len(pos1))
+            true_r1       .append(r)
 
         else:
-            var_phi1.append(1.e9)
-            var_z1.append(1.e9)
+            var_phi1      .append(1.e9)
+            var_z1        .append(1.e9)
             touched_sipms1.append(1.e9)
-            true_r1.append(1.e9)
+            true_r1       .append(1.e9)
 
         if len(pos2) > 0:
             pos_phi    = rf.from_cartesian_to_cyl(np.array(pos2))[:,1]
@@ -93,19 +92,18 @@ for ifile in range(start, start+numb):
             var_z  = np.average((pos_z-mean_z)**2, weights=q2)
 
             reco_cart = np.average(pos2, weights=q2, axis=0)
-
-            var_phi2.append(var_phi)
-            var_z2.append(var_z)
-            touched_sipms2.append(len(pos2))
-
             r = np.sqrt(true_pos[1][0]**2 + true_pos[1][1]**2)
-            true_r2.append(r)
+
+            var_phi2      .append(var_phi)
+            var_z2        .append(var_z)
+            touched_sipms2.append(len(pos2))
+            true_r2       .append(r)
 
         else:
-            var_phi2.append(1.e9)
-            var_z2.append(1.e9)
+            var_phi2      .append(1.e9)
+            var_z2        .append(1.e9)
             touched_sipms2.append(1.e9)
-            true_r2.append(1.e9)
+            true_r2       .append(1.e9)
 
 a_true_r1  = np.array(true_r1)
 a_true_r2  = np.array(true_r2)

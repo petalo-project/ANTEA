@@ -9,8 +9,10 @@ import antea.database.load_db      as db
 import antea.reco.reco_functions   as rf
 import antea.reco.mctrue_functions as mcf
 
-from antea.utils.table_functions import load_rpos
+from antea.utils.map_functions import load_map
 from antea.io.mc_io import read_sensor_bin_width_from_conf
+from antea.io.mc_io import load_mcparticles, load_mchits
+from antea.io.mc_io import load_mcsns_response, load_mcTOFsns_response
 
 
 ### read sensor positions from database
@@ -25,15 +27,19 @@ thr_phi = float(sys.argv[4])
 thr_z   = float(sys.argv[5])
 thr_e   = float(sys.argv[6])
 
+
 folder = 'in_folder_name'
 file_full = folder + '/full_body_195cm_center.{0:03d}.pet.h5'
 evt_file  = 'out_folder_name/full_body_195cm_center_phot_{0}_{1}_{2}_{3}_{4}_{5}'.format(start, numb, int(thr_r), int(thr_phi), int(thr_z), int(thr_e))
 
 rpos_file = 'table_folder_name/r_table_full_body_195cm_thr{}pes.h5'.format(int(thr_r))
 
-Rpos = load_rpos(rpos_file,
-                 group = "Radius",
-                 node  = "f{}pes200bins".format(int(thr_r)))
+Rpos = load_map(rpos_file,
+                 group  = "Radius",
+                 node   = "f{}pes200bins".format(int(thr_r)),
+                 x_name = "PhiRms",
+                 y_name = "Rpos",
+                 u_name = "RposUncertainty")
 
 c1 = c2 = c3 = c4 = 0
 bad = 0
@@ -53,7 +59,7 @@ for ifile in range(start, start+numb):
 
     file_name = file_full.format(ifile)
     try:
-        sns_response = pd.read_hdf(file_name, 'MC/sns_response')
+        sns_response = load_mcsns_response(file_name)
     except ValueError:
         print('File {} not found'.format(file_name))
         continue
@@ -67,18 +73,17 @@ for ifile in range(start, start+numb):
 
     tof_bin_size = read_sensor_bin_width_from_conf(file_name)
 
-    particles = pd.read_hdf(file_name, 'MC/particles')
-    hits      = pd.read_hdf(file_name, 'MC/hits')
-    tof_response = pd.read_hdf(file_name, 'MC/tofsns_response ')
+    particles    = load_mcparticles      (file_name)
+    hits         = load_mchits           (file_name)
+    tof_response = load_mcTOFsns_response(file_name)
 
     events = particles.event_id.unique()
-    print(len(events))
 
-    for evt in events[:]:
+    for evt in events:
 
         ### Select photoelectric events only
         evt_parts = particles[particles.event_id == evt]
-        evt_hits  = hits[hits.event_id           == evt]
+        evt_hits  = hits     [hits     .event_id == evt]
         select, true_pos = mcf.select_photoelectric(evt_parts, evt_hits)
         if not select: continue
 
@@ -98,21 +103,13 @@ for ifile in range(start, start+numb):
             c1 += 1
         r1 = r2 = None
         if len(pos1) > 0:
-            pos1_phi = rf.from_cartesian_to_cyl(np.array(pos1))[:,1]
-            diff_sign = min(pos1_phi ) < 0 < max(pos1_phi)
-            if diff_sign & (np.abs(np.min(pos1_phi))>np.pi/2.):
-                pos1_phi[pos1_phi<0] = np.pi + np.pi + pos1_phi[pos1_phi<0]
-            mean_phi = np.average(pos1_phi, weights=q1)
-            var_phi1 = np.average((pos1_phi-mean_phi)**2, weights=q1)
-            r1  = Rpos(np.sqrt(var_phi1)).value
+            pos1_phi    = rf.from_cartesian_to_cyl(np.array(pos1))[:,1]
+            _, var_phi1 = rf.phi_mean_var(pos1_phi, q1)
+            r1          = Rpos(np.sqrt(var_phi1)).value
         if len(pos2) > 0:
             pos2_phi = rf.from_cartesian_to_cyl(np.array(pos2))[:,1]
-            diff_sign = min(pos2_phi ) < 0 < max(pos2_phi)
-            if diff_sign & (np.abs(np.min(pos2_phi))>np.pi/2.):
-                pos2_phi[pos2_phi<0] = np.pi + np.pi + pos2_phi[pos2_phi<0]
-            mean_phi = np.average(pos2_phi, weights=q2)
-            var_phi2 = np.average((pos2_phi-mean_phi)**2, weights=q2)
-            r2  = Rpos(np.sqrt(var_phi2)).value
+            _, var_phi2 = rf.phi_mean_var(pos2_phi, q2)
+            r2          = Rpos(np.sqrt(var_phi2)).value
 
 
         _, _, pos1, pos2, q1, q2 = rf.assign_sipms_to_gammas(sns_resp_phi, true_pos, DataSiPM_idx)
@@ -156,54 +153,54 @@ for ifile in range(start, start+numb):
         both_bad = 0
 
         if r1 and phi1 and z1 and q1:
-            reco_r1.append(r1)
-            reco_phi1.append(phi1)
-            reco_z1.append(z1)
-            true_r1.append(np.sqrt(true_pos[0][0]**2 + true_pos[0][1]**2))
-            true_phi1.append(np.arctan2(true_pos[0][1], true_pos[0][0]))
-            true_z1.append(true_pos[0][2])
+            reco_r1        .append(r1)
+            reco_phi1      .append(phi1)
+            reco_z1        .append(z1)
+            true_r1        .append(np.sqrt(true_pos[0][0]**2 + true_pos[0][1]**2))
+            true_phi1      .append(np.arctan2(true_pos[0][1], true_pos[0][0]))
+            true_z1        .append(true_pos[0][2])
             photo_response1.append(sum(q1))
-            touched_sipms1.append(len(q1))
-            first_sipm1.append(min_id1)
-            first_time1.append(min_t1*tof_bin_size/units.ps)
-            event_ids.append(evt)
+            touched_sipms1 .append(len(q1))
+            first_sipm1    .append(min_id1)
+            first_time1    .append(min_t1*tof_bin_size/units.ps)
+            event_ids      .append(evt)
         else:
-            reco_r1.append(1.e9)
-            reco_phi1.append(1.e9)
-            reco_z1.append(1.e9)
-            true_r1.append(1.e9)
-            true_phi1.append(1.e9)
-            true_z1.append(1.e9)
+            reco_r1        .append(1.e9)
+            reco_phi1      .append(1.e9)
+            reco_z1        .append(1.e9)
+            true_r1        .append(1.e9)
+            true_phi1      .append(1.e9)
+            true_z1        .append(1.e9)
             photo_response1.append(1.e9)
-            touched_sipms1.append(1.e9)
-            first_sipm1.append(1.e9)
-            first_time1.append(1.e9)
-            event_ids.append(evt)
+            touched_sipms1 .append(1.e9)
+            first_sipm1    .append(1.e9)
+            first_time1    .append(1.e9)
+            event_ids      .append(evt)
             both_bad += 1
 
 
         if r2 and phi2 and z2 and q2:
-            reco_r2.append(r2)
-            reco_phi2.append(phi2)
-            reco_z2.append(z2)
-            true_r2.append(np.sqrt(true_pos[1][0]**2 + true_pos[1][1]**2))
-            true_phi2.append(np.arctan2(true_pos[1][1], true_pos[1][0]))
-            true_z2.append(true_pos[1][2])
+            reco_r2        .append(r2)
+            reco_phi2      .append(phi2)
+            reco_z2        .append(z2)
+            true_r2        .append(np.sqrt(true_pos[1][0]**2 + true_pos[1][1]**2))
+            true_phi2      .append(np.arctan2(true_pos[1][1], true_pos[1][0]))
+            true_z2        .append(true_pos[1][2])
             photo_response2.append(sum(q2))
-            touched_sipms2.append(len(q2))
-            first_sipm2.append(min_id2)
-            first_time2.append(min_t2*tof_bin_size/units.ps)
+            touched_sipms2 .append(len(q2))
+            first_sipm2    .append(min_id2)
+            first_time2    .append(min_t2*tof_bin_size/units.ps)
         else:
-            reco_r2.append(1.e9)
-            reco_phi2.append(1.e9)
-            reco_z2.append(1.e9)
-            true_r2.append(1.e9)
-            true_phi2.append(1.e9)
-            true_z2.append(1.e9)
+            reco_r2        .append(1.e9)
+            reco_phi2      .append(1.e9)
+            reco_z2        .append(1.e9)
+            true_r2        .append(1.e9)
+            true_phi2      .append(1.e9)
+            true_z2        .append(1.e9)
             photo_response2.append(1.e9)
-            touched_sipms2.append(1.e9)
-            first_sipm2.append(1.e9)
-            first_time2.append(1.e9)
+            touched_sipms2 .append(1.e9)
+            first_sipm2    .append(1.e9)
+            first_time2    .append(1.e9)
             both_bad += 1
 
         if both_bad == 2:
@@ -216,7 +213,7 @@ a_reco_r1   = np.array(reco_r1)
 a_reco_phi1 = np.array(reco_phi1)
 a_reco_z1   = np.array(reco_z1)
 a_sns_response1 = np.array(photo_response1)
-a_touched_sipms1  = np.array(touched_sipms1)
+a_touched_sipms1 = np.array(touched_sipms1)
 a_first_time1 = np.array(first_time1)
 a_first_sipm1 = np.array(first_sipm1)
 
@@ -227,7 +224,7 @@ a_reco_r2   = np.array(reco_r2)
 a_reco_phi2 = np.array(reco_phi2)
 a_reco_z2   = np.array(reco_z2)
 a_sns_response2 = np.array(photo_response2)
-a_touched_sipms2  = np.array(touched_sipms2)
+a_touched_sipms2 = np.array(touched_sipms2)
 a_first_time2 = np.array(first_time2)
 a_first_sipm2 = np.array(first_sipm2)
 
