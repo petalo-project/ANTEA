@@ -103,11 +103,11 @@ for ifile in range(start, start+numb):
             c1 += 1
         r1 = r2 = None
         if len(pos1) > 0:
-            var_phi1 = get_phi(pos1, q1)
-            r1       = Rpos(np.sqrt(var_phi1)).value
+            _, var_phi1 = rf.phi_mean_var(pos1, q1)
+            r1          = Rpos(np.sqrt(var_phi1)).value
         if len(pos2) > 0:
-            var_phi2 = get_phi(pos2, q2)
-            r2       = Rpos(np.sqrt(var_phi2)).value
+            _, var_phi2 = rf.phi_mean_var(pos2, q2)
+            r2          = Rpos(np.sqrt(var_phi2)).value
 
 
         _, _, pos1, pos2, q1, q2 = rf.assign_sipms_to_gammas(sns_resp_phi, true_pos, DataSiPM_idx)

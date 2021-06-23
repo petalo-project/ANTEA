@@ -130,18 +130,20 @@ for ifile in range(start, start+numb):
         ## Calculate R
         r1 = r2 = None
 
-        pos1r, pos2r, q1r, q2r = sel_coord(pos1, pos2, q1, q2, thr_r)
+        pos1r, q1r = rf.sel_coord(pos1, q1, thr_r)
+        pos2r, q2r = rf.sel_coord(pos2, q2, thr_r)
         if len(pos1r) == 0 or len(pos2r) == 0:
             c1 += 1
             continue
 
-        var_phi1 = get_phi(pos1r, q1r)
-        r1  = Rpos(np.sqrt(var_phi1)).value
+        _, var_phi1 = rf.phi_mean_var(pos1, q1)
+        r1          = Rpos(np.sqrt(var_phi1)).value
 
-        var_phi2 = get_phi(pos2r, q2r)
-        r2  = Rpos(np.sqrt(var_phi2)).value
+        _, var_phi2 = rf.phi_mean_var(pos2, q2)
+        r2          = Rpos(np.sqrt(var_phi2)).value
 
-        pos1phi, pos2phi, q1phi, q2phi = sel_coord(pos1, pos2, q1, q2, thr_phi)
+        pos1phi, q1phi = rf.sel_coord(pos1, q1, thr_phi)
+        pos2phi, q2phi = rf.sel_coord(pos2, q2, thr_phi)
         if len(q1phi) == 0 or len(q2phi) == 0:
             c2 += 1
             continue
@@ -153,7 +155,8 @@ for ifile in range(start, start+numb):
         phi2 = np.arctan2(reco_cart_pos[1], reco_cart_pos[0])
 
 
-        pos1z, pos2z, q1z, q2z = sel_coord(pos1, pos2, q1, q2, thr_z)
+        pos1z, q1z = rf.sel_coord(pos1, q1, thr_z)
+        pos2z, q2z = rf.sel_coord(pos2, q2, thr_z)
         if len(q1z) == 0 or len(q2z) == 0:
             c3 += 1
             continue
@@ -165,7 +168,8 @@ for ifile in range(start, start+numb):
         z2 = reco_cart_pos[2]
 
 
-        _, _, q1e, q2e = sel_coord(pos1, pos2, q1, q2, thr_e)
+        _, q1e = rf.sel_coord(pos1, q1, thr_e)
+        _, q2e = rf.sel_coord(pos2, q2, thr_e)
         if len(q1e) == 0 or len(q2e) == 0:
             c4 += 1
             continue
