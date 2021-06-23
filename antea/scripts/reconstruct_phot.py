@@ -103,10 +103,12 @@ for ifile in range(start, start+numb):
             c1 += 1
         r1 = r2 = None
         if len(pos1) > 0:
-            _, var_phi1 = rf.phi_mean_var(pos1, q1)
+            pos1_phi    = rf.from_cartesian_to_cyl(np.array(pos1))[:,1]
+            _, var_phi1 = rf.phi_mean_var(pos1_phi, q1)
             r1          = Rpos(np.sqrt(var_phi1)).value
         if len(pos2) > 0:
-            _, var_phi2 = rf.phi_mean_var(pos2, q2)
+            pos2_phi = rf.from_cartesian_to_cyl(np.array(pos2))[:,1]
+            _, var_phi2 = rf.phi_mean_var(pos2_phi, q2)
             r2          = Rpos(np.sqrt(var_phi2)).value
 
 
