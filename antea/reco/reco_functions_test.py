@@ -17,6 +17,8 @@ from .. io  .mc_io      import load_mcsns_response
 from .. io  .mc_io      import load_mcTOFsns_response
 from .. core.exceptions import WaveformEmptyTable
 
+from invisible_cities.core import system_of_units as units
+
 
 DataSiPM     = db.DataSiPM('petalo', 0)
 DataSiPM_idx = DataSiPM.set_index('SensorID')
@@ -262,18 +264,22 @@ def test_find_first_time_of_sensors(ANTEADATADIR):
     """
     PATH_IN = os.path.join(ANTEADATADIR, 'ring_test.h5')
     tof_response = load_mcTOFsns_response(PATH_IN)
+    tof_bin_size = 5 * units.ps
     events       = tof_response.event_id.unique()
-    for evt in events[:]:
+    for evt in events:
         tof     = tof_response[tof_response.event_id==evt]
-        sns_ids = tof.sensor_id.unique()
-        times   = tof.time_bin
-        result  = rf.find_first_time_of_sensors(tof, sns_ids)
-        time_from_id = tof[tof.sensor_id == -result[0]].time_bin.min()
+        times   = tof.time_bin.values * tof_bin_size / units.ps
+        tof.insert(4, 'time', times.astype(int))
 
-        assert result[0] > 0
+        sns_ids      = tof.sensor_id.unique()
+        times        = tof.time
+        ids, time    = rf.find_first_time_of_sensors(tof, sns_ids, n_pe=1)
+        time_from_id = tof[tof.sensor_id == -ids[0]].time.min()
+
+        assert ids[0] > 0
         for t in times:
-            assert rf.lower_or_equal(result[1], t)
-            assert rf.lower_or_equal(time_from_id, t)
+            assert np.all(rf.lower_or_equal(time, times))
+            assert np.all(rf.lower_or_equal(time_from_id, times))
 
 
 l = st.lists(st.integers(min_value=-10000, max_value=-1000), min_size=1, max_size=5)

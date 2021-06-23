@@ -200,14 +200,15 @@ def find_first_time_of_sensors(tof_response: pd.DataFrame,
         raise WaveformEmptyTable("Tof dataframe is empty")
 
     if n_pe == 1:
-        min_t  = tof.time.min()
-        min_df = tof[tof.time == min_t]
+        min_t   = tof.time.min()
+        min_df  = tof[tof.time == min_t]
+        min_ids = min_df.sensor_id.values
     else:
         first_times = tof.sort_values(by=['time']).iloc[0:n_pe]
         min_t       = first_times.time.mean()
         min_ids     = first_times.sensor_id.values
 
-    return np.abs(min_id), min_t
+    return np.abs(min_ids), min_t
 
 
 def find_hit_distances_from_true_pos(hits: pd.DataFrame,
@@ -362,7 +363,7 @@ def reconstruct_coincidences(sns_response: pd.DataFrame,
 def find_coincidence_timestamps(tof_response: pd.DataFrame,
                                 sns1: Sequence[int],
                                 sns2: Sequence[int],
-                                int: n_pe)-> Tuple[Tuple[int], Tuple[int], float, float]:
+                                n_pe: int)-> Tuple[Tuple[int], Tuple[int], float, float]:
     """
     Finds the first time and the IDs of the sensors used to calculate it
     for each one of two sets of sensors, given a sensor response dataframe.
