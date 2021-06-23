@@ -20,8 +20,8 @@ from antea.mcsim.sensor_functions import apply_charge_fluctuation
 #DataSiPM     = db.DataSiPM('petalo', 0) # ring
 DataSiPM     = db.DataSiPMsim_only('petalo', 0) # full body PET
 DataSiPM_idx = DataSiPM.set_index('SensorID')
-n_sipms        = len(DataSiPM)
-first_sipm     = DataSiPM_idx.index.min()
+n_sipms      = len(DataSiPM)
+first_sipm   = DataSiPM_idx.index.min()
 
 ### parameters for single photoelectron convolution in SiPM response
 tau_sipm       = [100, 15000]
@@ -60,11 +60,11 @@ evt_file  = '/path/to/analysis/folder/coincidences_{0}_{1}_{2}_{3}_{4}_{5}'.form
 rpos_file = '/path/to/tables/r_table_thr{0}pes.h5'.format(int(thr_r))
 
 Rpos = load_map(rpos_file,
-                 group  = "Radius",
-                 node   = "f{}pes200bins".format(int(thr_r)),
-                 x_name = "PhiRms",
-                 y_name = "Rpos",
-                 u_name = "RposUncertainty")
+                group  = "Radius",
+                node   = "f{}pes200bins".format(int(thr_r)),
+                x_name = "PhiRms",
+                y_name = "Rpos",
+                u_name = "RposUncertainty")
 
 c0 = c1 = c2 = c3 = c4 = 0
 bad = 0
@@ -110,8 +110,8 @@ for ifile in range(start, start+numb):
 
     tof_bin_size = read_sensor_bin_width_from_conf(file_name, tof=True)
 
-    particles    = load_mcparticles(file_name)
-    hits         = load_mchits(file_name)
+    particles    = load_mcparticles      (file_name)
+    hits         = load_mchits           (file_name)
     tof_response = load_mcTOFsns_response(file_name)
 
     events = particles.event_id.unique()
@@ -126,20 +126,20 @@ for ifile in range(start, start+numb):
 
         ids_over_thr = evt_sns.sensor_id.astype('int64').values
 
-        evt_parts = particles[particles.event_id       == evt]
-        evt_hits  = hits[hits.event_id                 == evt]
+        evt_parts = particles   [particles   .event_id == evt]
+        evt_hits  = hits        [hits        .event_id == evt]
         evt_tof   = tof_response[tof_response.event_id == evt]
-        evt_tof   = evt_tof[evt_tof.sensor_id.isin(-ids_over_thr)]
+        evt_tof   = evt_tof     [evt_tof     .sensor_id.isin(-ids_over_thr)]
 
         pos1, pos2, q1, q2, true_pos1, true_pos2, true_t1, true_t2, sns1, sns2 = rf.reconstruct_coincidences(evt_sns, charge_range, DataSiPM_idx, evt_parts, evt_hits)
         if len(pos1) == 0 or len(pos2) == 0:
             c0 += 1
             continue
 
-        q1   = np.array(q1);
-        q2   = np.array(q2);
-        pos1 = np.array(pos1);
-        pos2 = np.array(pos2);
+        q1   = np.array(q1)
+        q2   = np.array(q2)
+        pos1 = np.array(pos1)
+        pos2 = np.array(pos2)
 
         ## Calculate R
         r1 = r2 = None
@@ -235,28 +235,28 @@ for ifile in range(start, start+numb):
         distances2 = rf.find_hit_distances_from_true_pos(evt_hits, true_pos2)
         max_dist2  = distances2.max()
 
-        event_ids.append(evt)
-        reco_r1.append(r1)
-        reco_phi1.append(phi1)
-        reco_z1.append(z1)
-        true_r1.append(np.sqrt(true_pos1[0]**2 + true_pos1[1]**2))
-        true_phi1.append(np.arctan2(true_pos1[1], true_pos1[0]))
-        true_z1.append(true_pos1[2])
-        sns_response1.append(sum(q1e))
-        touched_sipms1.append(len(q1e))
-        true_time1.append(true_t1/units.ps)
-        photo1.append(phot1)
+        event_ids        .append(evt)
+        reco_r1          .append(r1)
+        reco_phi1        .append(phi1)
+        reco_z1          .append(z1)
+        true_r1          .append(np.sqrt(true_pos1[0]**2 + true_pos1[1]**2))
+        true_phi1        .append(np.arctan2(true_pos1[1], true_pos1[0]))
+        true_z1          .append(true_pos1[2])
+        sns_response1    .append(sum(q1e))
+        touched_sipms1   .append(len(q1e))
+        true_time1       .append(true_t1/units.ps)
+        photo1           .append(phot1)
         max_hit_distance1.append(max_dist1)
-        reco_r2.append(r2)
-        reco_phi2.append(phi2)
-        reco_z2.append(z2)
-        true_r2.append(np.sqrt(true_pos2[0]**2 + true_pos2[1]**2))
-        true_phi2.append(np.arctan2(true_pos2[1], true_pos2[0]))
-        true_z2.append(true_pos2[2])
-        sns_response2.append(sum(q2e))
-        touched_sipms2.append(len(q2e))
-        true_time2.append(true_t2/units.ps)
-        photo2.append(phot2)
+        reco_r2          .append(r2)
+        reco_phi2        .append(phi2)
+        reco_z2          .append(z2)
+        true_r2          .append(np.sqrt(true_pos2[0]**2 + true_pos2[1]**2))
+        true_phi2        .append(np.arctan2(true_pos2[1], true_pos2[0]))
+        true_z2          .append(true_pos2[2])
+        sns_response2    .append(sum(q2e))
+        touched_sipms2   .append(len(q2e))
+        true_time2       .append(true_t2/units.ps)
+        photo2           .append(phot2)
         max_hit_distance2.append(max_dist2)
 
 
@@ -276,8 +276,8 @@ a_first_sipm1_3 = np.array(first_sipm1[2])
 a_first_time1_3 = np.array(first_time1[2])
 a_first_sipm1_4 = np.array(first_sipm1[3])
 a_first_time1_4 = np.array(first_time1[3])
-a_true_time1  = np.array(true_time1)
-a_photo1    = np.array(photo1)
+a_true_time1    = np.array(true_time1)
+a_photo1        = np.array(photo1)
 a_max_hit_distance1 = np.array(max_hit_distance1)
 
 a_true_r2   = np.array(true_r2)
@@ -296,8 +296,8 @@ a_first_sipm2_3 = np.array(first_sipm2[2])
 a_first_time2_3 = np.array(first_time2[2])
 a_first_sipm2_4 = np.array(first_sipm2[3])
 a_first_time2_4 = np.array(first_time2[3])
-a_true_time2  = np.array(true_time2)
-a_photo2    = np.array(photo2)
+a_true_time2    = np.array(true_time2)
+a_photo2        = np.array(photo2)
 a_max_hit_distance2 = np.array(max_hit_distance2)
 
 a_event_ids = np.array(event_ids)

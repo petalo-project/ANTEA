@@ -91,13 +91,12 @@ for ifile in range(start, start+numb):
     tof_response = pd.read_hdf(file_name, 'MC/tofsns_response ')
 
     events = particles.event_id.unique()
-    print(len(events))
 
-    for evt in events[:]:
+    for evt in events:
 
         ### Select photoelectric events only
         evt_parts = particles[particles.event_id == evt]
-        evt_hits  = hits[hits.event_id           == evt]
+        evt_hits  = hits     [hits     .event_id == evt]
         select, true_pos = mcf.select_photoelectric(evt_parts, evt_hits)
         if not select: continue
 
@@ -165,54 +164,54 @@ for ifile in range(start, start+numb):
         both_bad = 0
 
         if r1 and phi1 and z1 and q1:
-            reco_r1.append(r1)
-            reco_phi1.append(phi1)
-            reco_z1.append(z1)
-            true_r1.append(np.sqrt(true_pos[0][0]**2 + true_pos[0][1]**2))
-            true_phi1.append(np.arctan2(true_pos[0][1], true_pos[0][0]))
-            true_z1.append(true_pos[0][2])
+            reco_r1        .append(r1)
+            reco_phi1      .append(phi1)
+            reco_z1        .append(z1)
+            true_r1        .append(np.sqrt(true_pos[0][0]**2 + true_pos[0][1]**2))
+            true_phi1      .append(np.arctan2(true_pos[0][1], true_pos[0][0]))
+            true_z1        .append(true_pos[0][2])
             photo_response1.append(sum(q1))
-            touched_sipms1.append(len(q1))
-            first_sipm1.append(min_id1)
-            first_time1.append(min_t1*tof_bin_size/units.ps)
-            event_ids.append(evt)
+            touched_sipms1 .append(len(q1))
+            first_sipm1    .append(min_id1)
+            first_time1    .append(min_t1*tof_bin_size/units.ps)
+            event_ids      .append(evt)
         else:
-            reco_r1.append(1.e9)
-            reco_phi1.append(1.e9)
-            reco_z1.append(1.e9)
-            true_r1.append(1.e9)
-            true_phi1.append(1.e9)
-            true_z1.append(1.e9)
+            reco_r1        .append(1.e9)
+            reco_phi1      .append(1.e9)
+            reco_z1        .append(1.e9)
+            true_r1        .append(1.e9)
+            true_phi1      .append(1.e9)
+            true_z1        .append(1.e9)
             photo_response1.append(1.e9)
-            touched_sipms1.append(1.e9)
-            first_sipm1.append(1.e9)
-            first_time1.append(1.e9)
-            event_ids.append(evt)
+            touched_sipms1 .append(1.e9)
+            first_sipm1    .append(1.e9)
+            first_time1    .append(1.e9)
+            event_ids      .append(evt)
             both_bad += 1
 
 
         if r2 and phi2 and z2 and q2:
-            reco_r2.append(r2)
-            reco_phi2.append(phi2)
-            reco_z2.append(z2)
-            true_r2.append(np.sqrt(true_pos[1][0]**2 + true_pos[1][1]**2))
-            true_phi2.append(np.arctan2(true_pos[1][1], true_pos[1][0]))
-            true_z2.append(true_pos[1][2])
+            reco_r2        .append(r2)
+            reco_phi2      .append(phi2)
+            reco_z2        .append(z2)
+            true_r2        .append(np.sqrt(true_pos[1][0]**2 + true_pos[1][1]**2))
+            true_phi2      .append(np.arctan2(true_pos[1][1], true_pos[1][0]))
+            true_z2        .append(true_pos[1][2])
             photo_response2.append(sum(q2))
-            touched_sipms2.append(len(q2))
-            first_sipm2.append(min_id2)
-            first_time2.append(min_t2*tof_bin_size/units.ps)
+            touched_sipms2 .append(len(q2))
+            first_sipm2    .append(min_id2)
+            first_time2    .append(min_t2*tof_bin_size/units.ps)
         else:
-            reco_r2.append(1.e9)
-            reco_phi2.append(1.e9)
-            reco_z2.append(1.e9)
-            true_r2.append(1.e9)
-            true_phi2.append(1.e9)
-            true_z2.append(1.e9)
+            reco_r2        .append(1.e9)
+            reco_phi2      .append(1.e9)
+            reco_z2        .append(1.e9)
+            true_r2        .append(1.e9)
+            true_phi2      .append(1.e9)
+            true_z2        .append(1.e9)
             photo_response2.append(1.e9)
-            touched_sipms2.append(1.e9)
-            first_sipm2.append(1.e9)
-            first_time2.append(1.e9)
+            touched_sipms2 .append(1.e9)
+            first_sipm2    .append(1.e9)
+            first_time2    .append(1.e9)
             both_bad += 1
 
         if both_bad == 2:
@@ -225,7 +224,7 @@ a_reco_r1   = np.array(reco_r1)
 a_reco_phi1 = np.array(reco_phi1)
 a_reco_z1   = np.array(reco_z1)
 a_sns_response1 = np.array(photo_response1)
-a_touched_sipms1  = np.array(touched_sipms1)
+a_touched_sipms1 = np.array(touched_sipms1)
 a_first_time1 = np.array(first_time1)
 a_first_sipm1 = np.array(first_sipm1)
 
@@ -236,7 +235,7 @@ a_reco_r2   = np.array(reco_r2)
 a_reco_phi2 = np.array(reco_phi2)
 a_reco_z2   = np.array(reco_z2)
 a_sns_response2 = np.array(photo_response2)
-a_touched_sipms2  = np.array(touched_sipms2)
+a_touched_sipms2 = np.array(touched_sipms2)
 a_first_time2 = np.array(first_time2)
 a_first_sipm2 = np.array(first_sipm2)
 
