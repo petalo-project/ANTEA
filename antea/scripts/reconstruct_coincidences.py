@@ -62,13 +62,21 @@ def reconstruct_position(q, pos, thr_r, thr_phi, thr_z):
 
     return r, phi, z
 
+def calculate_average_SiPM_first_pos(min_ids):
+    sipm     = DataSiPM_idx.loc[np.abs(min_ids)]
+    sipm_pos = np.array([sipm.X.values, sipm.Y.values, sipm.Z.values]).transpose()
+    ave_pos  = np.average(sipm_pos, axis=0)
+
+    return ave_pos
+
 
 start   = int(sys.argv[1])
 numb    = int(sys.argv[2])
-thr_r   = float(sys.argv[3]) # threshold use to create R map
-thr_phi = float(sys.argv[4]) # threshold on charge to reconstruct phi
-thr_z   = float(sys.argv[5]) # threshold on charge to reconstruct z
-thr_e   = float(sys.argv[6]) # threshold on charge
+thr_r   = 4 # threshold use to create R map
+thr_phi = 4 # threshold on charge to reconstruct phi
+thr_z   = 4 # threshold on charge to reconstruct z
+thr_e   = 2 # threshold on charge
+n_pe    = 10
 
 
 folder = '/path/to/sim/folder/'
@@ -94,11 +102,11 @@ reco_r2, reco_phi2, reco_z2 = [], [], []
 sns_response1, sns_response2    = [], []
 
 ### PETsys thresholds to extract the timestamp
-timestamp_thr = [0, 0.5, 1.0, 1.5]
-first_sipm1 = [[] for i in range(0, len(timestamp_thr))]
-first_sipm2 = [[] for i in range(0, len(timestamp_thr))]
-first_time1 = [[] for i in range(0, len(timestamp_thr))]
-first_time2 = [[] for i in range(0, len(timestamp_thr))]
+timestamp_thr = 1.0
+first_sipm1 = []
+first_sipm2 = []
+first_time1 = []
+first_time2 = []
 true_time1, true_time2               = [], []
 touched_sipms1, touched_sipms2       = [], []
 photo1, photo2                  = [], []
@@ -137,7 +145,7 @@ for ifile in range(start, start+numb):
     for evt in events:
 
         evt_sns = fluct_sns_response[fluct_sns_response.event_id == evt]
-        evt_sns = rf.find_SiPMs_over_threshold(evt_sns, threshold=2)
+        evt_sns = rf.find_SiPMs_over_threshold(evt_sns, threshold=thr_e)
         if len(evt_sns) == 0:
             continue
 
@@ -167,30 +175,36 @@ for ifile in range(start, start+numb):
             c1 += 1
             continue
 
+        ## Use absolute times, not time bins, in units of ps
+        times = evt_tof.time_bin.values * tof_bin_size / units.ps
+        evt_tof.insert(len(evt_tof.columns), 'time', times.astype(int))
 
         ## produce a TOF dataframe with convolved time response
         tof_sns = evt_tof.sensor_id.unique()
+
         evt_tof_exp_dist = []
         for s_id in tof_sns:
             tdc_conv    = tf.tdc_convolution(evt_tof, spe_resp, s_id, time_window)
             tdc_conv_df = tf.translate_charge_conv_to_wf_df(evt, s_id, tdc_conv)
+            tdc_conv_df = tdc_conv_df[tdc_conv_df.charge > timestamp_thr/norm]
+            tdc_conv_df = tdc_conv_df[tdc_conv_df.time == tdc_conv_df.time.min()]
             evt_tof_exp_dist.append(tdc_conv_df)
         evt_tof_exp_dist = pd.concat(evt_tof_exp_dist)
 
-        ## Calculate different thresholds in charge
-        for k, th in enumerate(timestamp_thr):
-            evt_tof_exp_dist = evt_tof_exp_dist[evt_tof_exp_dist.charge > th/norm]
-            try:
-                min_id1, min_id2, min_t1, min_t2 = rf.find_coincidence_timestamps(evt_tof_exp_dist, sns1, sns2)
-            except:
-                print(f'TOF dataframe has no minimum time for event {evt}')
-                min_id1, min_id2, min_t1, min_t2 = -1, -1, -1, -1
+        try:
+            min_id1, min_id2, min_t1, min_t2 = rf.find_coincidence_timestamps(evt_tof_exp_dist, sns1, sns2, n_pe)
+        except:
+            print(f'TOF dataframe has no minimum time for event {evt}')
+            min_id1, min_id2, min_t1, min_t2 = -1, -1, -1, -1
 
-            first_sipm1[k].append(min_id1)
-            first_time1[k].append(min_t1*tof_bin_size/units.ps)
+        ave_pos1 = calculate_average_SiPM_first_pos(min_id1)
+        ave_pos2 = calculate_average_SiPM_first_pos(min_id2)
 
-            first_sipm2[k].append(min_id2)
-            first_time2[k].append(min_t2*tof_bin_size/units.ps)
+        first_sipm1.append(ave_pos1)
+        first_time1.append(min_t1*tof_bin_size/units.ps)
+
+        first_sipm2.append(ave_pos1)
+        first_time2.append(min_t2*tof_bin_size/units.ps)
 
 
         ## extract information about the interaction being photoelectric
@@ -226,8 +240,8 @@ for ifile in range(start, start+numb):
         true_r1          .append(np.sqrt(true_pos1[0]**2 + true_pos1[1]**2))
         true_phi1        .append(np.arctan2(true_pos1[1], true_pos1[0]))
         true_z1          .append(true_pos1[2])
-        sns_response1    .append(sum(q1e))
-        touched_sipms1   .append(len(q1e))
+        sns_response1    .append(sum(q1))
+        touched_sipms1   .append(len(q1))
         true_time1       .append(true_t1/units.ps)
         photo1           .append(phot1)
         max_hit_distance1.append(max_dist1)
@@ -237,51 +251,39 @@ for ifile in range(start, start+numb):
         true_r2          .append(np.sqrt(true_pos2[0]**2 + true_pos2[1]**2))
         true_phi2        .append(np.arctan2(true_pos2[1], true_pos2[0]))
         true_z2          .append(true_pos2[2])
-        sns_response2    .append(sum(q2e))
-        touched_sipms2   .append(len(q2e))
+        sns_response2    .append(sum(q2))
+        touched_sipms2   .append(len(q2))
         true_time2       .append(true_t2/units.ps)
         photo2           .append(phot2)
         max_hit_distance2.append(max_dist2)
 
 
-a_true_r1   = np.array(true_r1)
-a_true_phi1 = np.array(true_phi1)
-a_true_z1   = np.array(true_z1)
-a_reco_r1   = np.array(reco_r1)
-a_reco_phi1 = np.array(reco_phi1)
-a_reco_z1   = np.array(reco_z1)
-a_sns_response1  = np.array(sns_response1)
-a_touched_sipms1 = np.array(touched_sipms1)
-a_first_sipm1_1 = np.array(first_sipm1[0])
-a_first_time1_1 = np.array(first_time1[0])
-a_first_sipm1_2 = np.array(first_sipm1[1])
-a_first_time1_2 = np.array(first_time1[1])
-a_first_sipm1_3 = np.array(first_sipm1[2])
-a_first_time1_3 = np.array(first_time1[2])
-a_first_sipm1_4 = np.array(first_sipm1[3])
-a_first_time1_4 = np.array(first_time1[3])
-a_true_time1    = np.array(true_time1)
-a_photo1        = np.array(photo1)
+a_true_r1           = np.array(true_r1)
+a_true_phi1         = np.array(true_phi1)
+a_true_z1           = np.array(true_z1)
+a_reco_r1           = np.array(reco_r1)
+a_reco_phi1         = np.array(reco_phi1)
+a_reco_z1           = np.array(reco_z1)
+a_sns_response1     = np.array(sns_response1)
+a_touched_sipms1    = np.array(touched_sipms1)
+a_first_sipm1       = np.array(first_sipm1)
+a_first_time1       = np.array(first_time1)
+a_true_time1        = np.array(true_time1)
+a_photo1            = np.array(photo1)
 a_max_hit_distance1 = np.array(max_hit_distance1)
 
-a_true_r2   = np.array(true_r2)
-a_true_phi2 = np.array(true_phi2)
-a_true_z2   = np.array(true_z2)
-a_reco_r2   = np.array(reco_r2)
-a_reco_phi2 = np.array(reco_phi2)
-a_reco_z2   = np.array(reco_z2)
-a_sns_response2  = np.array(sns_response2)
-a_touched_sipms2 = np.array(touched_sipms2)
-a_first_sipm2_1 = np.array(first_sipm2[0])
-a_first_time2_1 = np.array(first_time2[0])
-a_first_sipm2_2 = np.array(first_sipm2[1])
-a_first_time2_2 = np.array(first_time2[1])
-a_first_sipm2_3 = np.array(first_sipm2[2])
-a_first_time2_3 = np.array(first_time2[2])
-a_first_sipm2_4 = np.array(first_sipm2[3])
-a_first_time2_4 = np.array(first_time2[3])
-a_true_time2    = np.array(true_time2)
-a_photo2        = np.array(photo2)
+a_true_r2           = np.array(true_r2)
+a_true_phi2         = np.array(true_phi2)
+a_true_z2           = np.array(true_z2)
+a_reco_r2           = np.array(reco_r2)
+a_reco_phi2         = np.array(reco_phi2)
+a_reco_z2           = np.array(reco_z2)
+a_sns_response2     = np.array(sns_response2)
+a_touched_sipms2    = np.array(touched_sipms2)
+a_first_sipm2       = np.array(first_sipm2)
+a_first_time2       = np.array(first_time2)
+a_true_time2        = np.array(true_time2)
+a_photo2            = np.array(photo2)
 a_max_hit_distance2 = np.array(max_hit_distance2)
 
 a_event_ids = np.array(event_ids)
@@ -293,14 +295,8 @@ np.savez(evt_file,
          a_reco_r2=a_reco_r2, a_reco_phi2=a_reco_phi2, a_reco_z2=a_reco_z2,
          a_touched_sipms1=a_touched_sipms1, a_touched_sipms2=a_touched_sipms2,
          a_sns_response1=a_sns_response1, a_sns_response2=a_sns_response2,
-         a_first_sipm1_1=a_first_sipm1_1, a_first_time1_1=a_first_time1_1,
-         a_first_sipm2_1=a_first_sipm2_1, a_first_time2_1=a_first_time2_1,
-         a_first_sipm1_2=a_first_sipm1_2, a_first_time1_2=a_first_time1_2,
-         a_first_sipm2_2=a_first_sipm2_2, a_first_time2_2=a_first_time2_2,
-         a_first_sipm1_3=a_first_sipm1_3, a_first_time1_3=a_first_time1_3,
-         a_first_sipm2_3=a_first_sipm2_3, a_first_time2_3=a_first_time2_3,
-         a_first_sipm1_4=a_first_sipm1_4, a_first_time1_4=a_first_time1_4,
-         a_first_sipm2_4=a_first_sipm2_4, a_first_time2_4=a_first_time2_4,
+         a_first_sipm1=a_first_sipm1, a_first_time1=a_first_time1,
+         a_first_sipm2=a_first_sipm2, a_first_time2=a_first_time2,
          a_true_time1=a_true_time1, a_true_time2=a_true_time2,
          a_photo1=a_photo1, a_photo2=a_photo2,
          a_max_hit_distance1=a_max_hit_distance1, a_max_hit_distance2=a_max_hit_distance2,
