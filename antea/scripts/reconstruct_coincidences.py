@@ -193,18 +193,19 @@ for ifile in range(start, start+numb):
 
         try:
             min_id1, min_id2, min_t1, min_t2 = rf.find_coincidence_timestamps(evt_tof_exp_dist, sns1, sns2, n_pe)
+            ave_pos1 = calculate_average_SiPM_first_pos(min_id1)
+            ave_pos2 = calculate_average_SiPM_first_pos(min_id2)
+            first_sipm1.append(ave_pos1)
+            first_sipm2.append(ave_pos1)
         except:
             print(f'TOF dataframe has no minimum time for event {evt}')
-            min_id1, min_id2, min_t1, min_t2 = -1, -1, -1, -1
+            _, _, min_t1, min_t2 = [-1], [-1], -1, -1
+            first_sipm1.append(np.array([0, 0, 0]))
+            first_sipm2.append(np.array([0, 0, 0]))
 
-        ave_pos1 = calculate_average_SiPM_first_pos(min_id1)
-        ave_pos2 = calculate_average_SiPM_first_pos(min_id2)
 
-        first_sipm1.append(ave_pos1)
-        first_time1.append(min_t1*tof_bin_size/units.ps)
-
-        first_sipm2.append(ave_pos1)
-        first_time2.append(min_t2*tof_bin_size/units.ps)
+        first_time1.append(min_t1)
+        first_time2.append(min_t2)
 
 
         ## extract information about the interaction being photoelectric
