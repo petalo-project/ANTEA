@@ -196,7 +196,7 @@ for ifile in range(start, start+numb):
             ave_pos1 = calculate_average_SiPM_first_pos(min_id1)
             ave_pos2 = calculate_average_SiPM_first_pos(min_id2)
             first_sipm1.append(ave_pos1)
-            first_sipm2.append(ave_pos1)
+            first_sipm2.append(ave_pos2)
         except:
             print(f'TOF dataframe has no minimum time for event {evt}')
             _, _, min_t1, min_t2 = [-1], [-1], -1, -1
