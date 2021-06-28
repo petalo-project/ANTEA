@@ -62,7 +62,7 @@ def reconstruct_position(q, pos, thr_r, thr_phi, thr_z):
 
     return r, phi, z
 
-def calculate_average_SiPM_first_pos(min_ids):
+def calculate_average_SiPM_pos(min_ids):
     sipm     = DataSiPM_idx.loc[np.abs(min_ids)]
     sipm_pos = np.array([sipm.X.values, sipm.Y.values, sipm.Z.values]).transpose()
     ave_pos  = np.average(sipm_pos, axis=0)
@@ -197,7 +197,7 @@ for ifile in range(start, start+numb):
             ave_pos2 = calculate_average_SiPM_first_pos(min_id2)
             first_sipm1.append(ave_pos1)
             first_sipm2.append(ave_pos2)
-        except:
+        except WaveformEmptyTable:
             print(f'TOF dataframe has no minimum time for event {evt}')
             _, _, min_t1, min_t2 = [-1], [-1], -1, -1
             first_sipm1.append(np.array([0, 0, 0]))

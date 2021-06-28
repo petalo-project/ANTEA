@@ -304,7 +304,7 @@ def test_find_first_time_of_sensors_average_and_jitter(ANTEADATADIR, n_pe):
         times   = tof.time_bin.values
         ids, min_time  = rf.find_first_time_of_sensors(tof, sns_ids, n_pe)
 
-        assert len(ids) == n_pe
+        assert len(ids) <= n_pe
 
         rest_of_ids   = [x for x in sns_ids if x not in -ids]
         rest_of_times = tof[tof.sensor_id.isin(rest_of_ids)].time.values

@@ -363,7 +363,7 @@ def reconstruct_coincidences(sns_response: pd.DataFrame,
 def find_coincidence_timestamps(tof_response: pd.DataFrame,
                                 sns1: Sequence[int],
                                 sns2: Sequence[int],
-                                n_pe: int)-> Tuple[Tuple[int], Tuple[int], float, float]:
+                                n_pe: int = 1)-> Tuple[Tuple[int], Tuple[int], float, float]:
     """
     Finds the first time and the IDs of the sensors used to calculate it
     for each one of two sets of sensors, given a sensor response dataframe.
