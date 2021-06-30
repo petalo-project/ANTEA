@@ -178,12 +178,12 @@ for ifile in range(start, start+numb):
             c1 += 1
             continue
 
-        ## Use absolute times, not time bins, in units of ps
+        ## Use absolute times in units of ps
         times = evt_tof.time_bin.values * tof_bin_size / units.ps
         ## add SiPM jitter, if different from zero
         if sigma_sipm > 0:
             times = np.round(np.random.normal(times, sigma_sipm))
-        evt_tof.insert(len(evt_tof.columns), 'time', times.astype(int))
+        evt_tof.insert(len(evt_tof.columns), 'time', times.astype(int)) # here we have bins of 1 ps
 
         ## produce a TOF dataframe with convolved time response
         tof_sns = evt_tof.sensor_id.unique()
@@ -192,6 +192,8 @@ for ifile in range(start, start+numb):
         for s_id in tof_sns:
             tdc_conv    = tf.tdc_convolution(evt_tof, spe_resp, s_id, time_window)
             tdc_conv_df = tf.translate_charge_conv_to_wf_df(evt, s_id, tdc_conv)
+            if sigma_elec > 0:
+                tdc_conv_df = tdc_conv_df.assign(time=np.random.normal(tdc_conv_df.time.values, sigma_elec))
             tdc_conv_df = tdc_conv_df[tdc_conv_df.charge > timestamp_thr/norm]
             tdc_conv_df = tdc_conv_df[tdc_conv_df.time == tdc_conv_df.time.min()]
             evt_tof_exp_dist.append(tdc_conv_df)
