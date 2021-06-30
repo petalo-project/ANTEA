@@ -17,6 +17,8 @@ from .. io  .mc_io      import load_mcsns_response
 from .. io  .mc_io      import load_mcTOFsns_response
 from .. core.exceptions import WaveformEmptyTable
 
+from invisible_cities.core import system_of_units as units
+
 
 DataSiPM     = db.DataSiPM('petalo', 0)
 DataSiPM_idx = DataSiPM.set_index('SensorID')
@@ -24,6 +26,7 @@ DataSiPM_idx = DataSiPM.set_index('SensorID')
 f             = st.floats(min_value=1,     max_value=2)
 f_lower       = st.floats(min_value=0,     max_value=1)
 allowed_error = st.floats(min_value=1.e-8, max_value=1.e-6)
+n_pe          = st.integers(min_value=2,   max_value=10)
 
 
 @given(f, f_lower)
@@ -262,18 +265,51 @@ def test_find_first_time_of_sensors(ANTEADATADIR):
     """
     PATH_IN = os.path.join(ANTEADATADIR, 'ring_test.h5')
     tof_response = load_mcTOFsns_response(PATH_IN)
+    tof_bin_size = 5 * units.ps
     events       = tof_response.event_id.unique()
-    for evt in events[:]:
+    for evt in events:
         tof     = tof_response[tof_response.event_id==evt]
-        sns_ids = tof.sensor_id.unique()
-        times   = tof.time_bin
-        result  = rf.find_first_time_of_sensors(tof, sns_ids)
-        time_from_id = tof[tof.sensor_id == -result[0]].time_bin.min()
+        times   = tof.time_bin.values * tof_bin_size / units.ps
+        tof.insert(4, 'time', times.astype(int))
 
-        assert result[0] > 0
+        sns_ids      = tof.sensor_id.unique()
+        times        = tof.time
+        ids, time    = rf.find_first_time_of_sensors(tof, sns_ids, n_pe=1)
+        time_from_id = tof[tof.sensor_id == -ids[0]].time.min()
+
+        assert ids[0] > 0
         for t in times:
-            assert rf.lower_or_equal(result[1], t)
-            assert rf.lower_or_equal(time_from_id, t)
+            assert np.all(rf.lower_or_equal(time, times))
+            assert np.all(rf.lower_or_equal(time_from_id, times))
+
+
+@given(n_pe)
+def test_find_first_time_of_sensors_average_and_jitter(ANTEADATADIR, n_pe):
+    """
+    Checks that the function find_first_time_of_sensors returns
+    the number of sensors used in the calculation and that the times
+    of the sensors not used in the calculation are always larger than
+    or equal to the minimum time.
+    """
+    PATH_IN = os.path.join(ANTEADATADIR, 'ring_test.h5')
+    tof_response = load_mcTOFsns_response(PATH_IN)
+    tof_bin_size = 5 * units.ps
+    events       = tof_response.event_id.unique()
+    for evt in events:
+        tof     = tof_response[tof_response.event_id==evt]
+        times = tof.time_bin.values * tof_bin_size / units.ps
+        tof.insert(4, 'time', times.astype(int))
+
+        sns_ids = tof.sensor_id.unique()
+        times   = tof.time_bin.values
+        ids, min_time  = rf.find_first_time_of_sensors(tof, sns_ids, n_pe)
+
+        assert len(ids) <= n_pe
+
+        rest_of_ids   = [x for x in sns_ids if x not in -ids]
+        rest_of_times = tof[tof.sensor_id.isin(rest_of_ids)].time.values
+
+        assert np.all(rf.lower_or_equal(min_time, rest_of_times))
 
 
 l = st.lists(st.integers(min_value=-10000, max_value=-1000), min_size=1, max_size=5)

@@ -8,6 +8,8 @@ from pytest         import mark
 from antea.io.mc_io import load_mcTOFsns_response
 from antea.elec     import tof_functions   as tf
 
+from invisible_cities.core import system_of_units as units
+
 
 tau_sipm = [100, 15000]
 l        = st.lists(st.integers(min_value=1, max_value=10000), min_size=2, max_size=1000)
@@ -15,7 +17,8 @@ l        = st.lists(st.integers(min_value=1, max_value=10000), min_size=2, max_s
 @given(l)
 def test_apply_spe_dist(l):
     """
-    This test checks that the function apply_spe_dist returns an array with the distribution value for each time.
+    This test checks that the function apply_spe_dist returns an array
+    with the distribution value for each time.
     """
     l = np.array(l)
     exp_dist, norm_dist = tf.apply_spe_dist(np.unique(l), tau_sipm)
@@ -31,7 +34,8 @@ def test_apply_spe_dist(l):
                    (np.array([1,2,3]), np.array([0.01029012, 0.02047717, 0.03056217]))))
 def test_spe_dist(time, time_dist):
     """
-    Spe_dist is an analitic function, so this test takes some values and checks that the function returns the correct value for each one.
+    Spe_dist is an analitic function, so this test takes some values
+    and checks that the function returns the correct value for each one.
     """
     result = tf.spe_dist(time, tau_sipm)
     assert np.all(result) == np.all(time_dist)
@@ -42,7 +46,9 @@ s = st.lists(st.integers(min_value=1, max_value=10000), min_size=2, max_size=100
 @given(l, s)
 def test_convolve_tof(l, s):
     """
-    Check that the function convolve_tof returns an array with the adequate length, and, in case the array is not empty, checks that the convoluted signal is normalizated to the initial signal.
+    Check that the function convolve_tof returns an array with the adequate length,
+    and, in case the array is not empty,
+    checks that the convoluted signal is normalizated to the initial signal.
     """
     spe_response, norm = tf.apply_spe_dist(np.unique(np.array(l)), tau_sipm)
     conv_res           = tf.convolve_tof(spe_response, np.array(s))
@@ -56,23 +62,26 @@ def test_convolve_tof(l, s):
                    ('full_body_1ev.h5')))
 def test_tdc_convolution(ANTEADATADIR, filename):
     """
-    Check that the function tdc_convolution returns a table with the adequate dimensions and in case the tof dataframe is empty, checks that the table only contains zeros.
+    Check that the function tdc_convolution returns a table with the adequate dimensions
+    and that the table always contains non-zero values if there are times in the window.
     """
     PATH_IN        = os.path.join(ANTEADATADIR, filename)
     tof_response   = load_mcTOFsns_response(PATH_IN)
     events         = tof_response.event_id.unique()
-    time_window    = 10000
-    time_bin       = 5
-    time           = np.arange(0, 80000, time_bin)
+    time_window    = 5000
+    tof_bin_size   = 5 * units.ps
+    time           = np.arange(0, time_window)
     spe_resp, norm = tf.apply_spe_dist(time, tau_sipm)
     for evt in events:
         evt_tof = tof_response[tof_response.event_id == evt]
+        times   = evt_tof.time_bin.values * tof_bin_size / units.ps
+        evt_tof.insert(4, 'time', times.astype(int))
         tof_sns = evt_tof.sensor_id.unique()
         for s_id in tof_sns:
-            tdc_conv = tf.tdc_convolution(tof_response, spe_resp, s_id, time_window)
+            tdc_conv = tf.tdc_convolution(evt_tof, spe_resp, s_id, time_window)
             assert len(tdc_conv) == time_window + len(spe_resp) - 1
-            if len(tof_response[(tof_response.sensor_id == s_id) &
-                            (tof_response.time_bin > time_window)]) == 0:
+            if len(evt_tof[(evt_tof.sensor_id == s_id) &
+                            (evt_tof.time >= time_window)]) == 0:
                 assert np.count_nonzero(tdc_conv) > 0
 
 
@@ -83,7 +92,9 @@ l2    = st.lists(st.floats(min_value=0, max_value=1000), min_size=2, max_size=10
 @given(e, s_id, l2)
 def test_translate_charge_conv_to_wf_df(e, s_id, l2):
     """
-    Look whether the translate_charge_conv_to_wf_df function returns a dataframe with the same number of rows as the input numpy array and four columns. Three of this columns must contain integers.
+    Look whether the translate_charge_conv_to_wf_df function returns a dataframe
+    with the same number of rows as the input numpy array and four columns.
+    Three of this columns must contain integers.
     """
     l2    = np.array(l2)
     wf_df = tf.translate_charge_conv_to_wf_df(e, s_id, l2)
@@ -94,4 +105,4 @@ def test_translate_charge_conv_to_wf_df(e, s_id, l2):
     else:
         assert wf_df.event_id .dtype == 'int32'
         assert wf_df.sensor_id.dtype == 'int32'
-        assert wf_df.time_bin .dtype == 'int32'
+        assert wf_df.time .dtype     == 'int32'
