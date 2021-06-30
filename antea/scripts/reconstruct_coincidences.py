@@ -4,16 +4,16 @@ import pandas as pd
 
 from invisible_cities.core         import system_of_units as units
 
-import antea.database.load_db      as db
-import antea.reco.reco_functions   as rf
-import antea.reco.mctrue_functions as mcf
-import antea.elec.tof_functions as tf
+import antea.database.load_db       as db
+import antea.reco.reco_functions    as rf
+import antea.reco.mctrue_functions  as mcf
+import antea.elec.tof_functions     as tf
+import antea.mcsim.sensor_functions as snsf
 
 from antea.utils.map_functions import load_map
 from antea.io.mc_io import read_sensor_bin_width_from_conf
 from antea.io.mc_io import load_mcparticles, load_mchits
 from antea.io.mc_io import load_mcsns_response, load_mcTOFsns_response
-from antea.mcsim.sensor_functions import apply_charge_fluctuation
 
 ### read sensor positions from database
 #DataSiPM     = db.DataSiPM('petalo', 0) # ring
@@ -131,7 +131,7 @@ for ifile in range(start, start+numb):
         continue
     print('Analyzing file {0}'.format(file_name))
 
-    fluct_sns_response = apply_charge_fluctuation(sns_response, DataSiPM_idx)
+    fluct_sns_response = snsf.apply_charge_fluctuation(sns_response, DataSiPM_idx)
 
     tof_bin_size = read_sensor_bin_width_from_conf(file_name, tof=True)
 
@@ -141,6 +141,7 @@ for ifile in range(start, start+numb):
 
     events = particles.event_id.unique()
     charge_range = (1000, 1400) # range to select photopeak - to be adjusted to the specific case
+    print(f'Number of events in file = {len(events)}')
 
     for evt in events:
 
