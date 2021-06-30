@@ -199,8 +199,8 @@ for ifile in range(start, start+numb):
 
         try:
             min_id1, min_id2, min_t1, min_t2 = rf.find_coincidence_timestamps(evt_tof_exp_dist, sns1, sns2, n_pe)
-            ave_pos1 = calculate_average_SiPM_first_pos(min_id1)
-            ave_pos2 = calculate_average_SiPM_first_pos(min_id2)
+            ave_pos1 = calculate_average_SiPM_pos(min_id1)
+            ave_pos2 = calculate_average_SiPM_pos(min_id2)
             first_sipm1.append(ave_pos1)
             first_sipm2.append(ave_pos2)
         except WaveformEmptyTable:
