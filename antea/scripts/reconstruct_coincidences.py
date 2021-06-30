@@ -2,8 +2,7 @@ import sys
 import numpy  as np
 import pandas as pd
 
-from invisible_cities.core                  import system_of_units as units
-from invisible_cities.reco.sensor_functions import charge_fluctuation
+from invisible_cities.core         import system_of_units as units
 
 import antea.database.load_db      as db
 import antea.reco.reco_functions   as rf
