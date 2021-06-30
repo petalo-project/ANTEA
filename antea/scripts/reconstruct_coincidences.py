@@ -76,7 +76,10 @@ thr_r   = 4 # threshold use to create R map
 thr_phi = 4 # threshold on charge to reconstruct phi
 thr_z   = 4 # threshold on charge to reconstruct z
 thr_e   = 2 # threshold on charge
-n_pe    = 10
+
+n_pe       = 1
+sigma_sipm = 80 #ps SiPM jitter
+sigma_elec = 30 #ps electronic jitter
 
 
 folder = '/path/to/sim/folder/'
@@ -177,6 +180,9 @@ for ifile in range(start, start+numb):
 
         ## Use absolute times, not time bins, in units of ps
         times = evt_tof.time_bin.values * tof_bin_size / units.ps
+        ## add SiPM jitter, if different from zero
+        if sigma_sipm > 0:
+            times = np.round(np.random.normal(times, sigma_sipm))
         evt_tof.insert(len(evt_tof.columns), 'time', times.astype(int))
 
         ## produce a TOF dataframe with convolved time response
