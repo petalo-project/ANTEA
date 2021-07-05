@@ -2,19 +2,18 @@ import sys
 import numpy  as np
 import pandas as pd
 
-from invisible_cities.core                  import system_of_units as units
-from invisible_cities.reco.sensor_functions import charge_fluctuation
+from invisible_cities.core         import system_of_units as units
 
-import antea.database.load_db      as db
-import antea.reco.reco_functions   as rf
-import antea.reco.mctrue_functions as mcf
-import antea.elec.tof_functions as tf
+import antea.database.load_db       as db
+import antea.reco.reco_functions    as rf
+import antea.reco.mctrue_functions  as mcf
+import antea.elec.tof_functions     as tf
+import antea.mcsim.sensor_functions as snsf
 
 from antea.utils.map_functions import load_map
 from antea.io.mc_io import read_sensor_bin_width_from_conf
 from antea.io.mc_io import load_mcparticles, load_mchits
 from antea.io.mc_io import load_mcsns_response, load_mcTOFsns_response
-from antea.mcsim.sensor_functions import apply_charge_fluctuation
 
 ### read sensor positions from database
 #DataSiPM     = db.DataSiPM('petalo', 0) # ring
@@ -25,10 +24,8 @@ first_sipm   = DataSiPM_idx.index.min()
 
 ### parameters for single photoelectron convolution in SiPM response
 tau_sipm       = [100, 15000]
-time_window    = 10000
-time_bin       = 5 # ps
-time           = np.arange(0, 80000, time_bin)
-time           = np.array(time) + time_bin/2.
+time_window    = 5000
+time           = np.arange(0, time_window)
 spe_resp, norm = tf.apply_spe_dist(time, tau_sipm)
 
 
@@ -76,7 +73,10 @@ thr_r   = 4 # threshold use to create R map
 thr_phi = 4 # threshold on charge to reconstruct phi
 thr_z   = 4 # threshold on charge to reconstruct z
 thr_e   = 2 # threshold on charge
-n_pe    = 10
+
+n_pe       = 1
+sigma_sipm = 80 #ps SiPM jitter
+sigma_elec = 30 #ps electronic jitter
 
 
 folder = '/path/to/sim/folder/'
@@ -131,7 +131,7 @@ for ifile in range(start, start+numb):
         continue
     print('Analyzing file {0}'.format(file_name))
 
-    fluct_sns_response = apply_charge_fluctuation(sns_response, DataSiPM_idx)
+    fluct_sns_response = snsf.apply_charge_fluctuation(sns_response, DataSiPM_idx)
 
     tof_bin_size = read_sensor_bin_width_from_conf(file_name, tof=True)
 
@@ -141,6 +141,7 @@ for ifile in range(start, start+numb):
 
     events = particles.event_id.unique()
     charge_range = (1000, 1400) # range to select photopeak - to be adjusted to the specific case
+    print(f'Number of events in file = {len(events)}')
 
     for evt in events:
 
@@ -175,9 +176,12 @@ for ifile in range(start, start+numb):
             c1 += 1
             continue
 
-        ## Use absolute times, not time bins, in units of ps
+        ## Use absolute times in units of ps
         times = evt_tof.time_bin.values * tof_bin_size / units.ps
-        evt_tof.insert(len(evt_tof.columns), 'time', times.astype(int))
+        ## add SiPM jitter, if different from zero
+        if sigma_sipm > 0:
+            times = np.round(np.random.normal(times, sigma_sipm))
+        evt_tof.insert(len(evt_tof.columns), 'time', times.astype(int)) # here we have bins of 1 ps
 
         ## produce a TOF dataframe with convolved time response
         tof_sns = evt_tof.sensor_id.unique()
@@ -186,6 +190,8 @@ for ifile in range(start, start+numb):
         for s_id in tof_sns:
             tdc_conv    = tf.tdc_convolution(evt_tof, spe_resp, s_id, time_window)
             tdc_conv_df = tf.translate_charge_conv_to_wf_df(evt, s_id, tdc_conv)
+            if sigma_elec > 0:
+                tdc_conv_df = tdc_conv_df.assign(time=np.random.normal(tdc_conv_df.time.values, sigma_elec))
             tdc_conv_df = tdc_conv_df[tdc_conv_df.charge > timestamp_thr/norm]
             tdc_conv_df = tdc_conv_df[tdc_conv_df.time == tdc_conv_df.time.min()]
             evt_tof_exp_dist.append(tdc_conv_df)
@@ -193,8 +199,8 @@ for ifile in range(start, start+numb):
 
         try:
             min_id1, min_id2, min_t1, min_t2 = rf.find_coincidence_timestamps(evt_tof_exp_dist, sns1, sns2, n_pe)
-            ave_pos1 = calculate_average_SiPM_first_pos(min_id1)
-            ave_pos2 = calculate_average_SiPM_first_pos(min_id2)
+            ave_pos1 = calculate_average_SiPM_pos(min_id1)
+            ave_pos2 = calculate_average_SiPM_pos(min_id2)
             first_sipm1.append(ave_pos1)
             first_sipm2.append(ave_pos2)
         except WaveformEmptyTable:
