@@ -25,7 +25,7 @@ first_sipm   = DataSiPM_idx.index.min()
 ### parameters for single photoelectron convolution in SiPM response
 tau_sipm       = [100, 15000]
 time_window    = 5000
-time           = np.arange(0, 5000)
+time           = np.arange(0, time_window)
 spe_resp, norm = tf.apply_spe_dist(time, tau_sipm)
 
 
