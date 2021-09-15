@@ -32,9 +32,7 @@ def output_tmpdir(tmpdir_factory):
 
 
 @pytest.fixture(scope='session',
-                params=[db_data('petalo' ,  104528, 'P7R420Z1950mm'),
-                        db_data('petalo' ,   99802, 'P7R400Z1950mm'),
-                        db_data('petalo' ,    3500, 'P7R195Z140mm'),
+                params=[db_data('petalo' ,    3500, 'P7R195Z140mm'),
                         db_data('petalo' ,     128, 'PB')],
                 ids=["petit", "petbox"])
 def db(request):
@@ -42,7 +40,9 @@ def db(request):
 
 
 @pytest.fixture(scope='session',
-                params=[db_data('petalo' ,  102304, 'P7R410Z1950mm')],
-                ids=["sim-only"])
+                params=[db_data('petalo' ,  104528, 'P7R420Z1950mm'),
+                        db_data('petalo' ,   99802, 'P7R400Z1950mm'),
+                        db_data('petalo' ,  102304, 'P7R410Z1950mm')],
+                ids=["fullring4cm", "fullring2cm", "sim-only"])
 def db_sim_only(request):
     return request.param
