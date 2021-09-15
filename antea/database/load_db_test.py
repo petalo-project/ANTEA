@@ -21,7 +21,7 @@ def test_sipm_pd(db):
 
 def test_sipm_pd_sim_only(db_sim_only):
     """Check that we retrieve the correct number of SiPMs for the full-body configuration."""
-    sipms = DB.DataSiPMsim_only(db_sim_only.detector)
+    sipms = DB.DataSiPMsim_only(db_sim_only.detector, conf_label=db_sim_only.conf_label)
     columns = ['SensorID', 'X', 'Y', 'Z', 'adc_to_pes', 'Sigma', 'PhiNumber', 'ZNumber']
     assert columns == list(sipms)
     assert sipms.shape[0] == db_sim_only.nsipms
