@@ -32,8 +32,10 @@ def output_tmpdir(tmpdir_factory):
 
 
 @pytest.fixture(scope='session',
-                params=[db_data('petalo' ,  3500, 'P7R195Z140mm'),
-                        db_data('petalo' ,   128, 'PB')],
+                params=[db_data('petalo' ,  104528, 'P7R420Z1950mm'),
+                        db_data('petalo' ,   99802, 'P7R400Z1950mm'),
+                        db_data('petalo' ,    3500, 'P7R195Z140mm'),
+                        db_data('petalo' ,     128, 'PB')],
                 ids=["petit", "petbox"])
 def db(request):
     return request.param
