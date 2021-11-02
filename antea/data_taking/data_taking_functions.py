@@ -17,7 +17,8 @@ def filter_evt_with_max_charge_at_center(df: pd.DataFrame,
                                          variable: str = 'efine_corrected',
                                          tot_mode: bool = False) -> bool:
     """
-    Returns True if the maximum charge of the event has been detected in one of the four central sensors of the desired plane.
+    Returns True if the maximum charge of the event has been detected
+    in one of the four central sensors of the desired plane.
     """
     if det_plane:
         tofpet_id   = 0
@@ -43,9 +44,14 @@ def select_evts_with_max_charge_at_center(df: pd.DataFrame,
                                          variable: str = 'efine_corrected',
                                          tot_mode: bool = False) -> pd.DataFrame:
     """
-    Returns a dataframe with only the events with maximum charge at the central sensors.
+    Returns a dataframe with only the events with maximum charge
+    at the central sensors.
     """
-    df_filter_center = df.groupby(['evt_number', 'cluster']).filter(filter_evt_with_max_charge_at_center, dropna=True, det_plane=det_plane, variable=variable, tot_mode=tot_mode)
+    df_filter_center = df.groupby(['evt_number', 'cluster']).filter(filter_evt_with_max_charge_at_center,
+                                                                    dropna = True,
+                                                                    det_plane = det_plane,
+                                                                    variable = variable,
+                                                                    tot_mode = tot_mode)
     
     return df_filter_center
 
