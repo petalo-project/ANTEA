@@ -7,7 +7,7 @@ from invisible_cities.core         import system_of_units as units
 import antea.database.load_db       as db
 import antea.reco.reco_functions    as rf
 import antea.reco.mctrue_functions  as mcf
-import antea.elec.tof_functions     as tf
+import antea.elec.shaping_functions     as tf
 import antea.mcsim.sensor_functions as snsf
 
 from antea.io.mc_io import read_sensor_bin_width_from_conf

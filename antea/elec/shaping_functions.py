@@ -4,7 +4,7 @@ import pandas as pd
 from typing import Sequence, Tuple
 
 
-def apply_sipm_shaping(time: np.array, tau_sipm: Tuple[float, float]) -> Tuple[np.array, float]:
+def normalize_sipm_shaping(time: np.array, tau_sipm: Tuple[float, float]) -> Tuple[np.array, float]:
     """
     Returns a normalized array following the double exponential
     distribution of the sipm response.
