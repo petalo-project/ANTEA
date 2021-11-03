@@ -15,13 +15,13 @@ tau_sipm = [100, 15000]
 l        = st.lists(st.integers(min_value=1, max_value=10000), min_size=2, max_size=1000)
 
 @given(l)
-def test_apply_spe_dist(l):
+def test_apply_sipm_shaping(l):
     """
-    This test checks that the function apply_spe_dist returns an array
+    This test checks that the function apply_sipm_shaping returns an array
     with the distribution value for each time.
     """
     l = np.array(l)
-    exp_dist, norm_dist = tf.apply_spe_dist(np.unique(l), tau_sipm)
+    exp_dist, norm_dist = tf.apply_sipm_shaping(np.unique(l), tau_sipm)
 
     assert len(exp_dist) == len(np.unique(l))
     assert (exp_dist >= 0.).all()
@@ -32,26 +32,26 @@ def test_apply_spe_dist(l):
                   ((  0, 0),
                    (100, 0.65120889),
                    (np.array([1,2,3]), np.array([0.01029012, 0.02047717, 0.03056217]))))
-def test_spe_dist(time, time_dist):
+def test_sipm_shaping(time, time_dist):
     """
-    Spe_dist is an analitic function, so this test takes some values
+    sipm_shaping is an analitic function, so this test takes some values
     and checks that the function returns the correct value for each one.
     """
-    result = tf.spe_dist(time, tau_sipm)
+    result = tf.sipm_shaping(time, tau_sipm)
     assert np.all(result) == np.all(time_dist)
 
 
 s = st.lists(st.integers(min_value=1, max_value=10000), min_size=2, max_size=1000)
 
 @given(l, s)
-def test_convolve_tof(l, s):
+def test_convolve_sipm_shaping(l, s):
     """
-    Check that the function convolve_tof returns an array with the adequate length,
+    Check that the function convolve_sipm_shaping returns an array with the adequate length,
     and, in case the array is not empty,
     checks that the convoluted signal is normalizated to the initial signal.
     """
-    spe_response, norm = tf.apply_spe_dist(np.unique(np.array(l)), tau_sipm)
-    conv_res           = tf.convolve_tof(spe_response, np.array(s))
+    spe_response, norm = tf.apply_sipm_shaping(np.unique(np.array(l)), tau_sipm)
+    conv_res           = tf.convolve_sipm_shaping(spe_response, np.array(s))
     assert len(conv_res) == len(spe_response) + len(s) - 1
     if np.count_nonzero(spe_response):
         assert np.isclose(np.sum(s), np.sum(conv_res))
@@ -60,10 +60,12 @@ def test_convolve_tof(l, s):
 @mark.parametrize('filename',
                   (('ring_test.h5'),
                    ('full_body_1ev.h5')))
-def test_tdc_convolution(ANTEADATADIR, filename):
+def test_sipm_shaping_convolution(ANTEADATADIR, filename):
     """
-    Check that the function tdc_convolution returns a table with the adequate dimensions
-    and that the table always contains non-zero values if there are times in the window.
+    Check that the function sipm_shaping_convolution
+    returns a table with the adequate dimensions
+    and that the table always contains non-zero values
+    if there are times in the window.
     """
     PATH_IN        = os.path.join(ANTEADATADIR, filename)
     tof_response   = load_mcTOFsns_response(PATH_IN)
@@ -71,14 +73,14 @@ def test_tdc_convolution(ANTEADATADIR, filename):
     time_window    = 5000
     tof_bin_size   = 5 * units.ps
     time           = np.arange(0, time_window)
-    spe_resp, norm = tf.apply_spe_dist(time, tau_sipm)
+    spe_resp, norm = tf.apply_sipm_shaping(time, tau_sipm)
     for evt in events:
         evt_tof = tof_response[tof_response.event_id == evt]
         times   = evt_tof.time_bin.values * tof_bin_size / units.ps
         evt_tof.insert(4, 'time', times.astype(int))
         tof_sns = evt_tof.sensor_id.unique()
         for s_id in tof_sns:
-            tdc_conv = tf.tdc_convolution(evt_tof, spe_resp, s_id, time_window)
+            tdc_conv = tf.sipm_shaping_convolution(evt_tof, spe_resp, s_id, time_window)
             assert len(tdc_conv) == time_window + len(spe_resp) - 1
             if len(evt_tof[(evt_tof.sensor_id == s_id) &
                             (evt_tof.time >= time_window)]) == 0:
@@ -90,14 +92,14 @@ s_id  = st.integers(min_value=-3500, max_value=-1000)
 l2    = st.lists(st.floats(min_value=0, max_value=1000), min_size=2, max_size=100)
 
 @given(e, s_id, l2)
-def test_translate_charge_conv_to_wf_df(e, s_id, l2):
+def test_build_convoluted_df(e, s_id, l2):
     """
-    Look whether the translate_charge_conv_to_wf_df function returns a dataframe
+    Look whether the build_convoluted_df function returns a dataframe
     with the same number of rows as the input numpy array and four columns.
     Three of this columns must contain integers.
     """
     l2    = np.array(l2)
-    wf_df = tf.translate_charge_conv_to_wf_df(e, s_id, l2)
+    wf_df = tf.build_convoluted_df(e, s_id, l2)
     assert len(wf_df) == np.count_nonzero(l2)
     assert len(wf_df.keys()) == 4
     if np.count_nonzero(l2) == 0:

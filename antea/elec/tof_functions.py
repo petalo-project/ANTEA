@@ -4,12 +4,12 @@ import pandas as pd
 from typing import Sequence, Tuple
 
 
-def apply_spe_dist(time: np.array, tau_sipm: Tuple[float, float]) -> Tuple[np.array, float]:
+def apply_sipm_shaping(time: np.array, tau_sipm: Tuple[float, float]) -> Tuple[np.array, float]:
     """
     Returns a normalized array following the double exponential
     distribution of the sipm response.
     """
-    spe_response = spe_dist(time, tau_sipm)
+    spe_response = sipm_shaping(time, tau_sipm)
     if np.sum(spe_response) == 0:
         return np.zeros(len(time)), 0.
     norm_dist    = np.sum(spe_response)
@@ -17,7 +17,7 @@ def apply_spe_dist(time: np.array, tau_sipm: Tuple[float, float]) -> Tuple[np.ar
     return spe_response, norm_dist
 
 
-def spe_dist(time: np.array, tau_sipm: Tuple[float, float]) -> np.array:
+def sipm_shaping(time: np.array, tau_sipm: Tuple[float, float]) -> np.array:
     """
     Analitic function that calculates the double exponential decay for
     the sipm response.
@@ -30,8 +30,8 @@ def spe_dist(time: np.array, tau_sipm: Tuple[float, float]) -> np.array:
     return time_dist
 
 
-def convolve_tof(spe_response: Sequence[float],
-                 signal: Sequence[float]) -> Sequence[float]:
+def convolve_sipm_shaping(spe_response: Sequence[float],
+                          signal: Sequence[float]) -> Sequence[float]:
     """
     Computes the spe_response distribution for the given signal.
     """
@@ -49,24 +49,25 @@ def convolve_tof(spe_response: Sequence[float],
     return conv_res
 
 
-def tdc_convolution(tof_response: pd.DataFrame,
-                    spe_response: Sequence[float],
-                    s_id: int,
-                    time_window: float) -> Sequence[float]:
+def sipm_shaping_convolution(tof_response: pd.DataFrame,
+                             spe_response: Sequence[float],
+                             s_id: int,
+                             time_window: float) -> Sequence[float]:
     """
-    Calculates the tof convolution along the time window for the given sensor_id.
+    Calculates the convolution of the sipm shaping response
+    along the time window for the given sensor_id.
     """
     pe_vect = np.zeros(time_window)
     sel_tof = tof_response[(tof_response.sensor_id == s_id) &
                            (tof_response.time < time_window)]
     pe_vect[sel_tof.time.values] = sel_tof.charge.values
-    tdc_conv = convolve_tof(spe_response, pe_vect)
+    tdc_conv = convolve_sipm_shaping(spe_response, pe_vect)
     return tdc_conv
 
 
-def translate_charge_conv_to_wf_df(event_id: int,
-                                   s_id: int,
-                                   conv_vect: Sequence[float]) -> pd.DataFrame:
+def build_convoluted_df(event_id: int,
+                        s_id: int,
+                        conv_vect: Sequence[float]) -> pd.DataFrame:
     """
     Translates a given numpy array into a tof type dataframe.
     """

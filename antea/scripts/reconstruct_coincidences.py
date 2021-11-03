@@ -142,8 +142,8 @@ def reconstruct_coincidences_script(input_file, output_file, rmap, DataSiPM):
 
         evt_tof_exp_dist = []
         for s_id in tof_sns:
-            tdc_conv    = tf.tdc_convolution(evt_tof, spe_resp, s_id, time_window)
-            tdc_conv_df = tf.translate_charge_conv_to_wf_df(evt, s_id, tdc_conv)
+            tdc_conv    = tf.sipm_shaping_convolution(evt_tof, spe_resp, s_id, time_window)
+            tdc_conv_df = tf.build_convoluted_df(evt, s_id, tdc_conv)
             if sigma_elec > 0:
                 tdc_conv_df = tdc_conv_df.assign(time=np.random.normal(tdc_conv_df.time.values, sigma_elec))
             tdc_conv_df = tdc_conv_df[tdc_conv_df.charge > timestamp_thr/norm]
