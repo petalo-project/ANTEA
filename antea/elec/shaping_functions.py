@@ -30,7 +30,7 @@ def sipm_shaping(time: np.array, tau_sipm: Tuple[float, float]) -> np.array:
     return time_dist
 
 
-def convolve_sipm_shaping(spe_response: Sequence[float],
+def convolve_signal_with_shaping(spe_response: Sequence[float],
                           signal: Sequence[float]) -> Sequence[float]:
     """
     Computes the spe_response distribution for the given signal.
@@ -61,7 +61,7 @@ def sipm_shaping_convolution(tof_response: pd.DataFrame,
     sel_tof = tof_response[(tof_response.sensor_id == s_id) &
                            (tof_response.time < time_window)]
     pe_vect[sel_tof.time.values] = sel_tof.charge.values
-    tdc_conv = convolve_sipm_shaping(spe_response, pe_vect)
+    tdc_conv = convolve_signal_with_shaping(spe_response, pe_vect)
     return tdc_conv
 
 
