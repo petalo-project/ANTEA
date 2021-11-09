@@ -30,8 +30,8 @@ def sipm_shaping(time: np.array, tau_sipm: Tuple[float, float]) -> np.array:
     return time_dist
 
 
-def convolve_signal_with_shaping(spe_response: Sequence[float],
-                          signal: Sequence[float]) -> Sequence[float]:
+def convolve_signal_with_shaping(signal: Sequence[float],
+                                 spe_response: Sequence[float]) -> Sequence[float]:
     """
     Computes the spe_response distribution for the given signal.
     """
