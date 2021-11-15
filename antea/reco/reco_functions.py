@@ -315,7 +315,7 @@ def reconstruct_coincidences(sns_response: pd.DataFrame,
 
     max_sns = sns_response[sns_response.charge == sns_response.charge.max()]
     ## If by chance two sensors have the maximum charge, choose one (arbitrarily)
-    if len(max_sns != 1):
+    if len(max_sns) != 1:
         max_sns = max_sns[max_sns.sensor_id == max_sns.sensor_id.min()]
     max_sipm = DataSiPM_idx.loc[max_sns.sensor_id]
     max_pos  = np.array([max_sipm.X.values, max_sipm.Y.values, max_sipm.Z.values]).transpose()[0]
