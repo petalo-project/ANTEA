@@ -6,6 +6,7 @@ import hypothesis.strategies as st
 
 from hypothesis  import given
 from hypothesis  import assume
+from hypothesis  import settings
 from pytest      import raises
 from .           import reco_functions   as rf
 from .           import mctrue_functions as mcf
@@ -15,6 +16,9 @@ from .. io  .mc_io      import load_mchits
 from .. io  .mc_io      import load_mcparticles
 from .. io  .mc_io      import load_mcsns_response
 from .. io  .mc_io      import load_mcTOFsns_response
+
+from .. utils.map_functions  import load_map
+
 from .. core.exceptions import WaveformEmptyTable
 
 from invisible_cities.core import system_of_units as units
@@ -458,3 +462,44 @@ def test_only_gamma_hits_interaction():
 
    ref_pos2 = np.array([181.8, -20.2, 69.2])
    assert np.allclose(true_pos2, ref_pos2)
+
+
+q   = st.floats(min_value=1., max_value=100.)
+pos = st.tuples(st.floats(380, 410), st.floats(380, 410), st.floats(0, 2000))
+
+@given(q, pos)
+def test_pos_reconstruction_one_SiPM(ANTEADATADIR, q, pos):
+    """
+    Checks that the reconstructed position of an individual SiPM
+    is exactly that of the SiPM (in phi, z).
+    """
+
+    rpos_file = os.path.join(ANTEADATADIR, 'r_table_full_body.h5')
+
+    RMap = load_map(rpos_file,
+                    group  = "Radius",
+                    node   = "f4pes150bins",
+                    x_name = "PhiRms",
+                    y_name = "Rpos",
+                    u_name = "RposUncertainty")
+
+    r, phi, z = rf.reconstruct_position(np.array([q]), np.array([pos]), RMap)
+
+    assert np.isclose(phi, np.arctan2(pos[1], pos[0]))
+    assert np.isclose(z,   pos[2])
+
+
+id = st.integers(min_value=1000, max_value=10000)
+
+@given(id)
+@settings(deadline=None)
+def test_average_SiPM_pos_one_SiPM(id):
+
+    DataSiPM = db.DataSiPMsim_only('petalo', 0)
+    DataSiPM = DataSiPM.set_index('SensorID')
+
+    true_pos = np.transpose(np.array([DataSiPM.loc[id].X, DataSiPM.loc[id].Y, DataSiPM.loc[id].Z]))
+    ave_pos  = rf.calculate_average_SiPM_pos(np.array([id]), DataSiPM)
+
+    assert(np.allclose(ave_pos, true_pos))
+
