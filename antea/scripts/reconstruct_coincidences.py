@@ -29,44 +29,6 @@ time           = np.arange(0, time_window)
 spe_resp, norm = tf.apply_spe_dist(time, tau_sipm)
 
 
-def reconstruct_position(q, pos, thr_r, thr_phi, thr_z):
-    ## Calculate R
-    posr, qr = rf.sel_coord(pos, q, thr_r)
-    if len(posr) != 0:
-        pos_phi = rf.from_cartesian_to_cyl(np.array(posr))[:,1]
-        _, var_phi = rf.phi_mean_var(pos_phi, qr)
-        r = Rpos(np.sqrt(var_phi)).value
-    else:
-        return 1.e9, 1.e9, 1.e9
-
-    ## Calculate phi
-    posphi, qphi = rf.sel_coord(pos, q, thr_phi)
-
-    if len(qphi) != 0:
-        reco_cart_pos = np.average(posphi, weights=qphi, axis=0)
-        phi           = np.arctan2(reco_cart_pos[1], reco_cart_pos[0])
-    else:
-        return 1.e9, 1.e9, 1.e9
-
-    ## Calculate z
-    posz, qz = rf.sel_coord(pos, q, thr_z)
-
-    if len(qz) != 0:
-        reco_cart_pos = np.average(posz, weights=qz, axis=0)
-        z             = reco_cart_pos[2]
-    else:
-        return 1.e9, 1.e9, 1.e9
-
-    return r, phi, z
-
-def calculate_average_SiPM_pos(min_ids):
-    sipm     = DataSiPM_idx.loc[np.abs(min_ids)]
-    sipm_pos = np.array([sipm.X.values, sipm.Y.values, sipm.Z.values]).transpose()
-    ave_pos  = np.average(sipm_pos, axis=0)
-
-    return ave_pos
-
-
 start   = int(sys.argv[1])
 numb    = int(sys.argv[2])
 thr_r   = 4 # threshold use to create R map
@@ -169,8 +131,8 @@ for ifile in range(start, start+numb):
         pos1 = np.array(pos1)
         pos2 = np.array(pos2)
 
-        r1, phi1, z1 = reconstruct_position(q1, pos1, thr_r, thr_phi, thr_z)
-        r2, phi2, z2 = reconstruct_position(q2, pos2, thr_r, thr_phi, thr_z)
+        r1, phi1, z1 = reconstruct_position(q1, pos1, Rpos, thr_r, thr_phi, thr_z)
+        r2, phi2, z2 = reconstruct_position(q2, pos2, Rpos, thr_r, thr_phi, thr_z)
 
         if (r1 > 1.e8) or (r2 > 1.e8):
             c1 += 1
@@ -199,8 +161,8 @@ for ifile in range(start, start+numb):
 
         try:
             min_id1, min_id2, min_t1, min_t2 = rf.find_coincidence_timestamps(evt_tof_exp_dist, sns1, sns2, n_pe)
-            ave_pos1 = calculate_average_SiPM_pos(min_id1)
-            ave_pos2 = calculate_average_SiPM_pos(min_id2)
+            ave_pos1 = calculate_average_SiPM_pos(min_id1, DataSiPM_idx)
+            ave_pos2 = calculate_average_SiPM_pos(min_id2, DataSiPM_idx)
             first_sipm1.append(ave_pos1)
             first_sipm2.append(ave_pos2)
         except WaveformEmptyTable:

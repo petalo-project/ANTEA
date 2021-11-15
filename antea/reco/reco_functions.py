@@ -2,6 +2,7 @@ import numpy  as np
 import pandas as pd
 
 from antea.core.exceptions import WaveformEmptyTable
+from antea.utils.map_functions import Map
 
 from typing import Sequence, Tuple
 
@@ -372,3 +373,53 @@ def find_coincidence_timestamps(tof_response: pd.DataFrame,
     min2, time2 = find_first_time_of_sensors(tof_response, -sns2, n_pe)
 
     return min1, min2, time1, time2
+
+
+def reconstruct_position(q: Sequence[float],
+                         pos: Sequence[Tuple[float, float, float]],
+                         Rmap: Map,
+                         thr_r: float = 0, thr_phi: float = 0, thr_z: float = 0) -> Tuple[float, float, float]:
+    """
+    Calculates the r, phi and z coordinates, given charges and positions
+    of touched SiPMs. Different thresholds can be used for each one of them.
+    """
+    ## Calculate R
+    posr, qr = sel_coord(pos, q, thr_r)
+    if len(posr) != 0:
+        pos_phi = from_cartesian_to_cyl(np.array(posr))[:,1]
+        _, var_phi = phi_mean_var(pos_phi, qr)
+        r = Rmap(np.sqrt(var_phi)).value
+    else:
+        return 1.e9, 1.e9, 1.e9
+
+    ## Calculate phi
+    posphi, qphi = sel_coord(pos, q, thr_phi)
+
+    if len(qphi) != 0:
+        reco_cart_pos = np.average(posphi, weights=qphi, axis=0)
+        phi           = np.arctan2(reco_cart_pos[1], reco_cart_pos[0])
+    else:
+        return 1.e9, 1.e9, 1.e9
+
+    ## Calculate z
+    posz, qz = sel_coord(pos, q, thr_z)
+
+    if len(qz) != 0:
+        reco_cart_pos = np.average(posz, weights=qz, axis=0)
+        z             = reco_cart_pos[2]
+    else:
+        return 1.e9, 1.e9, 1.e9
+
+    return r, phi, z
+
+
+def calculate_average_SiPM_pos(min_ids: Sequence[int],
+                               DataSiPM_idx: pd.DataFrame) -> Tuple[float, float, float]:
+    """
+    Calculates the geometrical average position of the SiPMs with IDs in the list.
+    """
+    sipm     = DataSiPM_idx.loc[np.abs(min_ids)]
+    sipm_pos = np.array([sipm.X.values, sipm.Y.values, sipm.Z.values]).transpose()
+    ave_pos  = np.average(sipm_pos, axis=0)
+
+    return ave_pos
