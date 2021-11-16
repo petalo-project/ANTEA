@@ -58,26 +58,23 @@ def select_evts_with_max_charge_at_center(df: pd.DataFrame,
 int_area = [22, 23, 24, 25, 26, 27, 32, 33, 34, 35, 36, 37, 42, 43, 44, 45, 46, 47,
             52, 53, 54, 55, 56, 57, 62, 63, 64, 65, 66, 67, 72, 73, 74, 75, 76, 77]
 
-def is_event_contained(df: pd.DataFrame, min_sns: int = 2) -> bool:
+def is_event_contained(df: pd.DataFrame) -> bool:
     """
     Returns True if all the sensors of the event are located within
-    the internal area of the detection plane. The minimun number of
-    touched sensors is min_sns, 2 by default.
+    the internal area of the detection plane.
     """
     df = df[df.tofpet_id == 0] ## Detection plane
     sens_unique = df.sensor_id.unique()
-    if len(sens_unique) >= min_sns:
+    if len(sens_unique):
         return set(sens_unique).issubset(set(int_area))
     else:
         return False
 
 
-def select_contained_evts(df: pd.DataFrame, min_sns: int = 2) -> pd.DataFrame:
+def select_contained_evts(df: pd.DataFrame) -> pd.DataFrame:
     """
     Returns a dataframe with only the events with touched sensors
     located within the internal area of the detection plane.
     """
-    df_cov_evts = df.groupby(['evt_number', 'cluster']).filter(is_event_contained,
-                                                               dropna = True,
-                                                               min_sns = min_sns)
+    df_cov_evts = df.groupby(['evt_number', 'cluster']).filter(is_event_contained)
     return df_cov_evts
