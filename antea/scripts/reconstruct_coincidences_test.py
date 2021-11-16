@@ -1,13 +1,8 @@
 import os
 
-from contextlib import contextmanager
-
 from .. database import load_db as db
 from . reconstruct_coincidences import reconstruct_coincidences_script
 
-@contextmanager
-def does_not_raise():
-    yield
 
 def test_run_script(ANTEADATADIR, config_tmpdir):
     """
@@ -19,6 +14,9 @@ def test_run_script(ANTEADATADIR, config_tmpdir):
 
     DataSiPM = db.DataSiPMsim_only('petalo', 0)
 
-    with does_not_raise():
+    try:
         reconstruct_coincidences_script(input_file, output_file, rpos_file, DataSiPM)
+    except:
+        raise AssertionError('Function reconstruct_coincidences_script has failed running.')
+
 
