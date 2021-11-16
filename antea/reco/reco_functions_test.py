@@ -464,14 +464,20 @@ def test_only_gamma_hits_interaction():
    assert np.allclose(true_pos2, ref_pos2)
 
 
-q   = st.floats(min_value=1., max_value=100.)
-pos = st.tuples(st.floats(380, 410), st.floats(380, 410), st.floats(0, 2000))
+@st.composite
+def lists_of_pos_and_charge(draw):
 
-@given(q, pos)
-def test_pos_reconstruction_one_SiPM(ANTEADATADIR, q, pos):
+    n   = draw(st.integers(min_value=1, max_value=50))
+    q   = st.lists(st.floats(min_value=1., max_value=100.), min_size=n, max_size=n)
+    pos = st.lists(st.tuples(st.floats(380, 410), st.floats(380, 410), st.floats(0, 2000)), min_size=n, max_size=n)
+
+    return (draw(q), draw(pos))
+
+@given(lists_of_pos_and_charge())
+def test_pos_reconstruction(ANTEADATADIR, sipms):
     """
-    Checks that the reconstructed position of an individual SiPM
-    is exactly that of the SiPM (in phi, z).
+    Checks that the reconstructed position is always between the minimum
+    and the maximum of the SiPM positions, for phi and z coordinates.
     """
 
     rpos_file = os.path.join(ANTEADATADIR, 'r_table_full_body.h5')
@@ -483,23 +489,35 @@ def test_pos_reconstruction_one_SiPM(ANTEADATADIR, q, pos):
                     y_name = "Rpos",
                     u_name = "RposUncertainty")
 
-    r, phi, z = rf.reconstruct_position(np.array([q]), np.array([pos]), RMap)
+    q, pos    = np.array(sipms[0]), np.array(sipms[1])
+    _, phi, z = rf.reconstruct_position(q, pos, RMap)
+    pos_cyl   = rf.from_cartesian_to_cyl(pos)
 
-    assert np.isclose(phi, np.arctan2(pos[1], pos[0]))
-    assert np.isclose(z,   pos[2])
+    assert (pos_cyl[:, 1].min() < phi < pos_cyl[:, 1].max()) or np.isclose(phi, pos_cyl[:, 1].min()) or np.isclose(phi, pos_cyl[:, 1].max())
+    assert pos_cyl[:, 2].min() <= z <= pos_cyl[:, 2].max() or np.isclose(z, pos_cyl[:, 2].min()) or np.isclose(z, pos_cyl[:, 2].max())
 
 
-id = st.integers(min_value=1000, max_value=10000)
+id = st.lists(st.integers(min_value=1000, max_value=10000), min_size=1, max_size=50)
 
 @given(id)
 @settings(deadline=None)
-def test_average_SiPM_pos_one_SiPM(id):
-
+def test_average_SiPM_pos(id):
+    """
+    Checks that the average position of a set of SiPMs lays
+    between the min and max value of the individual coordinates of the SiPMs.
+    """
     DataSiPM = db.DataSiPMsim_only('petalo', 0)
     DataSiPM = DataSiPM.set_index('SensorID')
 
-    true_pos = np.transpose(np.array([DataSiPM.loc[id].X, DataSiPM.loc[id].Y, DataSiPM.loc[id].Z]))
-    ave_pos  = rf.calculate_average_SiPM_pos(np.array([id]), DataSiPM)
+    id = np.array(id)
+    print(id, type(id))
 
-    assert(np.allclose(ave_pos, true_pos))
+    minX, minY, minZ = DataSiPM.loc[id].X.min(), DataSiPM.loc[id].Y.min(), DataSiPM.loc[id].Z.min()
+    maxX, maxY, maxZ = DataSiPM.loc[id].X.max(), DataSiPM.loc[id].Y.max(), DataSiPM.loc[id].Z.max()
+
+    ave_pos  = rf.calculate_average_SiPM_pos(id, DataSiPM)
+
+    assert(minX < ave_pos[0] < maxX or np.allclose(minX, ave_pos[0]) or np.allclose(maxX, ave_pos[0]))
+    assert(minY < ave_pos[1] < maxY or np.allclose(minY, ave_pos[1]) or np.allclose(maxY, ave_pos[1]))
+    assert(minZ < ave_pos[2] < maxX or np.allclose(minZ, ave_pos[2]) or np.allclose(maxZ, ave_pos[1]))
 
