@@ -55,7 +55,8 @@ def select_evts_with_max_charge_at_center(df: pd.DataFrame,
     return df_filter_center
 
 
-int_area = [22, 23, 24, 25, 26, 27, 32, 33, 34, 35, 36, 37, 42, 43, 44, 45, 46, 47, 52, 53, 54, 55, 56, 57, 62, 63, 64, 65, 66, 67, 72, 73, 74, 75, 76, 77]
+int_area = [22, 23, 24, 25, 26, 27, 32, 33, 34, 35, 36, 37, 42, 43, 44, 45, 46, 47,
+            52, 53, 54, 55, 56, 57, 62, 63, 64, 65, 66, 67, 72, 73, 74, 75, 76, 77]
 
 def is_event_contained(df: pd.DataFrame, min_sns: int = 2) -> bool:
     """
