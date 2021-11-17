@@ -25,8 +25,6 @@ from antea.utils.map_functions import load_map
 def reconstruct_coincidences_script(input_file, output_file, rmap, DataSiPM):
 
     DataSiPM_idx = DataSiPM.set_index('SensorID')
-#n_sipms      = len(DataSiPM)
-#first_sipm   = DataSiPM_idx.index.min()
 
     ### parameters for single photoelectron convolution in SiPM response
     tau_sipm       = [100, 15000]
@@ -96,7 +94,7 @@ def reconstruct_coincidences_script(input_file, output_file, rmap, DataSiPM):
     tof_response = load_mcTOFsns_response(input_file)
 
     events = particles.event_id.unique()
-    charge_range = (1000, 1400) # range to select photopeak - to be adjusted to the specific case
+    charge_range = (2000, 2250) # range to select photopeak - to be adjusted to the specific case
     print(f'Number of events in file = {len(events)}')
 
     for evt in events:
