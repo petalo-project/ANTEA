@@ -469,7 +469,7 @@ def lists_of_pos_and_charge(draw):
 
     n   = draw(st.integers(min_value=1, max_value=50))
     q   = st.lists(st.floats(min_value=1., max_value=100.), min_size=n, max_size=n)
-    pos = st.lists(st.tuples(st.floats(380, 410), st.floats(380, 410), st.floats(0, 2000)), min_size=n, max_size=n)
+    pos = st.lists(st.tuples(st.floats(0.1, 2000), st.floats(0.1, 2000), st.floats(0, 2000)), min_size=n, max_size=n)
 
     return (draw(q), draw(pos))
 
