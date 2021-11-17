@@ -10,10 +10,12 @@ import antea.reco.mctrue_functions  as mcf
 import antea.elec.tof_functions     as tf
 import antea.mcsim.sensor_functions as snsf
 
-from antea.utils.map_functions import load_map
 from antea.io.mc_io import read_sensor_bin_width_from_conf
 from antea.io.mc_io import load_mcparticles, load_mchits
 from antea.io.mc_io import load_mcsns_response, load_mcTOFsns_response
+
+from antea.core.exceptions     import WaveformEmptyTable
+from antea.utils.map_functions import load_map
 
 
 ### read sensor positions from database
@@ -153,8 +155,8 @@ def reconstruct_coincidences_script(input_file, output_file, rmap, DataSiPM):
 
         try:
             min_id1, min_id2, min_t1, min_t2 = rf.find_coincidence_timestamps(evt_tof_exp_dist, sns1, sns2, n_pe)
-            ave_pos1 = calculate_average_SiPM_pos(min_id1, DataSiPM_idx)
-            ave_pos2 = calculate_average_SiPM_pos(min_id2, DataSiPM_idx)
+            ave_pos1 = rf.calculate_average_SiPM_pos(min_id1, DataSiPM_idx)
+            ave_pos2 = rf.calculate_average_SiPM_pos(min_id2, DataSiPM_idx)
             first_sipm1.append(ave_pos1)
             first_sipm2.append(ave_pos2)
         except WaveformEmptyTable:
