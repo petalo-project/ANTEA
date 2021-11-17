@@ -510,7 +510,6 @@ def test_average_SiPM_pos(id):
     DataSiPM = DataSiPM.set_index('SensorID')
 
     id = np.array(id)
-    print(id, type(id))
 
     minX, minY, minZ = DataSiPM.loc[id].X.min(), DataSiPM.loc[id].Y.min(), DataSiPM.loc[id].Z.min()
     maxX, maxY, maxZ = DataSiPM.loc[id].X.max(), DataSiPM.loc[id].Y.max(), DataSiPM.loc[id].Z.max()
