@@ -10,137 +10,91 @@ import antea.reco.mctrue_functions  as mcf
 import antea.elec.tof_functions     as tf
 import antea.mcsim.sensor_functions as snsf
 
-from antea.utils.map_functions import load_map
 from antea.io.mc_io import read_sensor_bin_width_from_conf
 from antea.io.mc_io import load_mcparticles, load_mchits
 from antea.io.mc_io import load_mcsns_response, load_mcTOFsns_response
 
+from antea.core.exceptions     import WaveformEmptyTable
+from antea.utils.map_functions import load_map
+
+
 ### read sensor positions from database
 #DataSiPM     = db.DataSiPM('petalo', 0) # ring
-DataSiPM     = db.DataSiPMsim_only('petalo', 0) # full body PET
-DataSiPM_idx = DataSiPM.set_index('SensorID')
-n_sipms      = len(DataSiPM)
-first_sipm   = DataSiPM_idx.index.min()
+#DataSiPM     = db.DataSiPMsim_only('petalo', 0) # full body PET
 
-### parameters for single photoelectron convolution in SiPM response
-tau_sipm       = [100, 15000]
-time_window    = 5000
-time           = np.arange(0, time_window)
-spe_resp, norm = tf.apply_spe_dist(time, tau_sipm)
+def reconstruct_coincidences_script(input_file, output_file, rmap, DataSiPM):
 
+    DataSiPM_idx = DataSiPM.set_index('SensorID')
 
-def reconstruct_position(q, pos, thr_r, thr_phi, thr_z):
-    ## Calculate R
-    posr, qr = rf.sel_coord(pos, q, thr_r)
-    if len(posr) != 0:
-        pos_phi = rf.from_cartesian_to_cyl(np.array(posr))[:,1]
-        _, var_phi = rf.phi_mean_var(pos_phi, qr)
-        r = Rpos(np.sqrt(var_phi)).value
-    else:
-        return 1.e9, 1.e9, 1.e9
+    ### parameters for single photoelectron convolution in SiPM response
+    tau_sipm       = [100, 15000]
+    time_window    = 5000
+    time           = np.arange(0, time_window)
+    spe_resp, norm = tf.apply_spe_dist(time, tau_sipm)
 
-    ## Calculate phi
-    posphi, qphi = rf.sel_coord(pos, q, thr_phi)
+    thr_r   = 4 # threshold use to create R map (pe)
+    thr_phi = 4 # threshold on charge to reconstruct phi (pe)
+    thr_z   = 4 # threshold on charge to reconstruct z (pe)
+    thr_e   = 2 # threshold on charge (pe)
 
-    if len(qphi) != 0:
-        reco_cart_pos = np.average(posphi, weights=qphi, axis=0)
-        phi           = np.arctan2(reco_cart_pos[1], reco_cart_pos[0])
-    else:
-        return 1.e9, 1.e9, 1.e9
-
-    ## Calculate z
-    posz, qz = rf.sel_coord(pos, q, thr_z)
-
-    if len(qz) != 0:
-        reco_cart_pos = np.average(posz, weights=qz, axis=0)
-        z             = reco_cart_pos[2]
-    else:
-        return 1.e9, 1.e9, 1.e9
-
-    return r, phi, z
-
-def calculate_average_SiPM_pos(min_ids):
-    sipm     = DataSiPM_idx.loc[np.abs(min_ids)]
-    sipm_pos = np.array([sipm.X.values, sipm.Y.values, sipm.Z.values]).transpose()
-    ave_pos  = np.average(sipm_pos, axis=0)
-
-    return ave_pos
+    n_pe       = 1 # number of first photoelectrons to be considered for timestamp
+    sigma_sipm = 80 #ps SiPM jitter
+    sigma_elec = 30 #ps electronic jitter
 
 
-start   = int(sys.argv[1])
-numb    = int(sys.argv[2])
-thr_r   = 4 # threshold use to create R map
-thr_phi = 4 # threshold on charge to reconstruct phi
-thr_z   = 4 # threshold on charge to reconstruct z
-thr_e   = 2 # threshold on charge
+    Rpos = load_map(rmap,
+                    group  = "Radius",
+                    node   = "f{}pes150bins".format(int(thr_r)),
+                    x_name = "PhiRms",
+                    y_name = "Rpos",
+                    u_name = "RposUncertainty")
 
-n_pe       = 1
-sigma_sipm = 80 #ps SiPM jitter
-sigma_elec = 30 #ps electronic jitter
+    c0 = c1 = 0
+    bad = 0
 
+    true_r1, true_phi1, true_z1 = [], [], []
+    reco_r1, reco_phi1, reco_z1 = [], [], []
+    true_r2, true_phi2, true_z2 = [], [], []
+    reco_r2, reco_phi2, reco_z2 = [], [], []
 
-folder = '/path/to/sim/folder/'
-file_full = folder + 'petalo_sim.{0:03d}.pet.h5'
-evt_file  = '/path/to/analysis/folder/coincidences_{0}_{1}_{2}_{3}_{4}_{5}'.format(start, numb, int(thr_r), int(thr_phi), int(thr_z), int(thr_e))
-rpos_file = '/path/to/tables/r_table_thr{0}pes.h5'.format(int(thr_r))
+    sns_response1, sns_response2    = [], []
 
-Rpos = load_map(rpos_file,
-                group  = "Radius",
-                node   = "f{}pes200bins".format(int(thr_r)),
-                x_name = "PhiRms",
-                y_name = "Rpos",
-                u_name = "RposUncertainty")
+    ### PETsys thresholds to extract the timestamp
+    timestamp_thr = 1.0
+    first_sipm1 = []
+    first_sipm2 = []
+    first_time1 = []
+    first_time2 = []
+    true_time1, true_time2               = [], []
+    touched_sipms1, touched_sipms2       = [], []
+    photo1, photo2                  = [], []
+    max_hit_distance1, max_hit_distance2 = [], []
 
-c0 = c1 = 0
-bad = 0
+    event_ids = []
 
-true_r1, true_phi1, true_z1 = [], [], []
-reco_r1, reco_phi1, reco_z1 = [], [], []
-true_r2, true_phi2, true_z2 = [], [], []
-reco_r2, reco_phi2, reco_z2 = [], [], []
-
-sns_response1, sns_response2    = [], []
-
-### PETsys thresholds to extract the timestamp
-timestamp_thr = 1.0
-first_sipm1 = []
-first_sipm2 = []
-first_time1 = []
-first_time2 = []
-true_time1, true_time2               = [], []
-touched_sipms1, touched_sipms2       = [], []
-photo1, photo2                  = [], []
-max_hit_distance1, max_hit_distance2 = [], []
-
-event_ids = []
-
-
-for ifile in range(start, start+numb):
-
-    file_name = file_full.format(ifile)
     try:
-        sns_response = load_mcsns_response(file_name)
+        sns_response = load_mcsns_response(input_file)
     except ValueError:
-        print('File {} not found'.format(file_name))
-        continue
+        print('File {} not found'.format(input_file))
+        exit()
     except OSError:
-        print('File {} not found'.format(file_name))
-        continue
+        print('File {} not found'.format(input_file))
+        exit()
     except KeyError:
-        print('No object named MC/sns_response in file {0}'.format(file_name))
-        continue
-    print('Analyzing file {0}'.format(file_name))
+        print('No object named MC/sns_response in file {0}'.format(input_file))
+        exit()
+    print('Analyzing file {0}'.format(input_file))
 
     fluct_sns_response = snsf.apply_charge_fluctuation(sns_response, DataSiPM_idx)
 
-    tof_bin_size = read_sensor_bin_width_from_conf(file_name, tof=True)
+    tof_bin_size = read_sensor_bin_width_from_conf(input_file, tof=True)
 
-    particles    = load_mcparticles      (file_name)
-    hits         = load_mchits           (file_name)
-    tof_response = load_mcTOFsns_response(file_name)
+    particles    = load_mcparticles      (input_file)
+    hits         = load_mchits           (input_file)
+    tof_response = load_mcTOFsns_response(input_file)
 
     events = particles.event_id.unique()
-    charge_range = (1000, 1400) # range to select photopeak - to be adjusted to the specific case
+    charge_range = (2000, 2250) # range to select photopeak - to be adjusted to the specific case
     print(f'Number of events in file = {len(events)}')
 
     for evt in events:
@@ -169,8 +123,8 @@ for ifile in range(start, start+numb):
         pos1 = np.array(pos1)
         pos2 = np.array(pos2)
 
-        r1, phi1, z1 = reconstruct_position(q1, pos1, thr_r, thr_phi, thr_z)
-        r2, phi2, z2 = reconstruct_position(q2, pos2, thr_r, thr_phi, thr_z)
+        r1, phi1, z1 = rf.reconstruct_position(q1, pos1, Rpos, thr_r, thr_phi, thr_z)
+        r2, phi2, z2 = rf.reconstruct_position(q2, pos2, Rpos, thr_r, thr_phi, thr_z)
 
         if (r1 > 1.e8) or (r2 > 1.e8):
             c1 += 1
@@ -199,8 +153,8 @@ for ifile in range(start, start+numb):
 
         try:
             min_id1, min_id2, min_t1, min_t2 = rf.find_coincidence_timestamps(evt_tof_exp_dist, sns1, sns2, n_pe)
-            ave_pos1 = calculate_average_SiPM_pos(min_id1)
-            ave_pos2 = calculate_average_SiPM_pos(min_id2)
+            ave_pos1 = rf.calculate_average_SiPM_pos(min_id1, DataSiPM_idx)
+            ave_pos2 = rf.calculate_average_SiPM_pos(min_id2, DataSiPM_idx)
             first_sipm1.append(ave_pos1)
             first_sipm2.append(ave_pos2)
         except WaveformEmptyTable:
@@ -265,37 +219,37 @@ for ifile in range(start, start+numb):
         max_hit_distance2.append(max_dist2)
 
 
-a_true_r1           = np.array(true_r1)
-a_true_phi1         = np.array(true_phi1)
-a_true_z1           = np.array(true_z1)
-a_reco_r1           = np.array(reco_r1)
-a_reco_phi1         = np.array(reco_phi1)
-a_reco_z1           = np.array(reco_z1)
-a_sns_response1     = np.array(sns_response1)
-a_touched_sipms1    = np.array(touched_sipms1)
-a_first_sipm1       = np.array(first_sipm1)
-a_first_time1       = np.array(first_time1)
-a_true_time1        = np.array(true_time1)
-a_photo1            = np.array(photo1)
-a_max_hit_distance1 = np.array(max_hit_distance1)
+    a_true_r1           = np.array(true_r1)
+    a_true_phi1         = np.array(true_phi1)
+    a_true_z1           = np.array(true_z1)
+    a_reco_r1           = np.array(reco_r1)
+    a_reco_phi1         = np.array(reco_phi1)
+    a_reco_z1           = np.array(reco_z1)
+    a_sns_response1     = np.array(sns_response1)
+    a_touched_sipms1    = np.array(touched_sipms1)
+    a_first_sipm1       = np.array(first_sipm1)
+    a_first_time1       = np.array(first_time1)
+    a_true_time1        = np.array(true_time1)
+    a_photo1            = np.array(photo1)
+    a_max_hit_distance1 = np.array(max_hit_distance1)
 
-a_true_r2           = np.array(true_r2)
-a_true_phi2         = np.array(true_phi2)
-a_true_z2           = np.array(true_z2)
-a_reco_r2           = np.array(reco_r2)
-a_reco_phi2         = np.array(reco_phi2)
-a_reco_z2           = np.array(reco_z2)
-a_sns_response2     = np.array(sns_response2)
-a_touched_sipms2    = np.array(touched_sipms2)
-a_first_sipm2       = np.array(first_sipm2)
-a_first_time2       = np.array(first_time2)
-a_true_time2        = np.array(true_time2)
-a_photo2            = np.array(photo2)
-a_max_hit_distance2 = np.array(max_hit_distance2)
+    a_true_r2           = np.array(true_r2)
+    a_true_phi2         = np.array(true_phi2)
+    a_true_z2           = np.array(true_z2)
+    a_reco_r2           = np.array(reco_r2)
+    a_reco_phi2         = np.array(reco_phi2)
+    a_reco_z2           = np.array(reco_z2)
+    a_sns_response2     = np.array(sns_response2)
+    a_touched_sipms2    = np.array(touched_sipms2)
+    a_first_sipm2       = np.array(first_sipm2)
+    a_first_time2       = np.array(first_time2)
+    a_true_time2        = np.array(true_time2)
+    a_photo2            = np.array(photo2)
+    a_max_hit_distance2 = np.array(max_hit_distance2)
 
-a_event_ids = np.array(event_ids)
+    a_event_ids = np.array(event_ids)
 
-np.savez(evt_file,
+    np.savez(output_file,
          a_true_r1=a_true_r1, a_true_phi1=a_true_phi1, a_true_z1=a_true_z1,
          a_true_r2=a_true_r2, a_true_phi2=a_true_phi2, a_true_z2=a_true_z2,
          a_reco_r1=a_reco_r1, a_reco_phi1=a_reco_phi1, a_reco_z1=a_reco_z1,
@@ -309,5 +263,5 @@ np.savez(evt_file,
          a_max_hit_distance1=a_max_hit_distance1, a_max_hit_distance2=a_max_hit_distance2,
          a_event_ids=a_event_ids)
 
-print(f'Not a coincidence: {c0}')
-print(f'Not passing threshold to reconstruct position = {c1}')
+    print(f'Not a coincidence: {c0}')
+    print(f'Not passing threshold to reconstruct position = {c1}')
