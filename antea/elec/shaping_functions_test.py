@@ -41,6 +41,16 @@ def test_sipm_shaping(time, time_dist):
     assert np.all(result) == np.all(time_dist)
 
 
+def test_elec_shaping():
+    """
+    Check that the function returns the correct result
+    for specific values of the variable.
+    """
+    result = sf.elec_shaping(np.array([0, 252.69]))
+    assert np.all(result) == np.all(np.array([5.065e-6, 5.065e-6/np.e]))
+
+
+
 s = st.lists(st.integers(min_value=1, max_value=10000), min_size=2, max_size=1000)
 
 @given(l, s)
