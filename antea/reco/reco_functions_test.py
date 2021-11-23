@@ -494,7 +494,7 @@ def test_pos_reconstruction(ANTEADATADIR, sipms):
     pos_cyl   = rf.from_cartesian_to_cyl(pos)
 
     assert (pos_cyl[:, 1].min() < phi < pos_cyl[:, 1].max()) or np.isclose(phi, pos_cyl[:, 1].min()) or np.isclose(phi, pos_cyl[:, 1].max())
-    assert pos_cyl[:, 2].min() <= z <= pos_cyl[:, 2].max() or np.isclose(z, pos_cyl[:, 2].min()) or np.isclose(z, pos_cyl[:, 2].max())
+    assert (pos_cyl[:, 2].min() <   z < pos_cyl[:, 2].max()) or np.isclose(  z, pos_cyl[:, 2].min()) or np.isclose(  z, pos_cyl[:, 2].max())
 
 
 id = st.lists(st.integers(min_value=1000, max_value=10000), min_size=1, max_size=50)
