@@ -12,10 +12,8 @@ def test_characterize_coincidences(ANTEADATADIR, config_tmpdir):
     output_file = os.path.join(config_tmpdir, 'test_run_script')
     rpos_file   = os.path.join(ANTEADATADIR, 'r_table_full_body.h5')
 
-    DataSiPM = db.DataSiPMsim_only('petalo', 0)
-
     try:
-        characterize_coincidences(input_file, output_file, rpos_file, DataSiPM)
+        characterize_coincidences(input_file, output_file, rpos_file)
     except:
         raise AssertionError('Function reconstruct_coincidences_script has failed running.')
 

@@ -20,10 +20,10 @@ from antea.utils.map_functions import load_map
 
 ### read sensor positions from database
 #DataSiPM     = db.DataSiPM('petalo', 0) # ring
-#DataSiPM     = db.DataSiPMsim_only('petalo', 0) # full body PET
 
-def characterize_coincidences(input_file, output_file, rmap, DataSiPM):
+def characterize_coincidences(input_file, output_file, rmap):
 
+    DataSiPM     = db.DataSiPMsim_only('petalo', 0) # full body PET
     DataSiPM_idx = DataSiPM.set_index('SensorID')
 
     ### parameters for single photoelectron convolution in SiPM response
