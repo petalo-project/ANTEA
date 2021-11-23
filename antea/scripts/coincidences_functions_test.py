@@ -1,7 +1,7 @@
 import os
 
 from .. database import load_db as db
-from . reconstruct_coincidences import reconstruct_coincidences_script
+from . coincidences_functions import characterize_coincidences
 
 
 def test_characterize_coincidences(ANTEADATADIR, config_tmpdir):
