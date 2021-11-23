@@ -30,6 +30,17 @@ def sipm_shaping(time: np.array, tau_sipm: Tuple[float, float]) -> np.array:
     return time_dist
 
 
+def elec_shaping(time: np.array) -> np.array:
+    """
+    Analitic function that includes the sipm response and the electronic
+    shaping of TOFPET.
+    """
+    p0      = 5.065e-6
+    p1      = 252.69 # nanosecond
+    time_dist = p0*(np.exp(-time/p1))
+    return time_dist
+
+
 def convolve_signal_with_shaping(signal: Sequence[float],
                                  spe_response: Sequence[float]) -> Sequence[float]:
     """
