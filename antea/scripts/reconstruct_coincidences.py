@@ -22,7 +22,7 @@ from antea.utils.map_functions import load_map
 #DataSiPM     = db.DataSiPM('petalo', 0) # ring
 #DataSiPM     = db.DataSiPMsim_only('petalo', 0) # full body PET
 
-def reconstruct_coincidences_script(input_file, output_file, rmap, DataSiPM):
+def characterize_coincidences(input_file, output_file, rmap, DataSiPM):
 
     DataSiPM_idx = DataSiPM.set_index('SensorID')
 

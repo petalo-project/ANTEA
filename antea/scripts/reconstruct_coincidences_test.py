@@ -4,7 +4,7 @@ from .. database import load_db as db
 from . reconstruct_coincidences import reconstruct_coincidences_script
 
 
-def test_run_script(ANTEADATADIR, config_tmpdir):
+def test_characterize_coincidences(ANTEADATADIR, config_tmpdir):
     """
     Checks that the script to reconstruct the coincidences runs.
     """
@@ -15,7 +15,7 @@ def test_run_script(ANTEADATADIR, config_tmpdir):
     DataSiPM = db.DataSiPMsim_only('petalo', 0)
 
     try:
-        reconstruct_coincidences_script(input_file, output_file, rpos_file, DataSiPM)
+        characterize_coincidences(input_file, output_file, rpos_file, DataSiPM)
     except:
         raise AssertionError('Function reconstruct_coincidences_script has failed running.')
 
