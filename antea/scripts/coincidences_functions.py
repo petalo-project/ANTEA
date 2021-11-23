@@ -50,7 +50,6 @@ def characterize_coincidences(input_file, output_file, rmap):
                     u_name = "RposUncertainty")
 
     c0 = c1 = 0
-    bad = 0
 
     true_r1, true_phi1, true_z1 = [], [], []
     reco_r1, reco_phi1, reco_z1 = [], [], []
