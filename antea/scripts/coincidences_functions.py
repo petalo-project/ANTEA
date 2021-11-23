@@ -265,3 +265,11 @@ def characterize_coincidences(input_file, output_file, rmap):
 
     print(f'Not a coincidence: {c0}')
     print(f'Not passing threshold to reconstruct position = {c1}')
+
+
+if __name__ == "__main__":
+
+    input_file  = str(sys.argv[1])
+    output_file = str(sys.argv[2])
+    rmap        = str(sys.argv[3])
+    characterize_coincidences(input_file, output_file, rmap)
