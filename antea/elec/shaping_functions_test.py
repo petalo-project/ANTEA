@@ -61,7 +61,7 @@ def test_convolve_sipm_shaping(l, s):
     checks that the convoluted signal is normalizated to the initial signal.
     """
     spe_response, norm = sf.normalize_sipm_shaping(np.unique(np.array(l)), tau_sipm)
-    conv_res           = sf.convolve_signal_with_shaping(spe_response, np.array(s))
+    conv_res           = sf.convolve_signal_with_shaping(np.array(s), spe_response)
     assert len(conv_res) == len(spe_response) + len(s) - 1
     if np.count_nonzero(spe_response):
         assert np.isclose(np.sum(s), np.sum(conv_res))
@@ -83,7 +83,8 @@ def test_sipm_shaping_convolution(ANTEADATADIR, filename):
     time_window    = 5000
     tof_bin_size   = 5 * units.ps
     time           = np.arange(0, time_window)
-    spe_resp, norm = sf.normalize_sipm_shaping(time, tau_sipm)
+    spe_resp, _    = sf.normalize_sipm_shaping(time, tau_sipm)
+
     for evt in events:
         evt_tof = tof_response[tof_response.event_id == evt]
         times   = evt_tof.time_bin.values * tof_bin_size / units.ps
@@ -93,7 +94,7 @@ def test_sipm_shaping_convolution(ANTEADATADIR, filename):
             tdc_conv = sf.sipm_shaping_convolution(evt_tof, spe_resp, s_id, time_window)
             assert len(tdc_conv) == time_window + len(spe_resp) - 1
             if len(evt_tof[(evt_tof.sensor_id == s_id) &
-                            (evt_tof.time >= time_window)]) == 0:
+                         (evt_tof.time >= time_window)]) == 0:
                 assert np.count_nonzero(tdc_conv) > 0
 
 
