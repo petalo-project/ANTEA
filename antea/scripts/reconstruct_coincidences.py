@@ -7,7 +7,7 @@ from invisible_cities.core         import system_of_units as units
 import antea.database.load_db       as db
 import antea.reco.reco_functions    as rf
 import antea.reco.mctrue_functions  as mcf
-import antea.elec.shaping_functions     as shf
+import antea.elec.shaping_functions as shf
 import antea.mcsim.sensor_functions as snsf
 
 from antea.io.mc_io import read_sensor_bin_width_from_conf
@@ -38,7 +38,7 @@ def reconstruct_coincidences_script(input_file, output_file, rmap, DataSiPM):
     thr_e   = 2 # threshold on charge (pe)
 
     n_pe       = 1 # number of first photoelectrons to be considered for timestamp
-    sigma_sipm = 80 #ps SiPM jitter
+    sigma_sipm = 40 #ps SiPM jitter
     sigma_elec = 30 #ps electronic jitter
 
 
