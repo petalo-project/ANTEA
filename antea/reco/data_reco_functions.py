@@ -5,17 +5,17 @@ def compute_coincidences(df: pd.DataFrame) -> pd.DataFrame:
     """
     Returns the events in which both planes have detected charge.
     """
-    nplanes = df.groupby(['evt_number', 'cluster'])['tofpet_id'].nunique()
-    df_idx  = df.set_index(['evt_number', 'cluster'])
-    df_coincidences = df_idx.loc[nplanes[nplanes == 2].index]
+    nplanes  = df.groupby(['evt_number', 'cluster'])['tofpet_id'].nunique()
+    df_idx   = df.set_index(['evt_number', 'cluster'])
+    df_coinc = df_idx.loc[nplanes[nplanes == 2].index]
 
-    return df_coincidences
+    return df_coinc
 
 
 def is_max_charge_at_center(df: pd.DataFrame,
                             det_plane: bool = True,
-                            variable: str = 'efine_corrected',
-                            tot_mode: bool = False) -> bool:
+                            variable:   str = 'efine_corrected',
+                            tot_mode:  bool = False) -> bool:
     """
     Returns True if the maximum charge of the event has been detected
     in one of the four central sensors of the desired plane.
@@ -41,17 +41,17 @@ def is_max_charge_at_center(df: pd.DataFrame,
 
 def select_evts_with_max_charge_at_center(df: pd.DataFrame,
                                          det_plane: bool = True,
-                                         variable: str = 'efine_corrected',
-                                         tot_mode: bool = False) -> pd.DataFrame:
+                                         variable:   str = 'efine_corrected',
+                                         tot_mode:  bool = False) -> pd.DataFrame:
     """
     Returns a dataframe with only the events with maximum charge
     at the central sensors.
     """
     df_filter_center = df.groupby(['evt_number', 'cluster']).filter(is_max_charge_at_center,
-                                                                    dropna = True,
+                                                                    dropna    = True,
                                                                     det_plane = det_plane,
-                                                                    variable = variable,
-                                                                    tot_mode = tot_mode)
+                                                                    variable  = variable,
+                                                                    tot_mode  = tot_mode)
     return df_filter_center
 
 
@@ -89,6 +89,6 @@ def compute_charge_percentage_in_corona(df: pd.DataFrame,
     Computes the percentage of charge detected in the external corona of the detection
     plane with respect to the total charge of the that plane.
     """
-    tot_ch_d = df[df.tofpet_id==0].groupby(['evt_number', 'cluster'])[variable].sum()
+    tot_ch_d = df[df.tofpet_id==0]          .groupby(['evt_number', 'cluster'])[variable].sum()
     cor_ch   = df[df.sensor_id.isin(corona)].groupby(['evt_number', 'cluster'])[variable].sum()
     return (cor_ch/tot_ch_d).fillna(0)*100

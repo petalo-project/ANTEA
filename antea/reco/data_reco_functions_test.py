@@ -25,7 +25,7 @@ def test_compute_coincidences(ANTEADATADIR):
                    (False, 'efine_corrected', False),
                    ( True,          'intg_w', False),
                    ( True,      'intg_w_ToT',  True),
-                   (False,     'intg_w_ToT',  True)))
+                   (False,      'intg_w_ToT',  True)))
 def test_select_evts_with_max_charge_at_center(ANTEADATADIR, det_plane, variable, tot_mode):
     """
     Checks that the max charge (in terms of the desired variable) is at center
