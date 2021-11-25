@@ -11,6 +11,8 @@ def compute_coincidences(df: pd.DataFrame) -> pd.DataFrame:
 
     return df_coinc
 
+central_sns_h = [ 44,  45,  54,  55]
+central_sns_f = [122, 123, 132, 133]
 
 def is_max_charge_at_center(df: pd.DataFrame,
                             det_plane: bool = True,
@@ -22,10 +24,10 @@ def is_max_charge_at_center(df: pd.DataFrame,
     """
     if det_plane:
         tofpet_id   = 0
-        central_sns = [44, 45, 54, 55]
+        central_sns = central_sns_h
     else:
         tofpet_id   = 2
-        central_sns = [122, 123, 132, 133]
+        central_sns = central_sns_f
 
     df = df[df.tofpet_id == tofpet_id]
     if len(df)==0:
