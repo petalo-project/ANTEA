@@ -37,10 +37,10 @@ def test_select_evts_with_max_charge_at_center(ANTEADATADIR, det_plane, variable
 
     if det_plane:
         tofpet_id   = 0
-        central_sns = [44, 45, 54, 55]
+        central_sns = drf.central_sns_h
     else:
         tofpet_id   = 2
-        central_sns = [122, 123, 132, 133]
+        central_sns = drf.central_sns_f
 
     df_center = drf.select_evts_with_max_charge_at_center(df,
                                                           det_plane = det_plane,
