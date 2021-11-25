@@ -53,9 +53,6 @@ def test_select_evts_with_max_charge_at_center(ANTEADATADIR, det_plane, variable
                                 in central_sns for m in all_max]))
 
 
-corona = [11, 12, 13, 14, 15, 16, 17, 18, 21, 28, 31, 38, 41, 48,
-          51, 58, 61, 68, 71, 78, 81, 82, 83, 84, 85, 86, 87, 88]
-
 def test_contained_evts_in_det_plane_and_compute_percentage_in_corona(ANTEADATADIR):
     """
     Checks whether the event is fully contained in the detection plane and
@@ -64,7 +61,7 @@ def test_contained_evts_in_det_plane_and_compute_percentage_in_corona(ANTEADATAD
     PATH_IN  = os.path.join(ANTEADATADIR, 'data_petbox_test.h5')
     df       = pd.read_hdf(PATH_IN, '/data_0')
     df_cov   = drf.select_contained_evts_in_det_plane(df)
-    assert len(np.intersect1d(df_cov.sensor_id.unique(), corona))==0
+    assert len(np.intersect1d(df_cov.sensor_id.unique(), drf.corona))==0
 
     perc_cor = drf.compute_charge_percentage_in_corona(df_cov)
     assert np.count_nonzero(perc_cor.values)==0
