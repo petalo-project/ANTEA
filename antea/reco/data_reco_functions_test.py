@@ -47,6 +47,8 @@ def test_select_evts_with_max_charge_at_center(ANTEADATADIR, det_plane, variable
                                                           variable  = variable,
                                                           tot_mode  = tot_mode)
     df_center = df_center[df_center.tofpet_id==tofpet_id]
+    assert len(df_center) > 0
+
     all_max   = df_center.groupby(['evt_number', 'cluster'])[variable].max()
     if len(all_max):
         assert np.all(np.array([df_center[df_center[variable]==m].sensor_id.values
