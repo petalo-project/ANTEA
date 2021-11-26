@@ -74,15 +74,15 @@ def characterize_coincidences(input_file, output_file, rmap):
     try:
         sns_response = load_mcsns_response(input_file)
     except ValueError:
-        print('File {} not found'.format(input_file))
+        print(f'File {input_file} not found')
         exit()
     except OSError:
-        print('File {} not found'.format(input_file))
+        print(f'File {input_file} not found')
         exit()
     except KeyError:
-        print('No object named MC/sns_response in file {0}'.format(input_file))
+        print(f'No object named MC/sns_response in file {input_file}')
         exit()
-    print('Analyzing file {0}'.format(input_file))
+    print(f'Analyzing file {input_file}')
 
     fluct_sns_response = snsf.apply_charge_fluctuation(sns_response, DataSiPM_idx)
 
