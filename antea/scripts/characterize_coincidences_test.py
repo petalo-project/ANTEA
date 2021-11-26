@@ -1,6 +1,5 @@
 import os
 
-from .. database import load_db as db
 from . characterize_coincidences import characterize_coincidences
 
 
