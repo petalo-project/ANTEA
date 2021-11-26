@@ -6,7 +6,7 @@ import hypothesis.strategies as st
 from hypothesis     import given
 from pytest         import mark
 from antea.io.mc_io import load_mcTOFsns_response
-from antea.elec     import shaping_functions   as sf
+from antea.elec     import shaping_functions   as shf
 
 from invisible_cities.core import system_of_units as units
 
@@ -21,7 +21,7 @@ def test_normalize_sipm_shaping(l):
     with the distribution value for each time.
     """
     l = np.array(l)
-    exp_dist, norm_dist = sf.normalize_sipm_shaping(np.unique(l), tau_sipm)
+    exp_dist, norm_dist = shf.normalize_sipm_shaping(np.unique(l), tau_sipm)
 
     assert len(exp_dist) == len(np.unique(l))
     assert (exp_dist >= 0.).all()
@@ -37,7 +37,7 @@ def test_sipm_shaping(time, time_dist):
     sipm_shaping is an analitic function, so this test takes some values
     and checks that the function returns the correct value for each one.
     """
-    result = sf.sipm_shaping(time, tau_sipm)
+    result = shf.sipm_shaping(time, tau_sipm)
     assert np.all(result) == np.all(time_dist)
 
 
@@ -46,7 +46,7 @@ def test_elec_shaping():
     Check that the function returns the correct result
     for specific values of the variable.
     """
-    result = sf.elec_shaping(np.array([0, 252.69]))
+    result = shf.elec_shaping(np.array([0, 252.69]))
     assert np.all(result) == np.all(np.array([5.065e-6, 5.065e-6/np.e]))
 
 
@@ -60,8 +60,8 @@ def test_convolve_sipm_shaping(l, s):
     and, in case the array is not empty,
     checks that the convoluted signal is normalizated to the initial signal.
     """
-    spe_response, norm = sf.normalize_sipm_shaping(np.unique(np.array(l)), tau_sipm)
-    conv_res           = sf.convolve_signal_with_shaping(np.array(s), spe_response)
+    spe_response, norm = shf.normalize_sipm_shaping(np.unique(np.array(l)), tau_sipm)
+    conv_res           = shf.convolve_signal_with_shaping(np.array(s), spe_response)
     assert len(conv_res) == len(spe_response) + len(s) - 1
     if np.count_nonzero(spe_response):
         assert np.isclose(np.sum(s), np.sum(conv_res))
@@ -83,7 +83,7 @@ def test_sipm_shaping_convolution(ANTEADATADIR, filename):
     time_window    = 5000
     tof_bin_size   = 5 * units.ps
     time           = np.arange(0, time_window)
-    spe_resp, _    = sf.normalize_sipm_shaping(time, tau_sipm)
+    spe_resp, _    = shf.normalize_sipm_shaping(time, tau_sipm)
 
     for evt in events:
         evt_tof = tof_response[tof_response.event_id == evt]
@@ -91,7 +91,7 @@ def test_sipm_shaping_convolution(ANTEADATADIR, filename):
         evt_tof.insert(4, 'time', times.astype(int))
         tof_sns = evt_tof.sensor_id.unique()
         for s_id in tof_sns:
-            tdc_conv = sf.sipm_shaping_convolution(evt_tof, spe_resp, s_id, time_window)
+            tdc_conv = shf.sipm_shaping_convolution(evt_tof, spe_resp, s_id, time_window)
             assert len(tdc_conv) == time_window + len(spe_resp) - 1
             if len(evt_tof[(evt_tof.sensor_id == s_id) &
                          (evt_tof.time >= time_window)]) == 0:
@@ -110,7 +110,7 @@ def test_build_convoluted_df(e, s_id, l2):
     Three of this columns must contain integers.
     """
     l2    = np.array(l2)
-    wf_df = sf.build_convoluted_df(e, s_id, l2)
+    wf_df = shf.build_convoluted_df(e, s_id, l2)
     assert len(wf_df) == np.count_nonzero(l2)
     assert len(wf_df.keys()) == 4
     if np.count_nonzero(l2) == 0:
