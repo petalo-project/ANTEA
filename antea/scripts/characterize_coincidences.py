@@ -44,7 +44,7 @@ def characterize_coincidences(input_file, output_file, rmap):
 
     Rpos = load_map(rmap,
                     group  = "Radius",
-                    node   = "f{}pes150bins".format(int(thr_r)),
+                    node   = "f4pes150bins",
                     x_name = "PhiRms",
                     y_name = "Rpos",
                     u_name = "RposUncertainty")
