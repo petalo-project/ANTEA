@@ -112,6 +112,13 @@ def characterize_coincidences(input_file, output_file, rmap):
         if len(evt_tof) == 0:
             continue
 
+        ### If one wants to select only pure photoelectric events
+        ### add the following lines
+        #select, true_pos = mcf.select_photoelectric(evt_parts, evt_hits)
+        #if not select: continue
+        #if (len(true_pos) == 1) & (evt_hits.energy.sum() > 0.511):
+        #    continue
+
         pos1, pos2, q1, q2, true_pos1, true_pos2, true_t1, true_t2, sns1, sns2 = rf.reconstruct_coincidences(evt_sns, charge_range, DataSiPM_idx, evt_parts, evt_hits)
         if len(pos1) == 0 or len(pos2) == 0:
             c0 += 1
