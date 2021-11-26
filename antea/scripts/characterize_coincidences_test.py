@@ -14,6 +14,6 @@ def test_characterize_coincidences(ANTEADATADIR, config_tmpdir):
     try:
         characterize_coincidences(input_file, output_file, rpos_file)
     except:
-        raise AssertionError('Function reconstruct_coincidences_script has failed running.')
+        raise AssertionError('Function characterize_coincidences has failed running.')
 
 
