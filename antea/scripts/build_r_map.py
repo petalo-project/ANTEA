@@ -60,9 +60,7 @@ def build_r_map(input_file, output_file, threshold):
             pos_z  = np.array(pos1)[:,2]
             mean_z = np.average(pos_z, weights=q1)
             var_z  = np.average((pos_z-mean_z)**2, weights=q1)
-
-            reco_cart = np.average(pos1, weights=q1, axis=0)
-            r = np.sqrt(true_pos[0][0]**2 + true_pos[0][1]**2)
+            r      = np.sqrt(true_pos[0][0]**2 + true_pos[0][1]**2)
 
             var_phi1      .append(var_phi)
             var_z1        .append(var_z)
@@ -82,9 +80,7 @@ def build_r_map(input_file, output_file, threshold):
             pos_z  = np.array(pos2)[:,2]
             mean_z = np.average(pos_z, weights=q2)
             var_z  = np.average((pos_z-mean_z)**2, weights=q2)
-
-            reco_cart = np.average(pos2, weights=q2, axis=0)
-            r = np.sqrt(true_pos[1][0]**2 + true_pos[1][1]**2)
+            r      = np.sqrt(true_pos[1][0]**2 + true_pos[1][1]**2)
 
             var_phi2      .append(var_phi)
             var_z2        .append(var_z)

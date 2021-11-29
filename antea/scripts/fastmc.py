@@ -2,7 +2,6 @@ import sys
 import argparse
 import pandas   as pd
 
-import antea.database.load_db  as db
 import antea.mcsim   .errmat   as errmat
 import antea.mcsim   .errmat3d as errmat3d
 import antea.mcsim   .fastmc3d as fmc
