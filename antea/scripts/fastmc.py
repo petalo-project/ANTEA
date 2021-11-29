@@ -9,8 +9,8 @@ import antea.mcsim   .fastmc3d as fmc
 import antea.io      .mc_io    as mcio
 
 
-""" Example to run this script
-python fastmc.py 0 1 /input_path/ filesname /output_path/ /matrix_path/
+""" To run this script
+python fastmc.py input_file output_file matrix_folder
 """
 
 def fastmc(input_file, output_file, table_folder):
