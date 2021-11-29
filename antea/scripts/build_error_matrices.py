@@ -3,7 +3,6 @@ import sys
 import argparse
 import numpy as np
 
-import antea.database.load_db  as db
 import antea.mcsim   .fastmc3d as fmc
 
 
