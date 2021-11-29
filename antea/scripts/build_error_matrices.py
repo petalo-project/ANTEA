@@ -5,9 +5,20 @@ import numpy as np
 
 import antea.mcsim   .fastmc3d as fmc
 
+""" To run this script
+ python build_error_matrices.py input_folder output_folder
+ where:
+- input_folder is the folder containing the npz files
+with the information of the coincidences used to build the error matrices.
+- output_folder is the folder where the error matrices are stored.
+ """
 
-def build_error_matrices(input_folder, output_folder):
-
+def build_error_matrices(input_folder: str, output_folder:str):
+    """
+    This function calculates the error matrices for a specific simulation.
+    Each matrix represents the error in a coordinate (true - reco) as a function
+    of the true coordinate.
+    """
     true_r1, true_phi1, true_z1 = [], [], []
     reco_r1, reco_phi1, reco_z1 = [], [], []
     true_r2, true_phi2, true_z2 = [], [], []

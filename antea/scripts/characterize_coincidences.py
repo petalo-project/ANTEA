@@ -17,11 +17,27 @@ from antea.io.mc_io import load_mcsns_response, load_mcTOFsns_response
 from antea.core.exceptions     import WaveformEmptyTable
 from antea.utils.map_functions import load_map
 
+""" To run this script:
+python characterize_coincidences.py input_file output_file r_map
+where:
+- input_file is the nexus file used to extract
+the information about the coincidences.
+- output_file is an npz file where the information about
+the coincidences is stored.
+- r_map is the file where the dependence of R
+with the variance of phi is stored.
+"""
 
 ### read sensor positions from database
 #DataSiPM     = db.DataSiPM('petalo', 0) # ring
 
-def characterize_coincidences(input_file, output_file, rmap):
+def characterize_coincidences(input_file: str, output_file: str, rmap: str):
+
+    """
+    This function extracts the relevant information on position, time,
+    sensor response, kind (point-like or not)) of the
+    two gamma interactions of a coincidences.
+    """
 
     DataSiPM     = db.DataSiPMsim_only('petalo', 0) # full body PET
     DataSiPM_idx = DataSiPM.set_index('SensorID')
@@ -59,7 +75,7 @@ def characterize_coincidences(input_file, output_file, rmap):
     sns_response1, sns_response2    = [], []
 
     ### PETsys thresholds to extract the timestamp
-    timestamp_thr = 1.0
+    timestamp_thr = 0.25
     first_sipm1 = []
     first_sipm2 = []
     first_time1 = []

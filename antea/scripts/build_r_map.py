@@ -6,11 +6,27 @@ import antea.database.load_db      as db
 import antea.reco.reco_functions   as rf
 import antea.reco.mctrue_functions as mcf
 
+""" To run this script:
+python build_r_map.py input_file output_file threshold
+where:
+-  input_file is the nexus file used to extract
+the radial dependence.
+- output_file is an npz file with the information
+needed to build the R map.
+- threshold is the charge above which a SiPM is
+taken into account to extract that information.
+"""
 
 ### read sensor positions from database
 #DataSiPM     = db.DataSiPM('petalo', 0) # ring
 
-def build_r_map(input_file, output_file, threshold):
+def build_r_map(input_file: str, output_file: str, threshold: float):
+
+    """
+    This function extracts the true radial position
+    and the variance of the SiPM positions
+    in phi and z for each gamma interaction.
+    """
 
     DataSiPM     = db.DataSiPMsim_only('petalo', 0) # full body PET
     DataSiPM_idx = DataSiPM.set_index('SensorID')

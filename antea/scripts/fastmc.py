@@ -10,9 +10,18 @@ import antea.io      .mc_io    as mcio
 
 """ To run this script
 python fastmc.py input_file output_file matrix_folder
+where:
+- input_file is the nexus file containing the true information
+used to simulate reconstructed coincidences.
+- output_file is an h5 file with the reconstructed coincidences.
+- matrix folder is the folder of the error matrices.
 """
 
-def fastmc(input_file, output_file, table_folder):
+def fastmc(input_file: str, output_file: str, table_folder: str):
+    """
+    This function simulates reconstructed coincidences
+    starting from true information and using previously built error matrices.
+    """
 
     err_r_phot_file    = table_folder + '/errmat_test_r_phot_like.npz'
     err_r_compt_file   = table_folder + '/errmat_test_r_compt_like.npz'
