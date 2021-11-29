@@ -3,10 +3,15 @@ Utilities
 
 Core functions
 ==================
+It is a collection of functions related to the basic functionalities of python code, such as exceptions.
+
 .. automodule:: antea.core.exceptions
+   :members:
 
 Database functions
 ==================
+These functions are used to download the mysql database and load the relevant information of the sensors.
+
 .. automodule:: antea.database.download
    :members:
 
@@ -16,9 +21,6 @@ Database functions
 I/O functions
 =============
 .. automodule:: antea.io.mc_io
-   :members:
-
-.. automodule:: antea.io.mc_io_tb
    :members:
 
 Plotting functions
