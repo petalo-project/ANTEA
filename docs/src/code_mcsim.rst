@@ -7,9 +7,14 @@ Full MC
 =======
 In the full MC, NEXUS is run in full simulation mode, which propagates scintillation
 photons produced by the 511 keV gamma rays to the SiPMs so that the positions
-of the interactions can be reconstructed. Event selection, position reconstruction,
+of the interactions can be reconstructed. The simulation of the shaping of SiPMs
+and the electronics are done with functions from antea.elec.
+Event selection, position reconstruction,
 and the final PET image reconstruction are performed using functions from
-antea.reco.
+antea.reco and a different software (tofpet3d).
+
+.. automodule:: antea.elec.shaping_functions
+   :members:
 
 .. _fastmc:
 
