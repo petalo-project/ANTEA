@@ -158,7 +158,7 @@ def build_error_matrices(input_folder, output_folder):
     precision = .3 # mm
     r_max     = 409.7
 
-    r_range           = (380, 409.7)
+    r_range           = (380, r_max)
     r_err_range_phot  = (-5, 10)
     r_err_range_compt = (-30, 30)
     r_width           = precision
