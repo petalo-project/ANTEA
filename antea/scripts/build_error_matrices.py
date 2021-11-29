@@ -214,7 +214,7 @@ def build_error_matrices(input_folder, output_folder):
     ### R
     print('')
     print('**** R ****')
-    print(f'Number bins: true r = {r_bins}, err phot = {r_err_bins_phot}, err compt = {r_err_bins_compt}')
+    print(f'Number of bins: true r = {r_bins}, err phot = {r_err_bins_phot}, err compt = {r_err_bins_compt}')
     print('')
 
     ## photoelectric-like events
@@ -244,7 +244,7 @@ def build_error_matrices(input_folder, output_folder):
     ### Phi
     print('')
     print('**** Phi ****')
-    print(f'Number bins: true phi = {phi_bins}, true r = {r_bins}, err phot = {phi_err_bins_phot}, err compt = {phi_err_bins_compt}')
+    print(f'Number of bins: true phi = {phi_bins}, true r = {r_bins}, err phot = {phi_err_bins_phot}, err compt = {phi_err_bins_compt}')
     print('')
 
     ## photoelectric-like events
@@ -277,7 +277,7 @@ def build_error_matrices(input_folder, output_folder):
     ### Z
     print('')
     print('**** Z ****')
-    print(f'Number bins: true z = {z_bins}, true r = {r_bins}, err phot = {z_err_bins_phot}, err compt = {z_err_bins_compt}')
+    print(f'Number of bins: true z = {z_bins}, true r = {r_bins}, err phot = {z_err_bins_phot}, err compt = {z_err_bins_compt}')
     print('')
 
     ## photoelectric-like events
@@ -309,7 +309,7 @@ def build_error_matrices(input_folder, output_folder):
     ### T
     print('')
     print('**** T ****')
-    print(f'Number bins: true t = {t_bins}, err phot = {t_err_bins_phot}, err compt = {t_err_bins_compt}')
+    print(f'Number of bins: true t = {t_bins}, err phot = {t_err_bins_phot}, err compt = {t_err_bins_compt}')
     print('')
 
     ## photoelectric-like events
