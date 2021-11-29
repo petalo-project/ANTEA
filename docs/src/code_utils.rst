@@ -8,7 +8,7 @@ Database functions
 
 .. automodule:: antea.database.load_db
    :members:
-   
+
 I/O functions
 =============
 .. automodule:: antea.io.mc_io
@@ -22,7 +22,7 @@ Plotting functions
 .. automodule:: antea.plotting.plt_functions
    :members:
 
-Misc.
-=====
-.. automodule:: antea.utils.table_functions
+Miscellanea
+==================
+.. automodule:: antea.utils.map_functions
    :members:
