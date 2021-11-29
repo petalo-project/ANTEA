@@ -1,6 +1,10 @@
 Utilities
 *********
 
+Core functions
+==================
+.. automodule:: antea.core.exceptions
+
 Database functions
 ==================
 .. automodule:: antea.database.download
