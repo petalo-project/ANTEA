@@ -1,8 +1,8 @@
 Reconstruction
 ********************
 
-Coincidences reconstruction
-===========================
+Coincidences reconstruction in full-body PET MC
+===============================================
 
 To reconstruct a pair of coincidences for each MC event, first the SiPMs that have recorded charge above a certain threshold are
 divided in two halves, identifying the SiPM with maximum charge and considering it at the centre of the first interaction.
@@ -11,6 +11,15 @@ through the centre of the system, divides the sensors in two halves, each one co
 The true position and time of the interactions are also extracted to help the study of the performance of the algorithms.
 
 .. automodule:: antea.reco.reco_functions
+   :members:
+
+Coincidences reconstruction in PETit
+===============================================
+
+To reconstruct coincidences in the PETit prototype, we use the TOFPET ID or the sensor ID to identify the SiPMs
+on the two opposite sides of the detector. Notice that no MC information is present here.
+
+.. automodule:: antea.reco.data_reco_functions
    :members:
 
 MC truth selection functions
