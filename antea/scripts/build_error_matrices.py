@@ -98,13 +98,9 @@ def build_error_matrices(input_folder, output_folder):
 
     event_ids = np.array(event_ids)
 
-    true_x1 = true_r1 * np.cos(true_phi1)
     reco_x1 = reco_r1 * np.cos(reco_phi1)
-    true_y1 = true_r1 * np.sin(true_phi1)
     reco_y1 = reco_r1 * np.sin(reco_phi1)
-    true_x2 = true_r2 * np.cos(true_phi2)
     reco_x2 = reco_r2 * np.cos(reco_phi2)
-    true_y2 = true_r2 * np.sin(true_phi2)
     reco_y2 = reco_r2 * np.sin(reco_phi2)
 
 
@@ -112,26 +108,12 @@ def build_error_matrices(input_folder, output_folder):
     reco_phi1[np.abs(reco_phi1 - true_phi1) > 6.] = -reco_phi1[np.abs(reco_phi1 - true_phi1) > 6.]
     reco_phi2[np.abs(reco_phi2 - true_phi2) > 6.] = -reco_phi2[np.abs(reco_phi2 - true_phi2) > 6.]
 
-    true_x   = np.concatenate((true_x1, true_x2))
-    true_y   = np.concatenate((true_y1, true_y2))
     true_r   = np.concatenate((true_r1, true_r2))
     true_phi = np.concatenate((true_phi1, true_phi2))
     true_z   = np.concatenate((true_z1, true_z2))
+    true_t   = np.concatenate((true_t1, true_t2))
 
-    reco_x   = np.concatenate((reco_x1, reco_x2))
-    reco_y   = np.concatenate((reco_y1, reco_y2))
-    reco_r   = np.concatenate((reco_r1, reco_r2))
-    reco_phi = np.concatenate((reco_phi1, reco_phi2))
-    reco_z   = np.concatenate((reco_z1, reco_z2))
-
-    true_t = np.concatenate((true_t1, true_t2))
-
-    sns_response     = np.concatenate((sns_response1, sns_response2))
     max_hit_distance = np.concatenate((max_hit_distance1, max_hit_distance2))
-
-    n_int = len(true_x) # number of interactions
-
-
 
     def diff_and_concatenate(true1, true2, reco1, reco2):
         d1 = true1 - reco1
@@ -143,14 +125,7 @@ def build_error_matrices(input_folder, output_folder):
     diff_phi_matrix = diff_and_concatenate(true_phi1, true_phi2, reco_phi1, reco_phi2)
     diff_z_matrix   = diff_and_concatenate(true_z1,   true_z2,   reco_z1,   reco_z2)
 
-
-    ### read sensor positions from database
-    DataSiPM     = db.DataSiPMsim_only('petalo', 0)
-    DataSiPM_idx = DataSiPM.set_index('SensorID')
-
-    speed_in_vacuum = 0.299792458# * units.mm / units.ps
     ave_speed_in_LXe = 0.210 #* units.mm / units.ps
-
 
     ### Positions
     pos_1 = np.array([reco_x1, reco_y1, reco_z1]).transpose()
@@ -163,7 +138,6 @@ def build_error_matrices(input_folder, output_folder):
     reco_t1   = first_time1 - dist1/ave_speed_in_LXe
     reco_t2   = first_time2 - dist2/ave_speed_in_LXe
 
-    diff_t_matrix      = (diff_and_concatenate(true_t1, true_t2, first_time1, first_time2)).flatten()
     diff_reco_t_matrix = (diff_and_concatenate(true_t1, true_t2,     reco_t1,     reco_t2)).flatten()
 
 
@@ -171,7 +145,7 @@ def build_error_matrices(input_folder, output_folder):
     sel_phot_like  = max_hit_distance <= d1
     sel_compt_like = max_hit_distance > d1
 
-    print(f'Number of interactions for phot = {len(true_x[sel_phot_like])}')
+    print(f'Number of interactions for phot = {len(true_t[sel_phot_like])}')
 
 
     def get_bins(coord_range, err_range_phot, err_range_compt, coord_width, err_width_phot, err_width_compt):
