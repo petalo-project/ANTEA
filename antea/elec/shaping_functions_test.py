@@ -21,7 +21,7 @@ def test_normalize_sipm_shaping(l):
     with the distribution value for each time.
     """
     l = np.array(l)
-    exp_dist, norm_dist = shf.normalize_sipm_shaping(np.unique(l), tau_sipm)
+    exp_dist, _ = shf.normalize_sipm_shaping(np.unique(l), tau_sipm)
 
     assert len(exp_dist) == len(np.unique(l))
     assert (exp_dist >= 0.).all()
@@ -60,7 +60,7 @@ def test_convolve_sipm_shaping(l, s):
     and, in case the array is not empty,
     checks that the convoluted signal is normalizated to the initial signal.
     """
-    spe_response, norm = shf.normalize_sipm_shaping(np.unique(np.array(l)), tau_sipm)
+    spe_response, _ = shf.normalize_sipm_shaping(np.unique(np.array(l)), tau_sipm)
     conv_res           = shf.convolve_signal_with_shaping(np.array(s), spe_response)
     assert len(conv_res) == len(spe_response) + len(s) - 1
     if np.count_nonzero(spe_response):
