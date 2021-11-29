@@ -9,6 +9,6 @@ def test_fastmc(ANTEADATADIR, config_tmpdir):
     input_folder  = os.path.join(ANTEADATADIR, 'build_err_matrices_test/')
 
     try:
-        build_error_matrices(input_folder, config_tmpdir, 'test')
+        build_error_matrices(input_folder, config_tmpdir)
     except:
         raise AssertionError('Function build_error_matrices has failed running.')
