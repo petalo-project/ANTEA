@@ -1,8 +1,5 @@
 import os
 
-from hypothesis  import given, settings
-import hypothesis.strategies as st
-
 from . fastmc import fastmc
 
 def test_fastmc(ANTEADATADIR, config_tmpdir):
