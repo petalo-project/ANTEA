@@ -7,7 +7,7 @@ from invisible_cities.core         import system_of_units as units
 import antea.database.load_db       as db
 import antea.reco.reco_functions    as rf
 import antea.reco.mctrue_functions  as mcf
-import antea.elec.tof_functions     as tf
+import antea.elec.shaping_functions as shf
 import antea.mcsim.sensor_functions as snsf
 
 from antea.io.mc_io import read_sensor_bin_width_from_conf
@@ -30,7 +30,7 @@ def reconstruct_coincidences_script(input_file, output_file, rmap, DataSiPM):
     tau_sipm       = [100, 15000]
     time_window    = 5000
     time           = np.arange(0, time_window)
-    spe_resp, norm = tf.apply_spe_dist(time, tau_sipm)
+    spe_resp, norm = shf.normalize_sipm_shaping(time, tau_sipm)
 
     thr_r   = 4 # threshold use to create R map (pe)
     thr_phi = 4 # threshold on charge to reconstruct phi (pe)
@@ -38,7 +38,7 @@ def reconstruct_coincidences_script(input_file, output_file, rmap, DataSiPM):
     thr_e   = 2 # threshold on charge (pe)
 
     n_pe       = 1 # number of first photoelectrons to be considered for timestamp
-    sigma_sipm = 80 #ps SiPM jitter
+    sigma_sipm = 40 #ps SiPM jitter
     sigma_elec = 30 #ps electronic jitter
 
 
@@ -142,8 +142,8 @@ def reconstruct_coincidences_script(input_file, output_file, rmap, DataSiPM):
 
         evt_tof_exp_dist = []
         for s_id in tof_sns:
-            tdc_conv    = tf.tdc_convolution(evt_tof, spe_resp, s_id, time_window)
-            tdc_conv_df = tf.translate_charge_conv_to_wf_df(evt, s_id, tdc_conv)
+            tdc_conv    = shf.sipm_shaping_convolution(evt_tof, spe_resp, s_id, time_window)
+            tdc_conv_df = shf.build_convoluted_df(evt, s_id, tdc_conv)
             if sigma_elec > 0:
                 tdc_conv_df = tdc_conv_df.assign(time=np.random.normal(tdc_conv_df.time.values, sigma_elec))
             tdc_conv_df = tdc_conv_df[tdc_conv_df.charge > timestamp_thr/norm]

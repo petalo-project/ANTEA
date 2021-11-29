@@ -7,9 +7,6 @@ Sensor reconstruction
 .. automodule:: antea.reco.reco_functions
    :members:
 
-.. automodule:: antea.elec.tof_functions
-   :members:
-
 MC truth selection functions
 ============================
 
