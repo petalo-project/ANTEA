@@ -374,3 +374,5 @@ if __name__ == "__main__":
     arguments     = parse_args(sys.argv)
     input_folder  = arguments.input_folder
     output_folder = arguments.output_folder
+
+    build_error_matrices(input_folder, output_folder)
