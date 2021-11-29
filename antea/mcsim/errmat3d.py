@@ -3,6 +3,22 @@ import numpy as np
 # Class to store the error matrix and relevant information.
 # Note that errors are always expressed in (true - reco).
 class errmat3d:
+    """
+    Class to store an error matrix and relevant information. Note that errors
+    are always expressed in (true - reco).
+    Error matrices are currently stored in a numpy file containing keys:
+    'errmat3d': the 3D error matrix containing dimensions [x,y, z] = [coord1, coord2,err],
+    where coord1 and coord2 specifies a pair of coordinates and err the corresponding error;
+    'xmin': the minimum coordinate 1 value;
+    'ymin': the minimum coordinate 2 value;
+    'zmin': the minimum error value;
+    'dx': the coordinate 1 bin width;
+    'dy': the coordinate 2 bin width;
+    'dz': the error bin width
+
+    The distribution of simulated coordinates is calculated by summing over the
+    error dimension.
+    """
 
     def __init__(self,errmat_file):
 
@@ -41,8 +57,17 @@ class errmat3d:
         self.dz = dz
 
 
-    # Select a random error for the specified coordinate.
     def get_random_error(self, x, y):
+        """
+        Select a random error for the specified coordinates.
+
+        :param x: the first coordinate
+        :param y: the second coordinate
+        :type x: float
+        :type y: float
+        :returns: a random error corresponding to the specified coordinate
+        :rtype: float
+        """
         i = int((x - self.xmin)/self.dx)
         j = int((y - self.ymin)/self.dy)
         if i >= len(self.errmat): i = len(self.errmat)-1
