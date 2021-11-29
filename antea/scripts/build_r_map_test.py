@@ -11,7 +11,7 @@ threshold = st.integers(min_value=0, max_value=10)
 @given(threshold)
 def test_build_r_map(ANTEADATADIR, config_tmpdir, threshold):
     """
-    Checks that the script to reconstruct the coincidences runs.
+    Checks that the script to build map of R vs phi rms runs.
     """
     input_file  = os.path.join(ANTEADATADIR,  'full_body_coinc.h5')
     output_file = os.path.join(config_tmpdir, 'test_run_script')
