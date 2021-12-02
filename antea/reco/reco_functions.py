@@ -16,7 +16,7 @@ def greater_or_equal(f1: float, f2: float,
     return f1 >= f2 - allowed_error
 
 
-def from_cartesian_to_cyl(pos: Sequence[np.array]) -> Sequence[np.array]:
+def from_cartesian_to_cyl(pos: Sequence[np.ndarray]) -> Sequence[np.ndarray]:
     cyl_pos = np.array([np.sqrt(pos[:,0]**2+pos[:,1]**2),
                         np.arctan2(pos[:,1], pos[:,0]),
                         pos[:,2]]).transpose()
@@ -81,22 +81,14 @@ def divide_sipms_in_two_hemispheres(sns_ids: Sequence[int],
     Return the lists of the ids, the charges and the positions of the
     SiPMs of the two groups.
     """
+    scalar_prods = sns_positions.dot(reference_pos)
 
-    q1,   q2   = [], []
-    pos1, pos2 = [], []
-    id1, id2   = [], []
-    for sns_id, sns_pos, charge in zip(sns_ids, sns_positions, sns_charges):
-        scalar_prod = sns_pos.dot(reference_pos)
-        if scalar_prod > 0.:
-            q1  .append(charge)
-            pos1.append(sns_pos)
-            id1 .append(sns_id)
-        else:
-            q2  .append(charge)
-            pos2.append(sns_pos)
-            id2 .append(sns_id)
+    mask1 = scalar_prods >  0
+    mask2 = scalar_prods <= 0
 
-    return np.array(id1), np.array(id2), np.array(pos1), np.array(pos2), np.array(q1), np.array(q2)
+    return (sns_ids      [mask1], sns_ids      [mask2],
+            sns_positions[mask1], sns_positions[mask2],
+            sns_charges  [mask1], sns_charges  [mask2])
 
 
 
