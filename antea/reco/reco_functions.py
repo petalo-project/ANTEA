@@ -372,7 +372,7 @@ def reconstruct_position(q: Sequence[float],
     ## Calculate R
     posr, qr = sel_coord(pos, q, thr_r)
     if len(posr) != 0:
-        pos_phi = from_cartesian_to_cyl(np.array(posr))[:,1]
+        pos_phi = from_cartesian_to_cyl(posr)[:,1]
         _, var_phi = phi_mean_var(pos_phi, qr)
         r = Rmap(np.sqrt(var_phi)).value
     else:
