@@ -305,19 +305,14 @@ def reconstruct_coincidences(sns_response: pd.DataFrame,
     if 'SensorID' in DataSiPM_idx.columns:
         DataSiPM_idx = DataSiPM_idx.set_index('SensorID')
 
-    max_sns = sns_response[sns_response.charge == sns_response.charge.max()]
-    ## If by chance two sensors have the maximum charge, choose one (arbitrarily)
-    if len(max_sns) != 1:
-        max_sns = max_sns[max_sns.sensor_id == max_sns.sensor_id.min()]
-    max_sipm = DataSiPM_idx.loc[max_sns.sensor_id]
-    max_pos  = np.array([max_sipm.X.values, max_sipm.Y.values, max_sipm.Z.values]).transpose()[0]
+    max_sns  = sns_response.loc[sns_response['charge'].idxmax()].sensor_id
+    max_sipm = DataSiPM_idx.loc[max_sns]
+    max_pos  = max_sipm[['X', 'Y', 'Z']].values
 
     sipms         = DataSiPM_idx.loc[sns_response.sensor_id]
-    sns_ids       = sipms.index.astype('int64').values
-    sns_positions = np.array([sipms.X.values, sipms.Y.values, sipms.Z.values]).transpose()
-    sns_charges   = sns_response.charge
+    sns_positions = sipms[['X', 'Y', 'Z']].values
 
-    sns1, sns2, pos1, pos2, q1, q2 = divide_sipms_in_two_hemispheres(sns_ids, sns_positions, sns_charges, max_pos)
+    sns1, sns2, pos1, pos2, q1, q2 = divide_sipms_in_two_hemispheres(sipms.index.values, sns_positions, sns_response.charge.values, max_pos)
 
     tot_q1 = sum(q1)
     tot_q2 = sum(q2)
