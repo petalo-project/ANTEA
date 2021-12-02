@@ -46,8 +46,8 @@ def find_SiPMs_over_threshold(df: pd.DataFrame,
     total charge larger than threshold. This function is kept to be used
     with old test files.
     """
-    tot_charges_df = df.groupby(['event_id','sensor_id'])[['charge']].sum()
-    return tot_charges_df[tot_charges_df.charge > threshold].reset_index()
+    tot_charges_df = df.groupby(['event_id','sensor_id'], as_index=False).charge.sum()
+    return tot_charges_df[tot_charges_df.charge > threshold]
 
 
 def find_closest_sipm(point: Tuple[float, float, float],
