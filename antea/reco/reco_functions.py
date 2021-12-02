@@ -236,7 +236,6 @@ def find_first_interactions_in_active(particles: pd.DataFrame,
     sel_all   = sel_vol_name[sel_vol_name.mother_id.isin(primaries.particle_id.values)]
     ### Calculate the initial vertex.
     gamma_pos1, gamma_pos2 = [], []
-    vol1      , vol2       = [], []
     min_t1    , min_t2     = float('inf'), float('inf')
     if len(sel_all[sel_all.mother_id == 1]) > 0:
         gamma_pos1, min_t1, _ = initial_coord_first_daughter(sel_all, 1)
