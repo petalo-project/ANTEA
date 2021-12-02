@@ -171,12 +171,10 @@ def part_first_hit(hits: pd.DataFrame,
     """
     part_hits = hits[hits.particle_id == part_id]
     if len(part_hits):
-        t_min    = part_hits.time.min()
-        p_hit    = hits[(hits.particle_id == part_id) & (hits.time == t_min)]
-        part_pos = np.array([p_hit.x.values, p_hit.y.values, p_hit.z.values]).transpose()[0]
-        return part_pos, t_min
-    else:
-        return [], float('inf')
+        p_hit    = part_hits.loc[part_hits['time'].idxmin()]
+        part_pos = p_hit[['x', 'y', 'z']].values
+        return part_pos, p_hit.time
+    return [], float('inf')
 
 
 def find_first_time_of_sensors(tof_response: pd.DataFrame,
