@@ -8,7 +8,7 @@ import antea.reco.data_reco_functions as drf
 def from_ToT_to_pes(x):
     return 9.98597793 * np.exp(x/252.69045094)
 
-def extract_charge_from_data(input_file, output_file):
+def process_data_petit(input_file, output_file):
 
     df0   = pd.DataFrame({})
     store = pd.HDFStore(input_file, 'r')
@@ -38,4 +38,4 @@ if __name__ == "__main__":
 
     input_file  = str(sys.argv[1])
     output_file = str(sys.argv[2])
-    extract_charge_from_data(input_file, output_file)
+    process_data_petit(input_file, output_file)

@@ -1,9 +1,9 @@
 import os
 
-from . extract_charge_from_data import extract_charge_from_data
+from . process_data_petit import process_data_petit
 
 
-def test_extract_charge_from_data(ANTEADATADIR, config_tmpdir):
+def test_process_data_petit(ANTEADATADIR, config_tmpdir):
     """
     Checks that the function to extract data from data runs works.
     """
@@ -11,6 +11,6 @@ def test_extract_charge_from_data(ANTEADATADIR, config_tmpdir):
     output_file = os.path.join(config_tmpdir, 'test_data_extract_charge')
 
     try:
-        extract_charge_from_data(input_file, output_file)
+        process_data_petit(input_file, output_file)
     except:
-        raise AssertionError('Function extract_charge_from_data has failed running.')
+        raise AssertionError('Function process_data_petit has failed running.')
