@@ -29,23 +29,13 @@ def extract_charge_from_data(input_file, output_file):
 
         df0 = pd.concat([df0, df_center], ignore_index=False, sort=False)
 
-    np.savez(output_file, evt_number=np.array([i[0] for i in df0.index]),        t1=df0.t1,
-                          cluster   =np.array([i[1] for i in df0.index]),        t2=df0.t2,
-                          ctdaq     =df0.ctdaq,   sensor_id=df0.sensor_id,    efine=df0.efine,   efine_corrected=df0.efine_corrected,
-                          ct_data   =df0.ct_data, tofpet_id=df0.tofpet_id,    tfine=df0.tfine,   tfine_corrected=df0.tfine_corrected,
-                          tac_id    =df0.tac_id, channel_id=df0.channel_id,  intg_w=df0.intg_w, tcoarse_extended=df0.tcoarse_extended,
-                          tcoarse   =df0.tcoarse,   ecoarse=df0.ecoarse, intg_w_ToT=df0.intg_w_ToT,       ToT_pe=df0.ToT_pe,
-                          perc_cor  =df0.perc_cor)
+    df    = df0.reset_index()
+    store = pd.HDFStore(output_file.format(i), "w", complib=str("zlib"), complevel=4)
+    store.put('data', df, format='table', data_columns=True)
+    store.close()
 
 if __name__ == "__main__":
 
     input_file  = str(sys.argv[1])
     output_file = str(sys.argv[2])
     extract_charge_from_data(input_file, output_file)
-
-
-## To analyze the ouput files
-# df = pd.DataFrame({})
-# d  = np.load(output_file, allow_pickle=True)
-# for (key, vals) in d.items():
-#     df[key] = vals
