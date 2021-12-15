@@ -404,7 +404,7 @@ def calculate_average_SiPM_pos(min_ids: Sequence[int],
     Calculates the geometrical average position of the SiPMs with IDs in the list.
     """
     sipm     = DataSiPM_idx.loc[np.abs(min_ids)]
-    sipm_pos = np.array([sipm.X.values, sipm.Y.values, sipm.Z.values]).transpose()
+    sipm_pos = sipm[['X', 'Y', 'Z']].values
     ave_pos  = np.average(sipm_pos, axis=0)
 
     return ave_pos
