@@ -30,7 +30,7 @@ def extract_charge_from_data(input_file, output_file):
         df0 = pd.concat([df0, df_center], ignore_index=False, sort=False)
 
     df    = df0.reset_index()
-    store = pd.HDFStore(output_file.format(i), "w", complib=str("zlib"), complevel=4)
+    store = pd.HDFStore(output_file, "w", complib=str("zlib"), complevel=4)
     store.put('data', df, format='table', data_columns=True)
     store.close()
 
