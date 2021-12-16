@@ -49,10 +49,10 @@ def test_select_evts_with_max_charge_at_center(ANTEADATADIR, det_plane, variable
     df_center = df_center[df_center.tofpet_id==tofpet_id]
     assert len(df_center) > 0
 
-    all_max   = df_center.groupby(['evt_number', 'cluster'])[variable].max()
-    if len(all_max):
-        assert np.all(np.array([df_center[df_center[variable]==m].sensor_id.values
-                                in central_sns for m in all_max]))
+    idx_max = df_center.groupby(['evt_number', 'cluster'])[variable].idxmax()
+    for idx in idx_max:
+        sns_max = df_center.loc[idx].sensor_id
+        assert sns_max in central_sns
 
 
 def test_contained_evts_in_det_plane_and_compute_percentage_in_corona(ANTEADATADIR):
