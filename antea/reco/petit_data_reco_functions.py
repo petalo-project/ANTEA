@@ -42,9 +42,9 @@ def is_max_charge_at_center(df: pd.DataFrame,
 
 
 def select_evts_with_max_charge_at_center(df: pd.DataFrame,
-                                         det_plane: bool = True,
-                                         variable:   str = 'efine_corrected',
-                                         tot_mode:  bool = False) -> pd.DataFrame:
+                                          det_plane: bool = True,
+                                          variable:   str = 'efine_corrected',
+                                          tot_mode:  bool = False) -> pd.DataFrame:
     """
     Returns a dataframe with only the events with maximum charge
     at the central sensors.

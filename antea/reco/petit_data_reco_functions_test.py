@@ -31,8 +31,8 @@ def test_select_evts_with_max_charge_at_center(ANTEADATADIR, det_plane, variable
     Checks that the max charge (in terms of the desired variable) is at center
     of the chosen plane.
     """
-    PATH_IN     = os.path.join(ANTEADATADIR, 'data_petbox_test.h5')
-    df          = pd.read_hdf(PATH_IN, '/data_0')
+    PATH_IN = os.path.join(ANTEADATADIR, 'data_petbox_test.h5')
+    df      = pd.read_hdf(PATH_IN, '/data_0')
     df['intg_w_ToT'] = df['t2'] - df['t1']
 
     if det_plane:
