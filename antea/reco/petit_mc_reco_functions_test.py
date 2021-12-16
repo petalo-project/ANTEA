@@ -4,8 +4,8 @@ import pandas as pd
 
 from pytest import mark
 
-from . import petit_mc_reco_functions as pmrf
-from . import data_reco_functions     as drf
+from . import petit_mc_reco_functions   as pmrf
+from . import petit_data_reco_functions as drf
 
 import antea.io.mc_io as mcio
 

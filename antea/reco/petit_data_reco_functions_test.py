@@ -4,7 +4,7 @@ import pandas as pd
 
 from pytest import mark
 
-from . import data_reco_functions as drf
+from . import petit_data_reco_functions as drf
 
 
 def test_compute_coincidences(ANTEADATADIR):
