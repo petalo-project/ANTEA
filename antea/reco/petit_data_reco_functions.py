@@ -85,10 +85,10 @@ def select_contained_evts_in_det_plane(df: pd.DataFrame) -> pd.DataFrame:
     return df_cov_evts
 
 
-def compute_charge_percentage_in_corona(df: pd.DataFrame,
+def compute_charge_ratio_in_corona(df: pd.DataFrame,
                                         variable: str = 'efine_corrected') -> pd.Series:
     """
-    Computes the percentage of charge detected in the external corona of the detection
+    Computes the ratio of charge detected in the external corona of the detection
     plane with respect to the total charge of the that plane.
     """
     tot_ch_d = df[df.tofpet_id==0]          .groupby(['evt_number', 'cluster'])[variable].sum()

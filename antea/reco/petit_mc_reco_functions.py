@@ -77,10 +77,10 @@ def select_contained_evts_in_det_plane_mc(df: pd.DataFrame) -> pd.DataFrame:
     return df_cov_evts
 
 
-def compute_charge_percentage_in_corona_mc(df: pd.DataFrame,
+def compute_charge_ratio_in_corona_mc(df: pd.DataFrame,
                                            variable: str = 'charge') -> pd.Series:
     """
-    Computes the percentage of charge detected in the external corona of the detection
+    Computes the ratio of charge detected in the external corona of the detection
     plane with respect to the total charge of that plane.
     """
     tot_ch_d = df[df.sensor_id<100]            .groupby(['event_id'])[variable].sum()

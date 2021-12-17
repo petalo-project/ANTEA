@@ -55,18 +55,18 @@ def test_select_evts_with_max_charge_at_center(ANTEADATADIR, det_plane, variable
         assert sns_max in central_sns
 
 
-def test_contained_evts_in_det_plane_and_compute_percentage_in_corona(ANTEADATADIR):
+def test_contained_evts_in_det_plane_and_compute_ratio_in_corona(ANTEADATADIR):
     """
     Checks whether the event is fully contained in the detection plane and
-    checks that the percentage of charge in the external corona is correct.
+    checks that the ratio of charge in the external corona is correct.
     """
     PATH_IN  = os.path.join(ANTEADATADIR, 'petit_data_test.h5')
     df       = pd.read_hdf(PATH_IN, '/data_0')
     df_cov   = drf.select_contained_evts_in_det_plane(df)
     assert len(np.intersect1d(df_cov.sensor_id.unique(), drf.corona))==0
 
-    perc_cor = drf.compute_charge_percentage_in_corona(df_cov)
-    assert np.count_nonzero(perc_cor.values)==0
+    ratio_cor = drf.compute_charge_ratio_in_corona(df_cov)
+    assert np.count_nonzero(ratio_cor.values)==0
 
-    percs = drf.compute_charge_percentage_in_corona(df).values
-    assert np.logical_and(percs >= 0, percs <= 100).all()
+    ratios = drf.compute_charge_ratio_in_corona(df).values
+    assert np.logical_and(ratios >= 0, ratios <= 100).all()
