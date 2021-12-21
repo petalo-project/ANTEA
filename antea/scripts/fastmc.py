@@ -1,5 +1,4 @@
 import sys
-import argparse
 import pandas   as pd
 
 import antea.mcsim   .errmat   as errmat
@@ -69,18 +68,10 @@ def fastmc(input_file: str, output_file: str, table_folder: str):
     store.close()
 
 
-def parse_args(args):
-    parser = argparse.ArgumentParser()
-    parser.add_argument('input_file' ,   help = "input file name"                )
-    parser.add_argument('output_file',   help = "output file name"               )
-    parser.add_argument('matrix_folder', help = "path of the error matrix folder")
-    return parser.parse_args()
-
 if __name__ == "__main__":
 
-    arguments     = parse_args(sys.argv)
-    input_file    = arguments.input_file
-    output_file   = arguments.output_file
-    matrix_folder = arguments.matrix_folder
+    input_file    = str(sys.argv[1])
+    output_file   = str(sys.argv[2])
+    matrix_folder = str(sys.argv[3])
 
     fastmc(input_file, output_file, matrix_folder)

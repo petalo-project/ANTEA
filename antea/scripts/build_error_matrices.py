@@ -346,17 +346,9 @@ def build_error_matrices(input_folder: str, output_folder:str):
     print(a.shape, np.count_nonzero(a))
 
 
-def parse_args(args):
-    parser = argparse.ArgumentParser()
-    parser.add_argument('input_folder' , help = "input files folder"    )
-    parser.add_argument('output_folder', help = "output matrices folder")
-    return parser.parse_args()
-
-
 if __name__ == "__main__":
 
-    arguments     = parse_args(sys.argv)
-    input_folder  = arguments.input_folder
-    output_folder = arguments.output_folder
+    input_folder  = str(sys.argv[1])
+    output_folder = str(sys.argv[2])
 
     build_error_matrices(input_folder, output_folder)
