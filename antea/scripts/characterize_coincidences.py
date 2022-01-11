@@ -17,13 +17,29 @@ from antea.io.mc_io import load_mcsns_response, load_mcTOFsns_response
 from antea.core.exceptions     import WaveformEmptyTable
 from antea.utils.map_functions import load_map
 
+""" To run this script:
+python characterize_coincidences.py input_file output_file r_map
+where:
+- input_file is the nexus file used to extract
+the information about the coincidences.
+- output_file is an npz file where the information about
+the coincidences is stored.
+- r_map is the file where the dependence of R
+with the variance of phi is stored.
+"""
 
 ### read sensor positions from database
 #DataSiPM     = db.DataSiPM('petalo', 0) # ring
-#DataSiPM     = db.DataSiPMsim_only('petalo', 0) # full body PET
 
-def reconstruct_coincidences_script(input_file, output_file, rmap, DataSiPM):
+def characterize_coincidences(input_file: str, output_file: str, rmap: str):
 
+    """
+    This function extracts the relevant information on position, time,
+    sensor response, kind (point-like or not)) of the
+    two gamma interactions of a coincidences.
+    """
+
+    DataSiPM     = db.DataSiPMsim_only('petalo', 0) # full body PET
     DataSiPM_idx = DataSiPM.set_index('SensorID')
 
     ### parameters for single photoelectron convolution in SiPM response
@@ -44,13 +60,12 @@ def reconstruct_coincidences_script(input_file, output_file, rmap, DataSiPM):
 
     Rpos = load_map(rmap,
                     group  = "Radius",
-                    node   = "f{}pes150bins".format(int(thr_r)),
+                    node   = "f4pes150bins",
                     x_name = "PhiRms",
                     y_name = "Rpos",
                     u_name = "RposUncertainty")
 
     c0 = c1 = 0
-    bad = 0
 
     true_r1, true_phi1, true_z1 = [], [], []
     reco_r1, reco_phi1, reco_z1 = [], [], []
@@ -60,7 +75,7 @@ def reconstruct_coincidences_script(input_file, output_file, rmap, DataSiPM):
     sns_response1, sns_response2    = [], []
 
     ### PETsys thresholds to extract the timestamp
-    timestamp_thr = 1.0
+    timestamp_thr = 0.25
     first_sipm1 = []
     first_sipm2 = []
     first_time1 = []
@@ -75,15 +90,15 @@ def reconstruct_coincidences_script(input_file, output_file, rmap, DataSiPM):
     try:
         sns_response = load_mcsns_response(input_file)
     except ValueError:
-        print('File {} not found'.format(input_file))
+        print(f'File {input_file} not found')
         exit()
     except OSError:
-        print('File {} not found'.format(input_file))
+        print(f'File {input_file} not found')
         exit()
     except KeyError:
-        print('No object named MC/sns_response in file {0}'.format(input_file))
+        print(f'No object named MC/sns_response in file {input_file}')
         exit()
-    print('Analyzing file {0}'.format(input_file))
+    print(f'Analyzing file {input_file}')
 
     fluct_sns_response = snsf.apply_charge_fluctuation(sns_response, DataSiPM_idx)
 
@@ -112,6 +127,13 @@ def reconstruct_coincidences_script(input_file, output_file, rmap, DataSiPM):
         evt_tof   = evt_tof     [evt_tof     .sensor_id.isin(-ids_over_thr)]
         if len(evt_tof) == 0:
             continue
+
+        ### If one wants to select only pure photoelectric events
+        ### add the following lines
+        #select, true_pos = mcf.select_photoelectric(evt_parts, evt_hits)
+        #if not select: continue
+        #if (len(true_pos) == 1) & (evt_hits.energy.sum() > 0.511):
+        #    continue
 
         pos1, pos2, q1, q2, true_pos1, true_pos2, true_t1, true_t2, sns1, sns2 = rf.reconstruct_coincidences(evt_sns, charge_range, DataSiPM_idx, evt_parts, evt_hits)
         if len(pos1) == 0 or len(pos2) == 0:
@@ -265,3 +287,11 @@ def reconstruct_coincidences_script(input_file, output_file, rmap, DataSiPM):
 
     print(f'Not a coincidence: {c0}')
     print(f'Not passing threshold to reconstruct position = {c1}')
+
+
+if __name__ == "__main__":
+
+    input_file  = str(sys.argv[1])
+    output_file = str(sys.argv[2])
+    rmap        = str(sys.argv[3])
+    characterize_coincidences(input_file, output_file, rmap)

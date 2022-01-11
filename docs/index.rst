@@ -38,6 +38,7 @@ Code reference
    src/code_reconstruction
    src/code_image
    src/code_utils
+   src/code_scripts
 
 
 Indices and tables:

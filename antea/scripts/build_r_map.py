@@ -6,47 +6,55 @@ import antea.database.load_db      as db
 import antea.reco.reco_functions   as rf
 import antea.reco.mctrue_functions as mcf
 
+""" To run this script:
+python build_r_map.py input_file output_file threshold
+where:
+-  input_file is the nexus file used to extract
+the radial dependence.
+- output_file is an npz file with the information
+needed to build the R map.
+- threshold is the charge above which a SiPM is
+taken into account to extract that information.
+"""
 
 ### read sensor positions from database
 #DataSiPM     = db.DataSiPM('petalo', 0) # ring
-DataSiPM     = db.DataSiPMsim_only('petalo', 0) # full body PET
-DataSiPM_idx = DataSiPM.set_index('SensorID')
 
-start     = int(sys.argv[1])
-numb      = int(sys.argv[2])
-threshold = int(sys.argv[3])
+def build_r_map(input_file: str, output_file: str, threshold: float):
 
-folder = 'in_folder_name'
-file_full = folder + 'full_body_195cm.{0:03d}.pet.h5'
-evt_file = 'out_folder_name/full_body_195cm_r_map.{0}_{1}_{2}'.format(start, numb, threshold)
+    """
+    This function extracts the true radial position
+    and the variance of the SiPM positions
+    in phi and z for each gamma interaction.
+    """
 
-true_r1, true_r2   = [], []
-var_phi1, var_phi2 = [], []
-var_z1, var_z2     = [], []
+    DataSiPM     = db.DataSiPMsim_only('petalo', 0) # full body PET
+    DataSiPM_idx = DataSiPM.set_index('SensorID')
 
-touched_sipms1, touched_sipms2 = [], []
-
-for ifile in range(start, start+numb):
-
-    file_name = file_full.format(ifile)
     try:
-        sns_response = pd.read_hdf(file_name, 'MC/sns_response')
+        sns_response = pd.read_hdf(input_file, 'MC/sns_response')
     except ValueError:
-        print('File {} not found'.format(file_name))
-        continue
+        print(f'File {input_file} not found')
+        exit()
     except OSError:
-        print('File {} not found'.format(file_name))
-        continue
+        print(f'File {input_file} not found')
+        exit()
     except KeyError:
-        print('No object named MC/sns_response in file {0}'.format(file_name))
-        continue
-    print('Analyzing file {0}'.format(file_name))
+        print(f'No object named MC/sns_response in file {input_file}')
+        exit()
+    print(f'Analyzing file {input_file}')
 
     sel_df = rf.find_SiPMs_over_threshold(sns_response, threshold)
 
-    particles = pd.read_hdf(file_name, 'MC/particles')
-    hits      = pd.read_hdf(file_name, 'MC/hits')
+    particles = pd.read_hdf(input_file, 'MC/particles')
+    hits      = pd.read_hdf(input_file, 'MC/hits')
     events    = particles.event_id.unique()
+
+    true_r1, true_r2   = [], []
+    var_phi1, var_phi2 = [], []
+    var_z1, var_z2     = [], []
+
+    touched_sipms1, touched_sipms2 = [], []
 
     for evt in events:
 
@@ -68,9 +76,7 @@ for ifile in range(start, start+numb):
             pos_z  = np.array(pos1)[:,2]
             mean_z = np.average(pos_z, weights=q1)
             var_z  = np.average((pos_z-mean_z)**2, weights=q1)
-
-            reco_cart = np.average(pos1, weights=q1, axis=0)
-            r = np.sqrt(true_pos[0][0]**2 + true_pos[0][1]**2)
+            r      = np.sqrt(true_pos[0][0]**2 + true_pos[0][1]**2)
 
             var_phi1      .append(var_phi)
             var_z1        .append(var_z)
@@ -90,9 +96,7 @@ for ifile in range(start, start+numb):
             pos_z  = np.array(pos2)[:,2]
             mean_z = np.average(pos_z, weights=q2)
             var_z  = np.average((pos_z-mean_z)**2, weights=q2)
-
-            reco_cart = np.average(pos2, weights=q2, axis=0)
-            r = np.sqrt(true_pos[1][0]**2 + true_pos[1][1]**2)
+            r      = np.sqrt(true_pos[1][0]**2 + true_pos[1][1]**2)
 
             var_phi2      .append(var_phi)
             var_z2        .append(var_z)
@@ -105,15 +109,22 @@ for ifile in range(start, start+numb):
             touched_sipms2.append(1.e9)
             true_r2       .append(1.e9)
 
-a_true_r1  = np.array(true_r1)
-a_true_r2  = np.array(true_r2)
-a_var_phi1 = np.array(var_phi1)
-a_var_phi2 = np.array(var_phi2)
-a_var_z1   = np.array(var_z1)
-a_var_z2   = np.array(var_z2)
+    a_true_r1  = np.array(true_r1)
+    a_true_r2  = np.array(true_r2)
+    a_var_phi1 = np.array(var_phi1)
+    a_var_phi2 = np.array(var_phi2)
+    a_var_z1   = np.array(var_z1)
+    a_var_z2   = np.array(var_z2)
 
-a_touched_sipms1 = np.array(touched_sipms1)
-a_touched_sipms2 = np.array(touched_sipms2)
+    a_touched_sipms1 = np.array(touched_sipms1)
+    a_touched_sipms2 = np.array(touched_sipms2)
 
 
-np.savez(evt_file, a_true_r1=a_true_r1, a_true_r2=a_true_r2, a_var_phi1=a_var_phi1, a_var_phi2=a_var_phi2, a_var_z1=a_var_z1, a_var_z2=a_var_z2, a_touched_sipms1=a_touched_sipms1, a_touched_sipms2=a_touched_sipms2)
+    np.savez(output_file, a_true_r1=a_true_r1, a_true_r2=a_true_r2, a_var_phi1=a_var_phi1, a_var_phi2=a_var_phi2, a_var_z1=a_var_z1, a_var_z2=a_var_z2, a_touched_sipms1=a_touched_sipms1, a_touched_sipms2=a_touched_sipms2)
+
+if __name__ == "__main__":
+
+    input_file  = str(sys.argv[1])
+    output_file = str(sys.argv[2])
+    threshold   = int(sys.argv[3])
+    build_r_map(input_file, output_file, threshold)
