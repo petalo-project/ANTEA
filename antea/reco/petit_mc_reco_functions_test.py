@@ -97,19 +97,27 @@ def test_select_evts_with_max_charge_at_center(ANTEADATADIR, filename, data_or_m
         assert sns_max in central_sns
 
 
-def test_contained_evts_in_det_plane_and_compute_ratio_in_corona(ANTEADATADIR):
+@mark.parametrize("filename data_or_mc variable".split(),
+                  (('petit_mc_test.pet.h5', 'mc',          'charge'),
+                   ('petit_data_test.h5', 'data', 'efine_corrected'),
+                   ('petit_data_test.h5', 'data',          'intg_w'),
+                   ('petit_data_test.h5', 'data',      'intg_w_ToT')))
+def test_contained_evts_in_det_plane_and_compute_ratio_in_corona(ANTEADATADIR, filename, data_or_mc, variable):
     """
     Checks whether the event is fully contained in the detection plane and
     checks that the ratio of charge in the external corona is correct.
     """
-    PATH_IN = os.path.join(ANTEADATADIR, 'petit_mc_test.pet.h5')
-    df      = mcio.load_mcsns_response(PATH_IN)
+    PATH_IN = os.path.join(ANTEADATADIR, filename)
+    if data_or_mc == 'mc':
+        df = mcio.load_mcsns_response(PATH_IN)
+    else:
+        df = pd.read_hdf(PATH_IN, '/data_0')
 
-    df_cov  = pmrf.select_contained_evts_in_det_plane_mc(df)
-    assert len(np.intersect1d(df_cov.sensor_id.unique(), drf.corona))==0
+    df_cov  = prf.select_contained_evts_in_det_plane(df, data_or_mc=data_or_mc)
+    assert len(np.intersect1d(df_cov.sensor_id.unique(), prf.corona))==0
 
-    ratio_cor = pmrf.compute_charge_ratio_in_corona_mc(df_cov)
+    ratio_cor = prf.compute_charge_ratio_in_corona(df_cov, data_or_mc=data_or_mc, variable=variable)
     assert np.count_nonzero(ratio_cor.values)==0
 
-    ratios = pmrf.compute_charge_ratio_in_corona_mc(df).values
-    assert np.logical_and(ratios >= 0, ratios <= 100).all()
+    ratios = prf.compute_charge_ratio_in_corona(df, data_or_mc=data_or_mc, variable=variable).values
+    assert np.logical_and(ratios >= 0, ratios <= 1).all()
