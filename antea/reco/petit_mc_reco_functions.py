@@ -85,34 +85,45 @@ def select_evts_with_max_charge_at_center(df: pd.DataFrame,
     return df_filter_center
 
 
+int_area = [22, 23, 24, 25, 26, 27, 32, 33, 34, 35, 36, 37, 42, 43, 44, 45, 46, 47,
+            52, 53, 54, 55, 56, 57, 62, 63, 64, 65, 66, 67, 72, 73, 74, 75, 76, 77]
+
+corona   = [11, 12, 13, 14, 15, 16, 17, 18, 21, 28, 31, 38, 41, 48,
+            51, 58, 61, 68, 71, 78, 81, 82, 83, 84, 85, 86, 87, 88]
+
 def is_event_contained_in_det_plane(df: pd.DataFrame) -> bool:
     """
     Returns True if all the sensors of the event are located within
     the internal area of the detection plane.
     """
-    df = df[df.sensor_id<100] ## Detection plane
+    df          = df[df.tofpet_id == 0] ## Detection plane
     sens_unique = df.sensor_id.unique()
     if len(sens_unique):
-        return set(sens_unique).issubset(set(pf.int_area))
+        return set(sens_unique).issubset(set(int_area))
     else:
         return False
 
 
-def select_contained_evts_in_det_plane_mc(df: pd.DataFrame) -> pd.DataFrame:
+def select_contained_evts_in_det_plane(df: pd.DataFrame,
+                                       data_or_mc: str = 'mc') -> pd.DataFrame:
     """
     Returns a dataframe with only the events with touched sensors
     located within the internal area of the detection plane.
     """
-    df_cov_evts = df.groupby(['event_id']).filter(is_event_contained_in_det_plane)
+    df, evt_groupby = params(df, data_or_mc)
+    df_cov_evts     = df.groupby(evt_groupby).filter(is_event_contained_in_det_plane)
     return df_cov_evts
 
 
-def compute_charge_ratio_in_corona_mc(df: pd.DataFrame,
-                                           variable: str = 'charge') -> pd.Series:
+def compute_charge_ratio_in_corona(df: pd.DataFrame,
+                                   data_or_mc: str = 'mc',
+                                   variable: str = 'charge') -> pd.Series:
     """
     Computes the ratio of charge detected in the external corona of the detection
-    plane with respect to the total charge of that plane.
+    plane with respect to the total charge of the that plane.
     """
-    tot_ch_d = df[df.sensor_id<100]            .groupby(['event_id'])[variable].sum()
-    cor_ch   = df[df.sensor_id.isin(pf.corona)].groupby(['event_id'])[variable].sum()
-    return (cor_ch/tot_ch_d).fillna(0)*100
+    df, evt_groupby = params(df, data_or_mc)
+
+    tot_ch_d = df[df.tofpet_id==0]          .groupby(evt_groupby)[variable].sum()
+    cor_ch   = df[df.sensor_id.isin(corona)].groupby(evt_groupby)[variable].sum()
+    return (cor_ch/tot_ch_d).fillna(0)
