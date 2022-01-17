@@ -53,6 +53,50 @@ def test_select_evts_with_max_charge_at_center_mc(ANTEADATADIR, det_plane, centr
         assert id_max_ch in central_sns
 
 
+@mark.parametrize("filename data_or_mc det_plane variable tot_mode".split(),
+                  (('petit_mc_test.pet.h5', 'mc',  True,          'charge', False),
+                   ('petit_mc_test.pet.h5', 'mc', False,          'charge', False),
+                   ('petit_data_test.h5', 'data',  True, 'efine_corrected', False),
+                   ('petit_data_test.h5', 'data', False, 'efine_corrected', False),
+                   ('petit_data_test.h5', 'data',  True,          'intg_w', False),
+                   ('petit_data_test.h5', 'data',  True,      'intg_w_ToT',  True),
+                   ('petit_data_test.h5', 'data', False,      'intg_w_ToT',  True)))
+def test_select_evts_with_max_charge_at_center(ANTEADATADIR, filename, data_or_mc,
+                                               det_plane, variable, tot_mode):
+    """
+    Checks that the max charge (in terms of the desired variable) is at center
+    of the chosen plane.
+    """
+    PATH_IN = os.path.join(ANTEADATADIR, filename)
+    if data_or_mc == 'mc':
+        df = mcio.load_mcsns_response(PATH_IN)
+    else:
+        df = pd.read_hdf(PATH_IN, '/data_0')
+        df['intg_w_ToT'] = df['t2'] - df['t1']
+
+    _, evt_groupby = prf.params(df, data_or_mc)
+
+    if det_plane:
+        tofpet_id   = 0
+        central_sns = prf.central_sns_det
+    else:
+        tofpet_id   = 2
+        central_sns = prf.central_sns_coinc
+
+    df_center = prf.select_evts_with_max_charge_at_center(df,
+                                                          data_or_mc = data_or_mc,
+                                                          det_plane  = det_plane,
+                                                          variable   = variable,
+                                                          tot_mode   = tot_mode)
+    df_center = df_center[df_center.tofpet_id==tofpet_id]
+    assert len(df_center) > 0
+
+    idx_max = df_center.groupby(evt_groupby)[variable].idxmax()
+    for idx in idx_max:
+        sns_max = df_center.loc[idx].sensor_id
+        assert sns_max in central_sns
+
+
 def test_contained_evts_in_det_plane_and_compute_ratio_in_corona(ANTEADATADIR):
     """
     Checks whether the event is fully contained in the detection plane and
