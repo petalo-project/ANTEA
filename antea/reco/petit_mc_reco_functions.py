@@ -1,24 +1,38 @@
 import pandas as pd
 
-import antea.reco.petit_data_reco_functions as pf
+
+def tofpetid(sid: int) -> int:
+    """
+    Returns 0 if sensor_id is below 100 (detector plane)
+    and 2 if not (coinc plane).
+    """
+    if sid < 100: return 0
+    else: return 2
 
 
-def is_a_coincidence(df: pd.DataFrame) -> bool:
+def params(df: pd.DataFrame, data_or_mc: str = 'mc'):
+
+    if data_or_mc == 'mc':
+        df['tofpet_id'] = df['sensor_id'].apply(tofpetid)
+        evt_groupby     = ['event_id']
+    elif data_or_mc == 'data':
+        evt_groupby     = ['evt_number', 'cluster']
+    else:
+        raise ValueError(f"Unrecognized data_or_mc type: {data_or_mc}.")
+
+    return df, evt_groupby
+
+
+def compute_coincidences(df: pd.DataFrame, data_or_mc: str = 'mc') -> pd.DataFrame:
     """
     Returns the events in which both planes have detected charge.
     """
-    sensors_d = df[df.sensor_id.unique()<100].sensor_id.nunique() # Ham
-    sensors_c = df[df.sensor_id.unique()>100].sensor_id.nunique() # FBK
-    return sensors_d>0 and sensors_c>0
+    df, evt_groupby = params(df, data_or_mc)
+    nplanes  = df.groupby(evt_groupby)['tofpet_id'].nunique()
+    df_idx   = df.set_index(evt_groupby)
+    df_coinc = df_idx.loc[nplanes[nplanes == 2].index]
 
-
-def compute_coincidences_mc(df: pd.DataFrame) -> pd.DataFrame:
-    """
-    Returns a dataframe with only coincidences.
-    """
-    df_filter = df.groupby('event_id').filter(is_a_coincidence)
-    return df_filter
-
+    return df_coinc
 
 def is_max_charge_at_center(df: pd.DataFrame,
                             det_plane: bool = True,
