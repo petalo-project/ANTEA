@@ -4,7 +4,7 @@ import pandas as pd
 
 from pytest import mark
 
-from . import petit_mc_reco_functions   as pmrf
+from . import petit_reco_functions as prf
 
 import antea.io.mc_io as mcio
 
@@ -16,14 +16,14 @@ def test_compute_coincidences(ANTEADATADIR, filename, data_or_mc):
     """
     Checks that both planes of sensors have detected charge.
     """
-    PATH_IN  = os.path.join(ANTEADATADIR, filename)
+    PATH_IN = os.path.join(ANTEADATADIR, filename)
     if data_or_mc == 'mc':
         df = mcio.load_mcsns_response(PATH_IN)
     else:
         df = pd.read_hdf(PATH_IN, '/data_0')
 
-    _, evt_groupby = pmrf.params(df, data_or_mc)
-    df_coinc = pmrf.compute_coincidences(df, data_or_mc)
+    _, evt_groupby = prf.params(df, data_or_mc)
+    df_coinc = prf.compute_coincidences(df, data_or_mc)
     sns      = df_coinc.groupby(evt_groupby).sensor_id.unique()
     s_d      = np.array([len(s[s<100]) for s in sns])
     s_c      = np.array([len(s[s>100]) for s in sns])
@@ -31,16 +31,16 @@ def test_compute_coincidences(ANTEADATADIR, filename, data_or_mc):
 
 
 @mark.parametrize("det_plane central_sns".split(),
-                 (( True, drf.central_sns_det),
-                  (False, drf.central_sns_coinc)))
-def test_select_evts_with_max_charge_at_center_mc(ANTEADATADIR, det_plane, central_sns):
+                 (( True, prf.central_sns_det),
+                  (False, prf.central_sns_coinc)))
+def test_select_evts_with_max_charge_at_center(ANTEADATADIR, det_plane, central_sns):
     """
     Checks that the max charge is at center of the chosen plane.
     """
     PATH_IN = os.path.join(ANTEADATADIR, 'petit_mc_test.pet.h5')
     df      = mcio.load_mcsns_response(PATH_IN)
 
-    df_center = pmrf.select_evts_with_max_charge_at_center_mc(df, det_plane=det_plane)
+    df_center = prf.select_evts_with_max_charge_at_center(df, det_plane=det_plane)
     if det_plane:
         df_center = df_center[df_center.sensor_id<100]
     else:
