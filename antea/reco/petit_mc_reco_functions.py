@@ -34,38 +34,54 @@ def compute_coincidences(df: pd.DataFrame, data_or_mc: str = 'mc') -> pd.DataFra
 
     return df_coinc
 
+
+central_sns_det   = [ 44,  45,  54,  55]
+central_sns_coinc = [122, 123, 132, 133]
+
 def is_max_charge_at_center(df: pd.DataFrame,
                             det_plane: bool = True,
-                            variable:   str = 'charge') -> bool:
+                            variable:   str = 'charge',
+                            tot_mode:  bool = False) -> bool:
     """
     Returns True if the maximum charge of the event has been detected
     in one of the four central sensors of the desired plane.
     """
     if det_plane:
-        df          = df[df.sensor_id<100]
-        central_sns = pf.central_sns_det
+        tofpet_id   = 0
+        central_sns = central_sns_det
     else:
-        df          = df[df.sensor_id>100]
-        central_sns = pf.central_sns_coinc
+        tofpet_id   = 2
+        central_sns = central_sns_coinc
 
+    df = df[df.tofpet_id == tofpet_id]
     if len(df)==0:
         return False
+
+    if tot_mode: # t2 - t1 instead of intg_w or efine_corrected
+        argmax = (df.t2 - df.t1).argmax()
+    else:
+        argmax = df[variable].argmax()
 
     argmax = df[variable].argmax()
     return df.iloc[argmax].sensor_id in central_sns
 
 
-def select_evts_with_max_charge_at_center_mc(df: pd.DataFrame,
-                                             det_plane: bool = True,
-                                             variable:   str = 'charge') -> pd.DataFrame:
+def select_evts_with_max_charge_at_center(df: pd.DataFrame,
+                                          data_or_mc: str = 'mc',
+                                          det_plane: bool = True,
+                                          variable:   str = 'charge',
+                                          tot_mode:  bool = False) -> pd.DataFrame:
     """
     Returns a dataframe with only the events with maximum charge
-    at the central sensors.
+    at the central sensors. If MC is being analyzed, `variable`
+    should be `charge` and `tot_mode` False.
     """
-    df_filter_center = df.groupby(['event_id']).filter(is_max_charge_at_center,
-                                                       dropna    = True,
-                                                       det_plane = det_plane,
-                                                       variable  = variable)
+    df, evt_groupby  = params(df, data_or_mc)
+    df_filter_center = df.groupby(evt_groupby).filter(is_max_charge_at_center,
+                                                      dropna    = True,
+                                                      det_plane = det_plane,
+                                                      variable  = variable,
+                                                      tot_mode  = tot_mode)
     return df_filter_center
 
 
