@@ -60,7 +60,6 @@ def is_max_charge_at_center(df: pd.DataFrame,
     else:
         argmax = df[variable].argmax()
 
-    argmax = df[variable].argmax()
     return df.iloc[argmax].sensor_id in central_sns
 
 

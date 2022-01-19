@@ -31,29 +31,6 @@ def test_compute_coincidences(ANTEADATADIR, filename, data):
     assert np.all(s_d) and np.all(s_c)
 
 
-@mark.parametrize("det_plane central_sns".split(),
-                 (( True, prf.central_sns_det),
-                  (False, prf.central_sns_coinc)))
-def test_select_evts_with_max_charge_at_center(ANTEADATADIR, det_plane, central_sns):
-    """
-    Checks that the max charge is at center of the chosen plane.
-    """
-    PATH_IN = os.path.join(ANTEADATADIR, 'petit_mc_test.pet.h5')
-    df      = mcio.load_mcsns_response(PATH_IN)
-
-    df_center = prf.select_evts_with_max_charge_at_center(df, det_plane=det_plane)
-    if det_plane:
-        df_center = df_center[df_center.sensor_id<100]
-    else:
-        df_center = df_center[df_center.sensor_id>100]
-    assert len(df_center) > 0
-
-    for evt in df_center.event_id.unique():
-        sns_evt   = df_center[df_center.event_id==evt]
-        id_max_ch = sns_evt.loc[sns_evt.charge.idxmax()].sensor_id
-        assert id_max_ch in central_sns
-
-
 @mark.parametrize("filename data det_plane variable tot_mode".split(),
                   (('petit_mc_test.pet.h5', False,  True,          'charge', False),
                    ('petit_mc_test.pet.h5', False, False,          'charge', False),
