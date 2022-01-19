@@ -10,24 +10,22 @@ def tofpetid(sid: int) -> int:
     else: return 2
 
 
-def params(df: pd.DataFrame, data_or_mc: str = 'mc'):
+def params(df: pd.DataFrame, data: bool = False):
 
-    if data_or_mc == 'mc':
-        df['tofpet_id'] = df['sensor_id'].apply(tofpetid)
-        evt_groupby     = ['event_id']
-    elif data_or_mc == 'data':
+    if data:
         evt_groupby     = ['evt_number', 'cluster']
     else:
-        raise ValueError(f"Unrecognized data_or_mc type: {data_or_mc}.")
+        df['tofpet_id'] = df['sensor_id'].apply(tofpetid)
+        evt_groupby     = ['event_id']
 
     return df, evt_groupby
 
 
-def compute_coincidences(df: pd.DataFrame, data_or_mc: str = 'mc') -> pd.DataFrame:
+def compute_coincidences(df: pd.DataFrame, data: bool = False) -> pd.DataFrame:
     """
     Returns the events in which both planes have detected charge.
     """
-    df, evt_groupby = params(df, data_or_mc)
+    df, evt_groupby = params(df, data)
     nplanes  = df.groupby(evt_groupby)['tofpet_id'].nunique()
     df_idx   = df.set_index(evt_groupby)
     df_coinc = df_idx.loc[nplanes[nplanes == 2].index]
@@ -67,7 +65,7 @@ def is_max_charge_at_center(df: pd.DataFrame,
 
 
 def select_evts_with_max_charge_at_center(df: pd.DataFrame,
-                                          data_or_mc: str = 'mc',
+                                          data:      bool = False,
                                           det_plane: bool = True,
                                           variable:   str = 'charge',
                                           tot_mode:  bool = False) -> pd.DataFrame:
@@ -76,7 +74,7 @@ def select_evts_with_max_charge_at_center(df: pd.DataFrame,
     at the central sensors. If MC is being analyzed, `variable`
     should be `charge` and `tot_mode` False.
     """
-    df, evt_groupby  = params(df, data_or_mc)
+    df, evt_groupby  = params(df, data)
     df_filter_center = df.groupby(evt_groupby).filter(is_max_charge_at_center,
                                                       dropna    = True,
                                                       det_plane = det_plane,
@@ -105,24 +103,24 @@ def is_event_contained_in_det_plane(df: pd.DataFrame) -> bool:
 
 
 def select_contained_evts_in_det_plane(df: pd.DataFrame,
-                                       data_or_mc: str = 'mc') -> pd.DataFrame:
+                                       data: bool = False) -> pd.DataFrame:
     """
     Returns a dataframe with only the events with touched sensors
     located within the internal area of the detection plane.
     """
-    df, evt_groupby = params(df, data_or_mc)
+    df, evt_groupby = params(df, data)
     df_cov_evts     = df.groupby(evt_groupby).filter(is_event_contained_in_det_plane)
     return df_cov_evts
 
 
 def compute_charge_ratio_in_corona(df: pd.DataFrame,
-                                   data_or_mc: str = 'mc',
+                                   data:    bool = False,
                                    variable: str = 'charge') -> pd.Series:
     """
     Computes the ratio of charge detected in the external corona of the detection
     plane with respect to the total charge of the that plane.
     """
-    df, evt_groupby = params(df, data_or_mc)
+    df, evt_groupby = params(df, data)
 
     tot_ch_d = df[df.tofpet_id==0]          .groupby(evt_groupby)[variable].sum()
     cor_ch   = df[df.sensor_id.isin(corona)].groupby(evt_groupby)[variable].sum()

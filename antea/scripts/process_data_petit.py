@@ -20,11 +20,12 @@ def process_data_petit(input_file, output_file):
         df['intg_w_ToT'] = df['t2'] - df['t1']
         df = df[(df['intg_w_ToT']>0) & (df['intg_w_ToT']<500)]
 
-        df_coinc  = drf.compute_coincidences(df)
-        df_center = drf.select_evts_with_max_charge_at_center(df_coinc, tot_mode=True)
+        df_coinc  = prf.compute_coincidences(df, data=True)
+        df_center = prf.select_evts_with_max_charge_at_center(df_coinc, data=True, tot_mode=True)
+
         df_center['ToT_pe'] = from_ToT_to_pes(df_center['intg_w_ToT']*5) #### This function takes the time in ns, not in cycles!!!
 
-        ratio_ch_corona = drf.compute_charge_ratio_in_corona(df_center)
+        ratio_ch_corona = prf.compute_charge_ratio_in_corona(df_center, data=True, variable='ToT_pe')
         df_center['ratio_cor'] = ratio_ch_corona[df_center.index].values
 
         df0 = pd.concat([df0, df_center], ignore_index=False, sort=False)
