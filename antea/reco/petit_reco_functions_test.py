@@ -18,13 +18,14 @@ def test_compute_coincidences(ANTEADATADIR, filename, data):
     """
     PATH_IN = os.path.join(ANTEADATADIR, filename)
     if data:
-        df = pd.read_hdf(PATH_IN, '/data_0')
-        df['intg_w_ToT'] = df['t2'] - df['t1']
+        df          = pd.read_hdf(PATH_IN, '/data_0')
+        evt_groupby = ['evt_number', 'cluster']
     else:
-        df = mcio.load_mcsns_response(PATH_IN)
+        df              = mcio.load_mcsns_response(PATH_IN)
+        df['tofpet_id'] = df['sensor_id'].apply(prf.tofpetid)
+        evt_groupby     = ['event_id']
 
-    _, evt_groupby = prf.params(df, data)
-    df_coinc = prf.compute_coincidences(df, data)
+    df_coinc = prf.compute_coincidences(df, evt_groupby)
     sns      = df_coinc.groupby(evt_groupby).sensor_id.unique()
     s_d      = np.array([len(s[s<100]) for s in sns])
     s_c      = np.array([len(s[s>100]) for s in sns])
@@ -49,10 +50,11 @@ def test_select_evts_with_max_charge_at_center(ANTEADATADIR, filename, data,
     if data:
         df = pd.read_hdf(PATH_IN, '/data_0')
         df['intg_w_ToT'] = df['t2'] - df['t1']
+        evt_groupby      = ['evt_number', 'cluster']
     else:
         df = mcio.load_mcsns_response(PATH_IN)
-
-    _, evt_groupby = prf.params(df, data)
+        df['tofpet_id'] = df['sensor_id'].apply(prf.tofpetid)
+        evt_groupby     = ['event_id']
 
     if det_plane:
         tofpet_id   = 0
@@ -62,10 +64,10 @@ def test_select_evts_with_max_charge_at_center(ANTEADATADIR, filename, data,
         central_sns = prf.central_sns_coinc
 
     df_center = prf.select_evts_with_max_charge_at_center(df,
-                                                          data = data,
-                                                          det_plane  = det_plane,
-                                                          variable   = variable,
-                                                          tot_mode   = tot_mode)
+                                                          evt_groupby = evt_groupby,
+                                                          det_plane   = det_plane,
+                                                          variable    = variable,
+                                                          tot_mode    = tot_mode)
     df_center = df_center[df_center.tofpet_id==tofpet_id]
     assert len(df_center) > 0
 
@@ -87,15 +89,19 @@ def test_contained_evts_in_det_plane_and_compute_ratio_in_corona(ANTEADATADIR, f
     """
     PATH_IN = os.path.join(ANTEADATADIR, filename)
     if data:
-        df = pd.read_hdf(PATH_IN, '/data_0')
+        df               = pd.read_hdf(PATH_IN, '/data_0')
+        df['intg_w_ToT'] = df['t2'] - df['t1']
+        evt_groupby      = ['evt_number', 'cluster']
     else:
         df = mcio.load_mcsns_response(PATH_IN)
+        df['tofpet_id'] = df['sensor_id'].apply(prf.tofpetid)
+        evt_groupby     = ['event_id']
 
-    df_cov  = prf.select_contained_evts_in_det_plane(df, data=data)
+    df_cov  = prf.select_contained_evts_in_det_plane(df, evt_groupby=evt_groupby)
     assert len(np.intersect1d(df_cov.sensor_id.unique(), prf.corona))==0
 
-    ratio_cor = prf.compute_charge_ratio_in_corona(df_cov, data=data, variable=variable)
+    ratio_cor = prf.compute_charge_ratio_in_corona(df_cov, evt_groupby=evt_groupby, variable=variable)
     assert np.count_nonzero(ratio_cor.values)==0
 
-    ratios = prf.compute_charge_ratio_in_corona(df, data=data, variable=variable).values
+    ratios = prf.compute_charge_ratio_in_corona(df, evt_groupby=evt_groupby, variable=variable).values
     assert np.logical_and(ratios >= 0, ratios <= 1).all()
