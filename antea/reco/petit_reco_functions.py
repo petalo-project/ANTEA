@@ -1,4 +1,5 @@
 import pandas as pd
+import numpy  as np
 
 from typing import Sequence
 
@@ -10,6 +11,14 @@ def tofpetid(sid: int) -> int:
     """
     if sid < 100: return 0
     else: return 2
+
+
+def ToT_to_pes(x: float) -> float:
+    """
+    Function that translate ToT from PETSYS to pes according
+    to a exponential relationship. x units are ns.
+    """
+    return 9.98597793 * np.exp(x/252.69045094)
 
 
 def compute_coincidences(df: pd.DataFrame,

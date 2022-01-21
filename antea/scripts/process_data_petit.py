@@ -5,9 +5,6 @@ import pandas as pd
 import antea.reco.petit_reco_functions as prf
 
 
-def from_ToT_to_pes(x):
-    return 9.98597793 * np.exp(x/252.69045094)
-
 def process_data_petit(input_file, output_file):
 
     df0   = pd.DataFrame({})
@@ -23,7 +20,7 @@ def process_data_petit(input_file, output_file):
         df_coinc  = prf.compute_coincidences(df, evt_groupby=evt_groupby)
         df_center = prf.select_evts_with_max_charge_at_center(df_coinc, evt_groupby=evt_groupby, tot_mode=True)
 
-        df_center['ToT_pe'] = from_ToT_to_pes(df_center['intg_w_ToT']*5) #### This function takes the time in ns, not in cycles!!!
+        df_center['ToT_pe'] = prf.ToT_to_pes(df_center['intg_w_ToT']*5) #### This function takes the time in ns, not in cycles!!!
 
         ratio_ch_corona = prf.compute_charge_ratio_in_corona(df_center, evt_groupby=evt_groupby, variable='ToT_pe')
         df_center['ratio_cor'] = ratio_ch_corona[df_center.index].values
