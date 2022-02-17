@@ -73,12 +73,16 @@ def test_select_evts_with_max_charge_at_center(ANTEADATADIR, filename, data, det
         assert sns_max in central_sns
 
 
-@mark.parametrize("filename data variable".split(),
-                  (('petit_mc_test.pet.h5', False,          'charge'),
-                   ('petit_data_test.h5',    True, 'efine_corrected'),
-                   ('petit_data_test.h5',    True,          'intg_w'),
-                   ('petit_data_test.h5',    True,      'intg_w_ToT')))
-def test_contained_evts_in_det_plane_and_compute_ratio_in_corona(ANTEADATADIR, filename, data, variable):
+@mark.parametrize("filename data det_plane variable".split(),
+                  (('petit_mc_test.pet.h5', False, True,          'charge'),
+                   ('petit_data_test.h5',    True, True, 'efine_corrected'),
+                   ('petit_data_test.h5',    True, True,          'intg_w'),
+                   ('petit_data_test.h5',    True, True,      'intg_w_ToT'),
+                   ('petit_mc_test.pet.h5', False, False,          'charge'),
+                   ('petit_data_test.h5',    True, False, 'efine_corrected'),
+                   ('petit_data_test.h5',    True, False,          'intg_w'),
+                   ('petit_data_test.h5',    True, False,      'intg_w_ToT')))
+def test_contained_evts_and_compute_ratio_in_corona(ANTEADATADIR, filename, det_plane, data, variable):
     """
     Checks whether the event is fully contained in the detection plane and
     checks that the ratio of charge in the external corona is correct.
@@ -93,13 +97,13 @@ def test_contained_evts_in_det_plane_and_compute_ratio_in_corona(ANTEADATADIR, f
         df['tofpet_id'] = df['sensor_id'].apply(prf.tofpetid)
         evt_groupby     = ['event_id']
 
-    _, _, _, corona = prf.sensor_params(det_plane=True, coinc_plane_4tiles=False)
+    _, _, _, corona = prf.sensor_params(det_plane=det_plane)
 
-    df_cov  = prf.select_contained_evts(df, evt_groupby=evt_groupby)
+    df_cov  = prf.select_contained_evts(df, evt_groupby=evt_groupby, det_plane=det_plane)
     assert len(np.intersect1d(df_cov.sensor_id.unique(), corona))==0
 
-    ratio_cor = prf.compute_charge_ratio_in_corona(df_cov, evt_groupby=evt_groupby, variable=variable)
+    ratio_cor = prf.compute_charge_ratio_in_corona(df_cov, evt_groupby=evt_groupby, variable=variable, det_plane=det_plane)
     assert np.count_nonzero(ratio_cor.values)==0
 
-    ratios = prf.compute_charge_ratio_in_corona(df, evt_groupby=evt_groupby, variable=variable).values
+    ratios = prf.compute_charge_ratio_in_corona(df, evt_groupby=evt_groupby, variable=variable, det_plane=det_plane).values
     assert np.logical_and(ratios >= 0, ratios <= 1).all()
