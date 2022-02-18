@@ -7,8 +7,8 @@ class errmat3d:
     Class to store an error matrix and relevant information. Note that errors
     are always expressed in (true - reco).
     Error matrices are currently stored in a numpy file containing keys:
-    'errmat3d': the 3D error matrix containing dimensions [x,y, z] = [coord1, coord2,err],
-    where coord1 and coord2 specifies a pair of coordinates and err the corresponding error;
+    'errmat3d': the 3D error matrix containing dimensions [x, y, z] = [coord1, coord2, err],
+    where coord1 and coord2 specify a pair of coordinates and err the corresponding error;
     'xmin': the minimum coordinate 1 value;
     'ymin': the minimum coordinate 2 value;
     'zmin': the minimum error value;
