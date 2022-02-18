@@ -32,16 +32,16 @@ def test_compute_coincidences(ANTEADATADIR, filename, data):
     assert np.all(s_d) and np.all(s_c)
 
 
-@mark.parametrize("filename data det_plane variable tot_mode".split(),
-                  (('petit_mc_test.pet.h5', False,  True,          'charge', False),
-                   ('petit_mc_test.pet.h5', False, False,          'charge', False),
-                   ('petit_data_test.h5',    True,  True, 'efine_corrected', False),
-                   ('petit_data_test.h5',    True, False, 'efine_corrected', False),
-                   ('petit_data_test.h5',    True,  True,          'intg_w', False),
-                   ('petit_data_test.h5',    True,  True,      'intg_w_ToT',  True),
-                   ('petit_data_test.h5',    True, False,      'intg_w_ToT',  True)))
-def test_select_evts_with_max_charge_at_center(ANTEADATADIR, filename, data,
-                                               det_plane, variable, tot_mode):
+@mark.parametrize("filename data det_plane coinc_plane_4tiles variable tot_mode".split(),
+                  (('petit_mc_test.pet.h5', False,  True, False,          'charge', False),
+                   ('petit_mc_test.pet.h5', False, False, False,          'charge', False),
+                   ('petit_data_test.h5',    True,  True, False, 'efine_corrected', False),
+                   ('petit_data_test.h5',    True, False, False, 'efine_corrected', False),
+                   ('petit_data_test.h5',    True,  True, False,          'intg_w', False),
+                   ('petit_data_test.h5',    True,  True, False,      'intg_w_ToT',  True),
+                   ('petit_data_test.h5',    True, False, False,      'intg_w_ToT',  True)))
+def test_select_evts_with_max_charge_at_center(ANTEADATADIR, filename, data, det_plane,
+                                               coinc_plane_4tiles, variable, tot_mode):
     """
     Checks that the max charge (in terms of the desired variable) is at center
     of the chosen plane.
@@ -56,18 +56,14 @@ def test_select_evts_with_max_charge_at_center(ANTEADATADIR, filename, data,
         df['tofpet_id'] = df['sensor_id'].apply(prf.tofpetid)
         evt_groupby     = ['event_id']
 
-    if det_plane:
-        tofpet_id   = 0
-        central_sns = prf.central_sns_det
-    else:
-        tofpet_id   = 2
-        central_sns = prf.central_sns_coinc
+    tofpet_id, central_sns, _, _ = prf.sensor_params(det_plane, coinc_plane_4tiles)
 
     df_center = prf.select_evts_with_max_charge_at_center(df,
-                                                          evt_groupby = evt_groupby,
-                                                          det_plane   = det_plane,
-                                                          variable    = variable,
-                                                          tot_mode    = tot_mode)
+                                                          evt_groupby        = evt_groupby,
+                                                          det_plane          = det_plane,
+                                                          coinc_plane_4tiles = coinc_plane_4tiles,
+                                                          variable           = variable,
+                                                          tot_mode           = tot_mode)
     df_center = df_center[df_center.tofpet_id==tofpet_id]
     assert len(df_center) > 0
 
@@ -77,12 +73,16 @@ def test_select_evts_with_max_charge_at_center(ANTEADATADIR, filename, data,
         assert sns_max in central_sns
 
 
-@mark.parametrize("filename data variable".split(),
-                  (('petit_mc_test.pet.h5', False,          'charge'),
-                   ('petit_data_test.h5',    True, 'efine_corrected'),
-                   ('petit_data_test.h5',    True,          'intg_w'),
-                   ('petit_data_test.h5',    True,      'intg_w_ToT')))
-def test_contained_evts_in_det_plane_and_compute_ratio_in_corona(ANTEADATADIR, filename, data, variable):
+@mark.parametrize("filename data det_plane variable".split(),
+                  (('petit_mc_test.pet.h5', False, True,          'charge'),
+                   ('petit_data_test.h5',    True, True, 'efine_corrected'),
+                   ('petit_data_test.h5',    True, True,          'intg_w'),
+                   ('petit_data_test.h5',    True, True,      'intg_w_ToT'),
+                   ('petit_mc_test.pet.h5', False, False,          'charge'),
+                   ('petit_data_test.h5',    True, False, 'efine_corrected'),
+                   ('petit_data_test.h5',    True, False,          'intg_w'),
+                   ('petit_data_test.h5',    True, False,      'intg_w_ToT')))
+def test_contained_evts_and_compute_ratio_in_corona(ANTEADATADIR, filename, det_plane, data, variable):
     """
     Checks whether the event is fully contained in the detection plane and
     checks that the ratio of charge in the external corona is correct.
@@ -97,11 +97,13 @@ def test_contained_evts_in_det_plane_and_compute_ratio_in_corona(ANTEADATADIR, f
         df['tofpet_id'] = df['sensor_id'].apply(prf.tofpetid)
         evt_groupby     = ['event_id']
 
-    df_cov  = prf.select_contained_evts_in_det_plane(df, evt_groupby=evt_groupby)
-    assert len(np.intersect1d(df_cov.sensor_id.unique(), prf.corona))==0
+    _, _, _, corona = prf.sensor_params(det_plane=det_plane)
 
-    ratio_cor = prf.compute_charge_ratio_in_corona(df_cov, evt_groupby=evt_groupby, variable=variable)
+    df_cov  = prf.select_contained_evts(df, evt_groupby=evt_groupby, det_plane=det_plane)
+    assert len(np.intersect1d(df_cov.sensor_id.unique(), corona))==0
+
+    ratio_cor = prf.compute_charge_ratio_in_corona(df_cov, evt_groupby=evt_groupby, variable=variable, det_plane=det_plane)
     assert np.count_nonzero(ratio_cor.values)==0
 
-    ratios = prf.compute_charge_ratio_in_corona(df, evt_groupby=evt_groupby, variable=variable).values
+    ratios = prf.compute_charge_ratio_in_corona(df, evt_groupby=evt_groupby, variable=variable, det_plane=det_plane).values
     assert np.logical_and(ratios >= 0, ratios <= 1).all()

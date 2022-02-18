@@ -1,7 +1,7 @@
 import pandas as pd
 import numpy  as np
 
-from typing import Sequence
+from typing import Sequence, Tuple
 
 
 def tofpetid(sid: int) -> int:
@@ -33,23 +33,42 @@ def compute_coincidences(df: pd.DataFrame,
     return df_coinc
 
 
-central_sns_det   = [ 44,  45,  54,  55]
-central_sns_coinc = [122, 123, 132, 133]
+def sensor_params(det_plane:          bool = True,
+                  coinc_plane_4tiles: bool = False) -> Tuple[int, Sequence[int], Sequence[int], Sequence[int]]:
+    """
+    Returns the corresponding ids of tofpet_id, central_sns, int_area and corona
+    of the desired plane.
+    """
+    tofpet_id   = 0
+    central_sns = np.array([ 44,  45,  54,  55])
+    int_area    = np.array([22, 23, 24, 25, 26, 27, 32, 33, 34, 35, 36, 37, 42, 43, 44, 45, 46, 47,
+                            52, 53, 54, 55, 56, 57, 62, 63, 64, 65, 66, 67, 72, 73, 74, 75, 76, 77])
+    corona      = np.array([11, 12, 13, 14, 15, 16, 17, 18, 21, 28, 31, 38, 41, 48,
+                            51, 58, 61, 68, 71, 78, 81, 82, 83, 84, 85, 86, 87, 88])
+    if not det_plane:
+        tofpet_id = 2
+        if coinc_plane_4tiles:
+            central_sns = central_sns + 100
+            int_area    = int_area    + 100
+            corona      = corona      + 100
+        else:
+            central_sns = np.array([122, 123, 132, 133])
+            int_area    = central_sns
+            corona      = np.array([111, 112, 113, 114, 121, 124, 131, 134, 141, 142, 143, 144])
+
+    return tofpet_id, central_sns, int_area, corona
+
 
 def is_max_charge_at_center(df: pd.DataFrame,
-                            det_plane: bool = True,
-                            variable:   str = 'charge',
-                            tot_mode:  bool = False) -> bool:
+                            det_plane:          bool = True,
+                            coinc_plane_4tiles: bool = False,
+                            variable:            str = 'charge',
+                            tot_mode:           bool = False) -> bool:
     """
     Returns True if the maximum charge of the event has been detected
     in one of the four central sensors of the desired plane.
     """
-    if det_plane:
-        tofpet_id   = 0
-        central_sns = central_sns_det
-    else:
-        tofpet_id   = 2
-        central_sns = central_sns_coinc
+    tofpet_id, central_sns, _, _ = sensor_params(det_plane, coinc_plane_4tiles)
 
     df = df[df.tofpet_id == tofpet_id]
     if len(df)==0:
@@ -66,6 +85,7 @@ def is_max_charge_at_center(df: pd.DataFrame,
 def select_evts_with_max_charge_at_center(df: pd.DataFrame,
                                           evt_groupby: Sequence[str] = ['event_id'],
                                           det_plane:            bool = True,
+                                          coinc_plane_4tiles:   bool = False,
                                           variable:              str = 'charge',
                                           tot_mode:             bool = False) -> pd.DataFrame:
     """
@@ -74,25 +94,24 @@ def select_evts_with_max_charge_at_center(df: pd.DataFrame,
     should be `charge` and `tot_mode` False.
     """
     df_filter_center = df.groupby(evt_groupby).filter(is_max_charge_at_center,
-                                                      dropna    = True,
-                                                      det_plane = det_plane,
-                                                      variable  = variable,
-                                                      tot_mode  = tot_mode)
+                                                      dropna             = True,
+                                                      det_plane          = det_plane,
+                                                      coinc_plane_4tiles = coinc_plane_4tiles,
+                                                      variable           = variable,
+                                                      tot_mode           = tot_mode)
     return df_filter_center
 
 
-int_area = [22, 23, 24, 25, 26, 27, 32, 33, 34, 35, 36, 37, 42, 43, 44, 45, 46, 47,
-            52, 53, 54, 55, 56, 57, 62, 63, 64, 65, 66, 67, 72, 73, 74, 75, 76, 77]
-
-corona   = [11, 12, 13, 14, 15, 16, 17, 18, 21, 28, 31, 38, 41, 48,
-            51, 58, 61, 68, 71, 78, 81, 82, 83, 84, 85, 86, 87, 88]
-
-def is_event_contained_in_det_plane(df: pd.DataFrame) -> bool:
+def is_event_contained(df: pd.DataFrame,
+                       det_plane:          bool = True,
+                       coinc_plane_4tiles: bool = False) -> bool:
     """
     Returns True if all the sensors of the event are located within
-    the internal area of the detection plane.
+    the internal area of the desired plane.
     """
-    df          = df[df.tofpet_id == 0] ## Detection plane
+    tofpet_id, _, int_area, _ = sensor_params(det_plane, coinc_plane_4tiles)
+
+    df          = df[df.tofpet_id == tofpet_id]
     sens_unique = df.sensor_id.unique()
     if len(sens_unique):
         return set(sens_unique).issubset(set(int_area))
@@ -100,23 +119,32 @@ def is_event_contained_in_det_plane(df: pd.DataFrame) -> bool:
         return False
 
 
-def select_contained_evts_in_det_plane(df: pd.DataFrame,
-                                       evt_groupby: Sequence[str] = ['event_id']) -> pd.DataFrame:
+def select_contained_evts(df: pd.DataFrame,
+                          evt_groupby: Sequence[str] = ['event_id'],
+                          det_plane:            bool = True,
+                          coinc_plane_4tiles:   bool = False) -> pd.DataFrame:
     """
     Returns a dataframe with only the events with touched sensors
-    located within the internal area of the detection plane.
+    located within the internal area of the desired plane.
     """
-    df_cov_evts = df.groupby(evt_groupby).filter(is_event_contained_in_det_plane)
+    df_cov_evts = df.groupby(evt_groupby).filter(is_event_contained,
+                                                 dropna             = True,
+                                                 det_plane          = det_plane,
+                                                 coinc_plane_4tiles = coinc_plane_4tiles)
     return df_cov_evts
 
 
 def compute_charge_ratio_in_corona(df: pd.DataFrame,
                                    evt_groupby: Sequence[str] = ['event_id'],
-                                   variable: str = 'charge') -> pd.Series:
+                                   variable:              str = 'charge',
+                                   det_plane:            bool = True,
+                                   coinc_plane_4tiles:   bool = False) -> pd.Series:
     """
-    Computes the ratio of charge detected in the external corona of the detection
+    Computes the ratio of charge detected in the external corona of the desired
     plane with respect to the total charge of that plane.
     """
-    tot_ch_d = df[df.tofpet_id==0]          .groupby(evt_groupby)[variable].sum()
+    tofpet_id, _, _, corona =  sensor_params(det_plane, coinc_plane_4tiles)
+
+    tot_ch_d = df[df.tofpet_id==tofpet_id]  .groupby(evt_groupby)[variable].sum()
     cor_ch   = df[df.sensor_id.isin(corona)].groupby(evt_groupby)[variable].sum()
     return (cor_ch/tot_ch_d).fillna(0)
