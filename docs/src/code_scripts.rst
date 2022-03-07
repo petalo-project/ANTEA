@@ -1,5 +1,8 @@
 Examples of reconstruction and analysis scripts
-********************
+***********************************************
+
+.. automodule:: antea.scripts.build_error_matrices
+   :members:
 
 .. automodule:: antea.scripts.build_r_map
    :members:
@@ -10,5 +13,8 @@ Examples of reconstruction and analysis scripts
 .. automodule:: antea.scripts.fastmc
    :members:
 
-.. automodule:: antea.scripts.build_error_matrices
+.. automodule:: antea.scripts.process_data_petit
+   :members:
+
+.. automodule:: antea.scripts.process_mc_petit
    :members:

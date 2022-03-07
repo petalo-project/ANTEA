@@ -8,8 +8,8 @@
 
 ANTEA: ANalysis Tool Environment for petAlo
 ===========================================
-ANTEA contains functions for processing NEXUS-generated Monte Carlo events and
-for full PET image reconstruction. It requires functionality from
+ANTEA contains functions for processing both NEXUS-generated Monte Carlo events and data and
+for evaluating full PET image reconstruction. It requires functionality from
 `NEXT-IC <https://github.com/nextic/IC>`_.
 
 Overview

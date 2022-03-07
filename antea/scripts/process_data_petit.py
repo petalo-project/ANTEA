@@ -4,8 +4,21 @@ import pandas as pd
 
 import antea.reco.petit_reco_functions as prf
 
+""" To run this script:
+python process_data_petit.py input_file output_file
+where:
+- input_file is the datafile.
+- output_file is an h5 file with the filtered events.
+"""
 
 def process_data_petit(input_file, output_file):
+
+    """
+    This function selects data events in coincidences and with maximum charge
+    on one of the four central SiPMs in the Hamamatsu plane. It also computes
+    the charge in pe and the charge ratio of the SiPMs in the external ring over
+    the total charge.
+    """
 
     df0   = pd.DataFrame({})
     store = pd.HDFStore(input_file, 'r')

@@ -6,8 +6,22 @@ import antea.reco.petit_reco_functions as prf
 
 import antea.io.mc_io as mcio
 
+""" To run this script:
+python process_mc_petit.py input_file output_file
+where:
+- input_file is the datafile.
+- output_file is an h5 file with the filtered events.
+"""
+
 
 def process_mc_petit(input_file, output_file):
+
+    """
+    This function selects MC events in coincidences and with maximum charge
+    on one of the four central SiPMs in the Hamamatsu plane. It also computes
+    the charge in pe and the charge ratio of the SiPMs in the external ring over
+    the total charge.
+    """
 
     df = mcio.load_mcsns_response(input_file)
 
