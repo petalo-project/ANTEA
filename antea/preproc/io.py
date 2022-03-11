@@ -24,3 +24,15 @@ def compute_file_chunks_indices(filein, chunk_size = 500000):
         chunks = np.concatenate([np.array([0]), evt_limits[chunk_limits],
                                  np.array(evt_numbers.shape)])
         return chunks
+
+
+def write_corrected_df_daq(fileout, df, iteration, append=False):
+    '''
+    It writes the data in an output file. If it does not exist, it creates it and
+    if it exists, it appends new data.
+    '''
+    table_name = 'data_{}'.format(iteration)
+    mode = 'a' if append else 'w'
+    store = pd.HDFStore(fileout, mode, complib=str("zlib"), complevel=4)
+    store.put(table_name, df, index=False, format='table', data_columns=None)
+    store.close()
