@@ -8,6 +8,7 @@ from antea.preproc.io import compute_file_chunks_indices
 from antea.preproc.io import write_corrected_df_daq
 from antea.preproc.io import get_files
 from antea.preproc.io import read_run_data
+from antea.preproc.io import get_evt_times
 
 
 def test_compute_chunks_indices(output_tmpdir):
@@ -106,3 +107,49 @@ def test_read_run_data(output_tmpdir):
     df_expected = pd.concat([first_df, second_df])
     df_expected['fileno'] = [0, 0, 0, 0, 0, 1, 1, 1, 1, 1]
     np.testing.assert_array_equal(df, df_expected)
+
+
+def test_get_evt_times(output_tmpdir):
+    '''
+    Check that the timestamp is converted to date correctly
+    '''
+    first_df  = pd.DataFrame({'tofpet_id' : [0, 0, 0, 0, 0],
+                              'channel_id': [4, 17, 29, 33, 57],
+                              'tac_id'    : [0, 1, 0, 2, 3],
+                              'timestamp' : [1000000, 2000000, 3000000, 4000000, 5000000]})
+
+    second_df = pd.DataFrame({'tofpet_id' : [0, 0, 0, 0, 0],
+                              'channel_id': [5, 16, 24, 44, 58],
+                              'tac_id'    : [0, 1, 2, 0, 2],
+                              'timestamp' : [6000000, 7000000, 8000000, 9000000, 10000000]})
+
+    fname_1 = os.path.join(output_tmpdir, 'test_1.h5')
+    fname_2 = os.path.join(output_tmpdir, 'test_2.h5')
+    files   = [fname_1, fname_2]
+
+    first_df.to_hdf (fname_1, key = 'dateEvents', format = 'table')
+    second_df.to_hdf(fname_2, key = 'dateEvents', format = 'table')
+
+    df_expected_1 = first_df.copy()
+    df_expected_1 = df_expected_1.assign(fileno = [0, 0, 0, 0, 0],
+                                         date = ['1970-01-01 00:00:01',
+                                                 '1970-01-01 00:00:02',
+                                                 '1970-01-01 00:00:03',
+                                                 '1970-01-01 00:00:04',
+                                                 '1970-01-01 00:00:05'],
+                                         time_diff = [1.0, 1.0, 1.0, 1.0, 1.0])
+
+    df_expected_2 = second_df.copy()
+    df_expected_2 = df_expected_2.assign(fileno = [1, 1, 1, 1, 1],
+                                         date = ['1970-01-01 00:00:06',
+                                                 '1970-01-01 00:00:07',
+                                                 '1970-01-01 00:00:08',
+                                                 '1970-01-01 00:00:09',
+                                                 '1970-01-01 00:00:10'],
+                                         time_diff = [1.0, 1.0, 1.0, 1.0, 0.0])
+
+    df_times            = get_evt_times(files, verbose=True)
+    df_expected         = pd.concat([df_expected_1, df_expected_2])
+    df_expected['date'] = df_expected['date'].astype('datetime64')
+
+    pd.testing.assert_frame_equal(df_times, df_expected)

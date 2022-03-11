@@ -64,3 +64,25 @@ def read_run_data(files, verbose=False):
             print("Error in file ", fname)
     df = pd.concat(dfs).reset_index(drop=True)
     return df
+
+
+def get_evt_times(files, verbose=False):
+    '''
+    It returns a dataframe with a column with time calculation in date format
+    and a column with time differences between consecutive events.
+    '''
+    time_dfs = []
+
+    for i, fname in enumerate(files):
+        if verbose:
+            print(i, fname)
+        df_time = pd.read_hdf(fname, 'dateEvents')
+        df_time['fileno'] = i
+        time_dfs.append(df_time)
+    df_times = pd.concat(time_dfs)
+    df_times['date'] = pd.to_datetime(df_times.timestamp, unit='us')
+
+    # Compute time difference between one event and the next
+    df_times['time_diff'] = np.abs((df_times.timestamp/1e6).diff(periods=-1))
+    df_times = df_times.fillna(0)
+    return df_times
