@@ -55,3 +55,10 @@ def create_qdc_interpolator_df(fname_qdc_0, fname_qdc_2=None):
     df_interpolators = df_qdc.groupby(['tofpet_id', 'channel_id','tac_id']).apply(
                                       lambda df: interp1d(df.intg_w, df.efine))
     return df_interpolators
+
+
+def compute_efine_correction_using_linear_interpolation(df, df_interpolators):
+    df['correction']      =  df.apply(lambda row: df_interpolators[row.tofpet_id, row.channel_id, row.tac_id](row.intg_w), axis=1)
+    # Interpolator returns a 0-dimensional np array instead of a float
+    df['efine_corrected'] = (df.efine - df.correction).astype(np.float64)
+    df.drop(columns=['correction'], inplace=True)

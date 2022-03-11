@@ -6,6 +6,7 @@ from antea.preproc.qdc_corrections import correct_efine_wrap_around
 from antea.preproc.qdc_corrections import apply_qdc_autocorrection
 from antea.preproc.qdc_corrections import compute_qdc_calibration_using_mode
 from antea.preproc.qdc_corrections import create_qdc_interpolator_df
+from antea.preproc.qdc_corrections import compute_efine_correction_using_linear_interpolation
 
 
 def test_correct_efine_wrap_around():
@@ -119,3 +120,37 @@ def test_create_qdc_interpolator_df(output_tmpdir):
 
     np.testing.assert_array_equal(df_0, df_expected_0)
     np.testing.assert_array_equal(df_2, df_expected_2)
+
+
+def test_compute_efine_correction_using_linear_interpolation(output_tmpdir):
+    '''
+    Check the corrected efine after using linear interpolation for bias substraction
+    '''
+    fname_qdc = os.path.join(output_tmpdir, 'test_0.h5')
+
+    df_qdc    = pd.DataFrame({'tofpet_id' : [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                              'channel_id': [16, 16, 16, 16, 16, 17, 17, 17, 17, 17],
+                              'tac_id'    : [0, 0, 1, 1, 1, 0, 0, 2, 2, 2],
+                              'intg_w'    : [10, 20, 60, 70, 80, 300, 400, 100, 120, 140],
+                              'efine'     : [20, 40, 100, 110, 120, 300, 400, 200, 220, 240]})
+
+    df_qdc.to_hdf (fname_qdc, key = 'data', format = 'table')
+
+    df        = pd.DataFrame({'tofpet_id' : [0, 0, 0, 0],
+                              'channel_id': [16, 16, 17, 17],
+                              'tac_id'    : [0, 1, 0, 2],
+                              'intg_w'    : [15, 73, 350, 130],
+                              'efine'     : [130, 223, 490, 460]})
+
+    df_interpolators = create_qdc_interpolator_df(fname_qdc)
+    compute_efine_correction_using_linear_interpolation(df, df_interpolators)
+
+    df_expected = pd.DataFrame({'tofpet_id'      : [0, 0, 0, 0],
+                                'channel_id'     : [16, 16, 17, 17],
+                                'tac_id'         : [0, 1, 0, 2],
+                                'intg_w'         : [15, 73, 350, 130],
+                                'efine'          : [130, 223, 490, 460],
+                                'efine_corrected':[100, 110, 140, 230]})
+    df_expected['efine_corrected'] = df_expected['efine_corrected'].astype(np.float64)
+
+    np.testing.assert_array_equal(df, df_expected)
