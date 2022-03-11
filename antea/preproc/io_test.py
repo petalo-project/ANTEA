@@ -7,6 +7,7 @@ from glob import glob
 from antea.preproc.io import compute_file_chunks_indices
 from antea.preproc.io import write_corrected_df_daq
 from antea.preproc.io import get_files
+from antea.preproc.io import read_run_data
 
 
 def test_compute_chunks_indices(output_tmpdir):
@@ -80,3 +81,28 @@ def test_get_files(output_tmpdir):
     files          = get_files(run_number, folder = new_folder_pattern)
 
     np.testing.assert_array_equal(files, files_expected)
+
+
+def test_read_run_data(output_tmpdir):
+    '''
+    Check that a list of files is read and their dataframes are concatenated properly
+    '''
+    fname_1 = os.path.join(output_tmpdir, 'test_1.h5')
+    fname_2 = os.path.join(output_tmpdir, 'test_2.h5')
+    files   = [fname_1, fname_2]
+
+    first_df  = pd.DataFrame({'tofpet_id' : [0, 0, 0, 0, 0],
+                              'channel_id': [4, 17, 29, 33, 57],
+                              'tac_id'    : [0, 1, 0, 2, 3]})
+
+    second_df = pd.DataFrame({'tofpet_id' : [0, 0, 0, 0, 0],
+                              'channel_id': [5, 16, 24, 44, 58],
+                              'tac_id'    : [0, 1, 2, 0, 2]})
+
+    first_df.to_hdf (fname_1, key = 'data', format = 'table')
+    second_df.to_hdf(fname_2, key = 'data', format = 'table')
+
+    df          = read_run_data(files)
+    df_expected = pd.concat([first_df, second_df])
+    df_expected['fileno'] = [0, 0, 0, 0, 0, 1, 1, 1, 1, 1]
+    np.testing.assert_array_equal(df, df_expected)

@@ -46,3 +46,21 @@ def get_files(run, folder = '/analysis/{run}/hdf5/data/'):
     files = glob(pattern)
     files.sort()
     return files
+
+
+def read_run_data(files, verbose=False):
+    '''
+    It returns a dataframe with data from all given files
+    '''
+    dfs = []
+    for i, fname in enumerate(files):
+        if verbose:
+            print(i, fname)
+        try:
+            df = pd.read_hdf(fname, 'data')
+            df['fileno'] = i
+            dfs.append(df)
+        except:
+            print("Error in file ", fname)
+    df = pd.concat(dfs).reset_index(drop=True)
+    return df
