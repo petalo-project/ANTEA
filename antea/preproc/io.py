@@ -36,3 +36,13 @@ def write_corrected_df_daq(fileout, df, iteration, append=False):
     store = pd.HDFStore(fileout, mode, complib=str("zlib"), complevel=4)
     store.put(table_name, df, index=False, format='table', data_columns=None)
     store.close()
+
+
+def get_files(run, folder = '/analysis/{run}/hdf5/data/'):
+    '''
+    It returns the name of all files for a given run number
+    '''
+    pattern = os.path.join(folder.format(run = run), '*h5')
+    files = glob(pattern)
+    files.sort()
+    return files

@@ -6,6 +6,7 @@ import os
 from glob import glob
 from antea.preproc.io import compute_file_chunks_indices
 from antea.preproc.io import write_corrected_df_daq
+from antea.preproc.io import get_files
 
 
 def test_compute_chunks_indices(output_tmpdir):
@@ -50,3 +51,32 @@ def test_write_corrected_df_daq(output_tmpdir):
 
     np.testing.assert_array_equal(df_out_1, df_1)
     np.testing.assert_array_equal(df_out_2, df_2)
+
+
+def test_get_files(output_tmpdir):
+    '''
+    Check that the correct files are found and they are returned sorted.
+    '''
+    run_number = 11200
+    #Recreate data folder structure
+    new_folder_pattern = os.path.join(output_tmpdir, 'analysis/{run}/hdf5/data/')
+    new_folder = new_folder_pattern.format(run = run_number)
+    os.makedirs(new_folder)
+
+    #Create empty HDF5 files with file names unsorted
+    sample_dir_1 = os.path.join(new_folder, 'data_0001.h5')
+    sample_dir_2 = os.path.join(new_folder, 'data_0002.h5')
+    sample_dir_3 = os.path.join(new_folder, 'data_0032.h5')
+    sample_dir_4 = os.path.join(new_folder, 'data_0029.h5')
+
+    df = pd.DataFrame()
+    df.to_hdf(sample_dir_1, key = 'data')
+    df.to_hdf(sample_dir_2, key = 'data')
+    df.to_hdf(sample_dir_3, key = 'data')
+    df.to_hdf(sample_dir_4, key = 'data')
+
+    #Check if files are retrieved sorted by the file name
+    files_expected = np.array([sample_dir_1, sample_dir_2, sample_dir_4, sample_dir_3])
+    files          = get_files(run_number, folder = new_folder_pattern)
+
+    np.testing.assert_array_equal(files, files_expected)
