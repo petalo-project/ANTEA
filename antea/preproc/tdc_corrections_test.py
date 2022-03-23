@@ -4,6 +4,7 @@ import numpy  as np
 from antea.preproc.tdc_corrections import correct_tfine_wrap_around
 from antea.preproc.tdc_corrections import compute_tcoarse_wrap_arounds
 from antea.preproc.tdc_corrections import compute_tcoarse_nloops_per_event
+from antea.preproc.tdc_corrections import compute_extended_tcoarse
 
 def test_correct_tfine_wrap_around():
     ''' Check the tfine correction '''
@@ -44,3 +45,16 @@ def test_compute_tcoarse_nloops_per_event():
     expected_result = np.array([0, 0, 0, 0, 1, 1, 0, 1, 1, 1, 1, 1])
 
     np.testing.assert_array_equal(nloops, expected_result)
+
+
+def test_compute_extended_tcoarse():
+    '''
+    Check the addition of tcoarse cycles to original tcoarse
+    '''
+    df = pd.DataFrame({'tcoarse': [1000, 10000, 60000, 30000, 40000, 65000, 40000, 65000],
+                       'nloops': [ 0, 0, 0, 1, 1, 1, 2, 2]})
+
+    extended_tcoarse = compute_extended_tcoarse(df).values
+    expected_result  = np.array([1000, 10000, 60000, 95536, 105536, 130536, 171072, 196072])
+
+    np.testing.assert_array_equal(extended_tcoarse, expected_result)

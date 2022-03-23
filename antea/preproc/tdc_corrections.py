@@ -37,3 +37,11 @@ def compute_tcoarse_nloops_per_event(df):
             nloops[start:end+1] = i
 
     return nloops
+
+
+def compute_extended_tcoarse(df):
+    '''
+    Calculates the global tcoarse for each row of data taking into account the
+    original tcoarse and the number of tcoarse loops.
+    '''
+    return df['tcoarse'] + df['nloops'] * 2**16
