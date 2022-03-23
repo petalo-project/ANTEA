@@ -66,3 +66,26 @@ def compute_integration_window_size(df):
     '''
     df['intg_w'] = (df.ecoarse - (df.tcoarse % 2**10)).astype('int16')
     df.loc[df['intg_w'] < 0, 'intg_w'] += 2**10
+
+
+def apply_tdc_correction(df, df_tdc, field='tfine'):
+    '''
+    This function is used to calculate t1 with field = tfine and to calculate
+    t2 with field = efine
+    '''
+
+    df = df.reset_index().merge(df_tdc[['channel_id', 'tac_id', 'amplitude', 'offset']], on=['channel_id', 'tac_id'])
+    df = df.sort_values('index').set_index('index')
+    df.index.name = None
+
+    period = 360
+    correctd_field = f'{field}_corrected'
+    df[correctd_field] = (period/np.pi)*np.arctan(1/np.tan((np.pi/(-2*df.amplitude))*(df[field]-df.offset)))
+    df.loc[df[correctd_field] < 0, correctd_field] += period
+    df = df.drop(columns=['amplitude', 'offset'])
+
+    if field == 'tfine':
+        df['t1'] = df.tcoarse_extended - (360 - df[correctd_field]) / 360
+    else: # for efine
+        df['t2'] = df.tcoarse_extended + df.intg_w - (360 - df[correctd_field]) / 360
+    return df

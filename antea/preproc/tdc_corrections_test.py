@@ -7,6 +7,7 @@ from antea.preproc.tdc_corrections import compute_tcoarse_nloops_per_event
 from antea.preproc.tdc_corrections import compute_extended_tcoarse
 from antea.preproc.tdc_corrections import add_tcoarse_extended_to_df
 from antea.preproc.tdc_corrections import compute_integration_window_size
+from antea.preproc.tdc_corrections import apply_tdc_correction
 
 def test_correct_tfine_wrap_around():
     ''' Check the tfine correction '''
@@ -90,3 +91,37 @@ def test_compute_integration_window_size():
     df_expected['intg_w'] = [34, 440, 880, 516, 936, 488, 924]
 
     np.testing.assert_array_equal(df, df_expected)
+
+
+def test_apply_tdc_correction():
+    '''
+    Check the tfine and efine correction and the t1 and t2 calculation
+    '''
+    df = pd.DataFrame({'channel_id'       : [10, 34, 28, 56, 63, 0, 5],
+                       'tac_id'           : [0, 1, 1, 3, 2, 0, 1],
+                       'tfine'            : [200, 225, 270, 300, 350, 370, 390],
+                       'tcoarse_extended' : [200, 1000, 15000, 40000, 67536, 95536, 60000],
+                       'efine'            : [100, 150, 200, 240, 310, 360, 400],
+                       'intg_w'           : [50, 75, 130, 170, 230, 300, 390],})
+
+    df_tdc = pd.DataFrame({'channel_id': [10, 34, 28, 56, 63, 0, 5],
+                           'tac_id'    : [0, 1, 1, 3, 2, 0, 1],
+                           'amplitude' : [5, 20, 30, 50, 100, 150, 300],
+                           'offset'    : [0, 10, 20, 30, 40, 46, 50]})
+
+    tfine_df = apply_tdc_correction(df, df_tdc,'tfine')
+    efine_df = apply_tdc_correction(df, df_tdc,'efine')
+
+    tfine_df_expected                    = df.copy()
+    tfine_df_expected['tfine_corrected'] = [180, 315, 240, 72, 18, 208.8, 24]
+    tfine_df_expected['t1']              = [199.5, 999.875, 14999.666667, 39999.2,
+                                            67535.05, 95535.58, 59999.066667]
+
+    efine_df_expected                    = df.copy()
+    efine_df_expected['efine_corrected'] = [180, 360, 180, 216, 306, 196.8, 30]
+    efine_df_expected['t2']              = [249.5, 1075, 15129.5, 40169.6, 67765.85,
+                                            95835.546667, 60389.083333]
+
+
+    assert np.allclose(tfine_df, tfine_df_expected)
+    assert np.allclose(efine_df, efine_df_expected)
