@@ -6,6 +6,7 @@ from antea.preproc.tdc_corrections import compute_tcoarse_wrap_arounds
 from antea.preproc.tdc_corrections import compute_tcoarse_nloops_per_event
 from antea.preproc.tdc_corrections import compute_extended_tcoarse
 from antea.preproc.tdc_corrections import add_tcoarse_extended_to_df
+from antea.preproc.tdc_corrections import compute_integration_window_size
 
 def test_correct_tfine_wrap_around():
     ''' Check the tfine correction '''
@@ -73,5 +74,19 @@ def test_add_tcoarse_extended_to_df():
     df_expected['tcoarse_extended'] = [200, 1000, 15000, 40000, 67536, 95536,
                                        60000, 65936, 67536, 100536, 115536, 130536]
     add_tcoarse_extended_to_df(df)
+
+    np.testing.assert_array_equal(df, df_expected)
+
+
+def test_compute_integration_window_size():
+    '''
+    Check the integration window calculation
+    '''
+    df = pd.DataFrame({'ecoarse' : [10, 200, 400, 700, 1000, 1024, 100],
+                       'tcoarse' : [1000, 10000, 20000, 35000, 40000, 63000, 200]})
+
+    compute_integration_window_size(df)
+    df_expected           = df.copy()
+    df_expected['intg_w'] = [34, 440, 880, 516, 936, 488, 924]
 
     np.testing.assert_array_equal(df, df_expected)

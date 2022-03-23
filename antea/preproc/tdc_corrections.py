@@ -57,3 +57,12 @@ def add_tcoarse_extended_to_df(df):
     df['nloops']           = compute_tcoarse_nloops_per_event(df)
     df['tcoarse_extended'] = compute_extended_tcoarse(df)
     df.drop(columns=['tcoarse_diff', 'nloops'], inplace=True)
+
+
+def compute_integration_window_size(df):
+    '''
+    It calculates the integration window size taking into account the difference
+    number of bits in ecoarse and tcoarse
+    '''
+    df['intg_w'] = (df.ecoarse - (df.tcoarse % 2**10)).astype('int16')
+    df.loc[df['intg_w'] < 0, 'intg_w'] += 2**10
