@@ -5,6 +5,7 @@ from antea.preproc.tdc_corrections import correct_tfine_wrap_around
 from antea.preproc.tdc_corrections import compute_tcoarse_wrap_arounds
 from antea.preproc.tdc_corrections import compute_tcoarse_nloops_per_event
 from antea.preproc.tdc_corrections import compute_extended_tcoarse
+from antea.preproc.tdc_corrections import add_tcoarse_extended_to_df
 
 def test_correct_tfine_wrap_around():
     ''' Check the tfine correction '''
@@ -58,3 +59,19 @@ def test_compute_extended_tcoarse():
     expected_result  = np.array([1000, 10000, 60000, 95536, 105536, 130536, 171072, 196072])
 
     np.testing.assert_array_equal(extended_tcoarse, expected_result)
+
+
+def test_add_tcoarse_extended_to_df():
+    '''
+    Check the addition of a new column (tcoarse extended) to the original dataframe
+    '''
+    df = pd.DataFrame({'evt_number'  : [1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2],
+                       'tcoarse'     : [200, 1000, 15000, 40000, 2000, 30000,
+                                        60000, 400, 2000, 35000, 50000, 65000]})
+
+    df_expected = df.copy()
+    df_expected['tcoarse_extended'] = [200, 1000, 15000, 40000, 67536, 95536,
+                                       60000, 65936, 67536, 100536, 115536, 130536]
+    add_tcoarse_extended_to_df(df)
+
+    np.testing.assert_array_equal(df, df_expected)

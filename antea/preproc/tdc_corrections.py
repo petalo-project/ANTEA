@@ -45,3 +45,15 @@ def compute_extended_tcoarse(df):
     original tcoarse and the number of tcoarse loops.
     '''
     return df['tcoarse'] + df['nloops'] * 2**16
+
+
+def add_tcoarse_extended_to_df(df):
+    '''
+    Adds the calculated tcoarse extended to the original dataframe and deletes
+    the tcoarse difference and the number of loops.
+    '''
+    df['tcoarse']          = df.tcoarse.astype(np.int32)
+    df['tcoarse_diff']     = df.tcoarse.diff()
+    df['nloops']           = compute_tcoarse_nloops_per_event(df)
+    df['tcoarse_extended'] = compute_extended_tcoarse(df)
+    df.drop(columns=['tcoarse_diff', 'nloops'], inplace=True)
