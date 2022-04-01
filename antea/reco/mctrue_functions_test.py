@@ -4,6 +4,7 @@ import numpy                 as np
 import pandas                as pd
 import hypothesis.strategies as st
 
+from pytest      import mark
 from hypothesis  import given
 from collections import OrderedDict
 
@@ -55,14 +56,18 @@ def test_find_hits_of_given_particles(ANTEADATADIR, l):
                 assert len(sel_hits.particle_id.unique()) == len(non_repeated_part_id) - parts_without_hits
 
 
-def test_select_photoelectric(ANTEADATADIR):
+@mark.parametrize("filename noncoll_gammas".split(),
+                  (('ring_test_1000ev.h5',          False),
+                   ('petbox_noncoll_gammas.pet.h5',  True)))
+def test_select_photoelectric(ANTEADATADIR, filename, noncoll_gammas):
     """
     This test checks that the function select_photoelectric takes the events
     in which at least one of the initial gammas interacts via photoelectric
     effect depositing its 511 keV and stores the weighted average position
-    of its/their hits.
+    of its/their hits. The case with collinear and noncollinear gammas are
+    taken into account.
     """
-    PATH_IN   = os.path.join(ANTEADATADIR, 'ring_test_1000ev.h5')
+    PATH_IN   = os.path.join(ANTEADATADIR, filename)
     particles = load_mcparticles(PATH_IN)
     hits      = load_mchits(PATH_IN)
     events    = particles.event_id.unique()
@@ -71,15 +76,21 @@ def test_select_photoelectric(ANTEADATADIR):
         evt_parts = particles[particles.event_id == evt]
         evt_hits  = hits     [hits     .event_id == evt]
 
-        select, true_pos = mcf.select_photoelectric(evt_parts, evt_hits)
-
-        if select:
-            assert rf.greater_or_equal(evt_hits.energy.sum(), 0.476443, 1.e-3)
+        select, true_pos = mcf.select_photoelectric(evt_parts,
+                                                    evt_hits,
+                                                    noncoll_gammas=noncoll_gammas)
+        if noncoll_gammas:
+            if select:
+                assert rf.greater_or_equal(evt_hits.energy.sum(), 0.473)
+            else:
+                assert len(true_pos) == 0
         else:
-            assert len(true_pos) == 0
+            if select:
+                assert rf.greater_or_equal(evt_hits.energy.sum(), 0.476443, 1.e-3)
+            else:
+                assert len(true_pos) == 0
 
-        if len(true_pos) == 1:
-            assert rf.lower_or_equal(evt_hits.energy.sum(), 0.511, 1.e-3)
-        elif len(true_pos) == 2:
-            assert evt_hits.energy.sum() > 0.511
-
+            if len(true_pos) == 1:
+                assert rf.lower_or_equal(evt_hits.energy.sum(), 0.511, 1.e-3)
+            elif len(true_pos) == 2:
+                assert evt_hits.energy.sum() > 0.511
