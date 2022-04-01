@@ -62,18 +62,12 @@ def test_select_photoelectric(ANTEADATADIR):
     effect depositing its 511 keV and stores the weighted average position
     of its/their hits.
     """
-    PATH_IN      = os.path.join(ANTEADATADIR, 'ring_test_1000ev.h5')
-    DataSiPM     = db.DataSiPM('petalo', 0)
-    DataSiPM_idx = DataSiPM.set_index('SensorID')
-    sns_response = load_mcsns_response(PATH_IN)
-    threshold    = 2
-    sel_df       = rf.find_SiPMs_over_threshold(sns_response, threshold)
-
+    PATH_IN   = os.path.join(ANTEADATADIR, 'ring_test_1000ev.h5')
     particles = load_mcparticles(PATH_IN)
     hits      = load_mchits(PATH_IN)
     events    = particles.event_id.unique()
 
-    for evt in events[:]:
+    for evt in events:
         evt_parts = particles[particles.event_id == evt]
         evt_hits  = hits     [hits     .event_id == evt]
 
