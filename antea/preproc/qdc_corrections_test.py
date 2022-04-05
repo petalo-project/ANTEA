@@ -1,9 +1,11 @@
 import pandas as pd
 import numpy  as np
+import os
 
 from antea.preproc.qdc_corrections import correct_efine_wrap_around
 from antea.preproc.qdc_corrections import apply_qdc_autocorrection
 from antea.preproc.qdc_corrections import compute_qdc_calibration_using_mode
+from antea.preproc.qdc_corrections import create_qdc_interpolator_df
 
 
 def test_correct_efine_wrap_around():
@@ -59,3 +61,61 @@ def test_compute_qdc_calibration_using_mode():
                                 'efine'     : [64, 214, 164, 304, 364, 0, 239, 374, 114, 314]})
 
     np.testing.assert_array_equal(df_calib, df_expected)
+
+
+
+def test_create_qdc_interpolator_df(output_tmpdir):
+    '''
+    Check the qdc interpolation result
+    '''
+    fname_qdc_0 = os.path.join(output_tmpdir, 'test_qdc_0.h5')
+    fname_qdc_2 = os.path.join(output_tmpdir, 'test_qdc_2.h5')
+
+    df_qdc_0 = pd.DataFrame({'tofpet_id' : [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                             'channel_id': [16, 16, 16, 16, 16, 17, 17, 17, 17, 17],
+                             'tac_id'    : [0, 0, 1, 1, 1, 0, 0, 2, 2, 2],
+                             'intg_w'    : [10, 20, 60, 70, 80, 300, 400, 100, 120, 140],
+                             'efine'     : [20, 40, 100, 110, 120, 300, 400, 200, 220, 240]})
+
+    df_qdc_2 = pd.DataFrame({'tofpet_id' : [1, 1, 1, 1, 1, 1, 1],
+                             'channel_id': [29, 29, 33, 33, 33, 57, 57],
+                             'tac_id'    : [3, 3, 0, 0, 0, 1, 1],
+                             'intg_w'    : [100, 125, 200, 210, 220, 300, 350],
+                             'efine'     : [50, 70, 110, 120, 130, 240, 280]})
+
+    df_qdc_0.to_hdf (fname_qdc_0, key = 'data', format = 'table')
+    df_qdc_2.to_hdf (fname_qdc_2, key = 'data', format = 'table')
+
+    df_0 = pd.DataFrame({'tofpet_id'  : [0, 0, 0, 0],
+                         'channel_id' : [16, 16, 17, 17],
+                         'tac_id'     : [0, 1, 0, 2],
+                         'intg_w'     : [15, 73, 350, 130]})
+
+    df_2 = pd.DataFrame({'tofpet_id'  : [0, 0, 0, 0, 1, 1, 1],
+                         'channel_id' : [16, 16, 17, 17, 29, 33, 57],
+                         'tac_id'     : [0, 1, 0, 2, 3, 0, 1],
+                         'intg_w'     : [15, 73, 350, 130, 115, 213, 325]})
+
+    df_interp_0 = create_qdc_interpolator_df(fname_qdc_0)
+    df_0['correction'] = df_0.apply(lambda row: df_interp_0[row.tofpet_id, row.channel_id,
+                                                           row.tac_id](row.intg_w), axis=1).astype(np.float64) #df.correction is object
+    df_expected_0      = pd.DataFrame({'tofpet_id'  : [0, 0, 0, 0],
+                                       'channel_id' : [16, 16, 17, 17],
+                                       'tac_id'     : [0, 1, 0, 2],
+                                       'intg_w'     : [15, 73, 350, 130],
+                                       'correction' : [30, 113, 350, 230]})
+
+
+
+    df_interp_2 = create_qdc_interpolator_df(fname_qdc_0, fname_qdc_2)
+    df_2['correction'] = df_2.apply(lambda row: df_interp_2[row.tofpet_id, row.channel_id,
+                                                            row.tac_id](row.intg_w), axis=1).astype(np.float64) #df.correction is object
+    df_expected_2      = pd.DataFrame({'tofpet_id'  : [0, 0, 0, 0, 1, 1, 1],
+                                       'channel_id' : [16, 16, 17, 17, 29, 33, 57],
+                                       'tac_id'     : [0, 1, 0, 2, 3, 0, 1],
+                                       'intg_w'     : [15, 73, 350, 130, 115, 213, 325],
+                                       'correction' : [30, 113, 350, 230, 62, 123, 260]})
+
+
+    np.testing.assert_array_equal(df_0, df_expected_0)
+    np.testing.assert_array_equal(df_2, df_expected_2)

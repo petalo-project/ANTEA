@@ -1,6 +1,7 @@
 import pandas as pd
 import numpy  as np
 
+from scipy.interpolate import interp1d
 from antea.preproc.tdc_corrections import compute_integration_window_size
 
 def correct_efine_wrap_around(df):
@@ -40,3 +41,17 @@ def compute_qdc_calibration_using_mode(df_tpulse, max_intg_w = 291):
     df_calib.loc[df_calib.intg_w == max_intg_w, 'intg_w'] = 2000
 
     return df_calib
+
+
+def create_qdc_interpolator_df(fname_qdc_0, fname_qdc_2=None):
+    '''
+    It returns a dataframe containing the interpolation function for each group
+    of tofpet id, channel id and tac id.
+    '''
+    df_qdc = pd.read_hdf(fname_qdc_0)
+    if fname_qdc_2:
+        df_qdc2 = pd.read_hdf(fname_qdc_2)
+        df_qdc  = pd.concat([df_qdc, df_qdc2]).reset_index()
+    df_interpolators = df_qdc.groupby(['tofpet_id', 'channel_id','tac_id']).apply(
+                                      lambda df: interp1d(df.intg_w, df.efine))
+    return df_interpolators
