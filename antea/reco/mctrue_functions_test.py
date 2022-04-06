@@ -61,8 +61,7 @@ def test_select_photoelectric(ANTEADATADIR):
     This test checks that the function select_photoelectric takes the events
     in which at least one of the initial gammas interacts via photoelectric
     effect depositing its 511 keV and stores the weighted average position
-    of its/their hits. The case with collinear and noncollinear gammas are
-    taken into account.
+    of its/their hits.
     """
     PATH_IN   = os.path.join(ANTEADATADIR, 'petbox_noncoll_gammas.pet.h5')
     particles = load_mcparticles(PATH_IN)
