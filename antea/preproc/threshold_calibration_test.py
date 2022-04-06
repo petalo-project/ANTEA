@@ -2,9 +2,11 @@ import matplotlib.pylab as plt
 import pandas           as pd
 import tables           as tb
 import numpy            as np
+import os
 
 
 from antea.preproc.threshold_calibration import filter_df_evts
+from antea.preproc.threshold_calibration import get_run_control
 
 def test_filter_df_evts():
     '''
@@ -22,3 +24,35 @@ def test_filter_df_evts():
     df_expected = df_expected.drop(indx)
 
     np.testing.assert_array_equal(df_filtered, df_expected)
+
+
+def test_get_run_control(output_tmpdir):
+    '''
+    Check the data concatenation of different files and the addition of a new
+    column in the last df
+    '''
+    fname_1 = os.path.join(output_tmpdir, 'test_1_calib.h5')
+    fname_2 = os.path.join(output_tmpdir, 'test_2_calib.h5')
+    files   = [fname_1, fname_2]
+
+    first_df  = pd.DataFrame({'tofpet_id'  : [0, 0, 0, 0, 0, 0],
+                              'channel_id' : [4, 17, 29, 33, 57, 16],
+                              'tac_id'     : [0, 1, 0, 2, 3, 0],
+                              'run_control': [0, 0, 0, 1, 1, 1]})
+
+    second_df = pd.DataFrame({'tofpet_id'  : [0, 0, 0, 0, 0, 0],
+                              'channel_id' : [5, 16, 24, 44, 58, 13],
+                              'tac_id'     : [0, 1, 2, 0, 2, 0],
+                              'run_control': [0, 0, 0, 1, 1, 1]})
+
+    first_df['run_control']  = first_df['run_control'].astype(np.uint8)
+    second_df['run_control'] = second_df['run_control'].astype(np.uint8)
+
+    first_df.to_hdf (fname_1, key = 'dateEvents', format = 'table')
+    second_df.to_hdf(fname_2, key = 'dateEvents', format = 'table')
+
+    df          = get_run_control(files)
+    df_expected = pd.concat([first_df, second_df])
+    df_expected['fileno'] = [0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1]
+    df_expected['diff']   = [0, 0, 0, 1, 0, 0, 255, 0, 0, 1, 0, 0]
+    np.testing.assert_array_equal(df, df_expected)
