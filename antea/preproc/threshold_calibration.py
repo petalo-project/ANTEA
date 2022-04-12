@@ -67,3 +67,18 @@ def compute_limit_evts_based_on_run_control(df_run):
                               'file1' : files1,
                               'file2' : files2})
     return df_limits
+
+
+def process_df(df, channels, field, params):
+    '''
+    It returns a dataframe with the statistical operations of count, mean, std,
+    min, max and sum of the values selected for each vth_t1 or vth_t2. Variable
+    field can be 'vth_t1' or 'vth_t2' and params is the corresponding vth .
+    '''
+    df_filtered    = df[df.channel_id.isin(channels)][['channel_id', 'count']]
+    operations     = ['count', 'mean', 'std', 'min', 'max', 'sum']
+    df_agg         = df_filtered.groupby('channel_id').agg(operations)
+    df_agg.columns = operations
+    df_tmp         = df_agg.reset_index()
+    df_tmp[field]  = params
+    return df_tmp

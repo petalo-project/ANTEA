@@ -8,6 +8,7 @@ import os
 from antea.preproc.threshold_calibration import filter_df_evts
 from antea.preproc.threshold_calibration import get_run_control
 from antea.preproc.threshold_calibration import compute_limit_evts_based_on_run_control
+from antea.preproc.threshold_calibration import process_df
 
 def test_filter_df_evts():
     '''
@@ -80,3 +81,30 @@ def test_compute_limit_evts_based_on_run_control():
                                 'file2': [0, 0, 0, 1, 1, 1]})
 
     np.testing.assert_array_equal(df_limits, df_expected)
+
+
+def test_process_df():
+    '''
+    Check the correct obtantion of statistical operations for each group of data
+    '''
+
+    df       = pd.DataFrame({'channel_id' : [13, 13, 13, 13, 13, 13, 14, 14,
+                                             14, 14, 14],
+                             'count'      : [3000, 3800, 4305, 4152, 3200, 3460,
+                                             100, 213, 150, 175, 210]})
+
+    field    = 'vth_t1'
+    channels = list(range(64))
+    params   = 28
+
+    df_tmp      = process_df(df, channels, field, params)
+    df_expected = pd.DataFrame({'channel_id': [13, 14],
+                                'count'     : [6, 5],
+                                'mean'      : [3652.83, 169.6],
+                                'std'       : [522.413, 46.832],
+                                'min'       : [3000, 100],
+                                'max'       : [4305, 213],
+                                'sum'       : [21917, 848],
+                                'vth_t1'    : [28, 28]})
+
+    assert np.allclose(df_tmp, df_expected, atol = 0.001)
