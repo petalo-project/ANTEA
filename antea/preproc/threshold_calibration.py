@@ -82,3 +82,45 @@ def process_df(df, channels, field, params):
     df_tmp         = df_agg.reset_index()
     df_tmp[field]  = params
     return df_tmp
+
+
+def compute_max_counter_value_for_each_config(tofpet_id, field, channels, files, limits):
+    '''
+    It returns a dataframe with the std, mean, max, min and sum calculation
+    per channel for each group of data and a tofpet events' array.
+    '''
+    results       = []
+    tofpet_evts   = []
+    current_file1 = -1
+    df = pd.DataFrame()
+
+    for iteration, limit in limits.iterrows():
+        file1 = int(limit.file1)
+        file2 = int(limit.file2)
+
+        if file1 != current_file1:
+            df            = pd.read_hdf(files[file1], 'counter')
+            current_file1 = file1
+
+        df_filtered = filter_df_evts(df, limit.start, limit.end)
+
+        if file1 != file2:
+            df2          = pd.read_hdf(files[file2], 'counter')
+            df2_filtered = filter_df_evts(df2, limit.start, limit.end)
+            df_filtered  = pd.concat([df_filtered, df2_filtered])
+
+            # Update file1
+            df            = df2
+            current_file1 = file2
+
+        df_filtered = df_filtered[df_filtered.tofpet_id == tofpet_id]
+
+        tofpet_evts.append(df_filtered.shape[0])
+
+        try:
+            result = process_df(df_filtered, channels, field, iteration)
+            results.append(result)
+        except ValueError:
+            print("Error")
+
+    return pd.concat(results), tofpet_evts

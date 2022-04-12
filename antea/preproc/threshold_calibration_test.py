@@ -9,6 +9,7 @@ from antea.preproc.threshold_calibration import filter_df_evts
 from antea.preproc.threshold_calibration import get_run_control
 from antea.preproc.threshold_calibration import compute_limit_evts_based_on_run_control
 from antea.preproc.threshold_calibration import process_df
+from antea.preproc.threshold_calibration import compute_max_counter_value_for_each_config
 
 def test_filter_df_evts():
     '''
@@ -108,3 +109,55 @@ def test_process_df():
                                 'vth_t1'    : [28, 28]})
 
     assert np.allclose(df_tmp, df_expected, atol = 0.001)
+
+
+def test_compute_max_counter_value_for_each_config(output_tmpdir):
+    '''
+    Check the correct obtantion of statistical operations for each group of data
+    and the tofpet events array
+    '''
+    tofpet_id = 0
+    field     = 'vth_t1'
+    channels  = list(np.arange(64))
+    limits    = pd.DataFrame({'start': [0, 4, 7, 10, 14, 19],
+                              'end'  : [4, 7, 10, 14, 19, 21],
+                              'file1': [0, 0, 0, 0, 1, 1],
+                              'file2': [0, 0, 0, 1, 1, 1]})
+
+    fname_1 = os.path.join(output_tmpdir, 'test_3_calib.h5')
+    fname_2 = os.path.join(output_tmpdir, 'test_4_calib.h5')
+    files   = [fname_1, fname_2]
+
+    df_1    = pd.DataFrame({'evt_number' : [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+                            'run_control': [0, 0, 0, 1, 1, 1, 0, 0, 0, 1],
+                            'tofpet_id'  : [0, 0, 2, 0, 0, 0, 2, 2, 2, 2],
+                            'channel_id' : [14, 14, 64, 35, 35, 35, 55, 39, 24, 13],
+                            'count'      : [3000, 3200, 2400, 10000, 11000,
+                                            10500, 9000, 8000, 9500, 16000]})
+
+    df_2    = pd.DataFrame({'evt_number' : [11, 12, 13, 14, 15, 16, 17, 18, 19, 20],
+                            'run_control': [1, 1, 1, 0, 0, 0, 0, 0, 1, 1],
+                            'tofpet_id'  : [0, 0, 0, 2, 0, 0, 2, 2, 0, 0],
+                            'channel_id' : [60, 60, 60, 48, 42, 42, 51, 25, 1, 1],
+                            'count'      : [30000, 35000, 33000, 40000, 42000,
+                                            43000, 41000, 39000, 60000, 63000]})
+
+    df_1.to_hdf(fname_1, key = 'counter', format = 'table')
+    df_2.to_hdf(fname_2, key = 'counter', format = 'table')
+
+    df, tofpet_evts = compute_max_counter_value_for_each_config(tofpet_id, field, channels, files, limits)
+
+
+    df_expected = pd.DataFrame({'channel_id': [14, 35, 60, 42, 1],
+                                'count'     : [2, 3, 3, 2, 2],
+                                'mean'      : [3100, 10500, 32666.67, 42500, 61500],
+                                'std'       : [141.421, 500, 2516.611, 707.106, 2121.320],
+                                'min'       : [3000, 10000, 30000, 42000, 60000],
+                                'max'       : [3200, 11000, 35000, 43000, 63000],
+                                'sum'       : [6200, 31500, 98000, 85000, 123000],
+                                'vth_t1'    : [0, 1, 3, 4, 5]})
+
+    tofpet_evts_expected = np.array([2, 3, 0, 3, 2, 2])
+
+    assert np.allclose(df, df_expected, atol = 0.001)
+    np.testing.assert_array_equal(tofpet_evts, tofpet_evts_expected)
