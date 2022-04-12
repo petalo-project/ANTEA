@@ -7,6 +7,7 @@ import os
 
 from antea.preproc.threshold_calibration import filter_df_evts
 from antea.preproc.threshold_calibration import get_run_control
+from antea.preproc.threshold_calibration import compute_limit_evts_based_on_run_control
 
 def test_filter_df_evts():
     '''
@@ -56,3 +57,26 @@ def test_get_run_control(output_tmpdir):
     df_expected['fileno'] = [0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1]
     df_expected['diff']   = [0, 0, 0, 1, 0, 0, 255, 0, 0, 1, 0, 0]
     np.testing.assert_array_equal(df, df_expected)
+
+
+def test_compute_limit_evts_based_on_run_control():
+    '''
+    Check the correct limit obtantion for each group of data based on
+    run control number.
+    '''
+    df = pd.DataFrame({'evt_number' : [1, 2, 3, 4, 5, 6, 7, 8, 9, 10,
+                                       11, 12, 13, 14, 15, 16, 17, 18, 19, 20],
+                       'run_control': [0, 0, 0, 1, 1, 1, 0, 0, 0, 1, 1, 1, 1,
+                                       0, 0, 0, 0, 0, 1, 1],
+                       'fileno'     : [0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                                       1, 1, 1, 1, 1, 1, 1, 1, 1, 1]})
+    df['run_control'] = df['run_control'].astype(np.uint8)
+    df['diff'] = df['run_control'].diff().fillna(0)
+
+    df_limits = compute_limit_evts_based_on_run_control(df)
+    df_expected = pd.DataFrame({'start': [0, 4, 7, 10, 14, 19],
+                                'end'  : [4, 7, 10, 14, 19, 21],
+                                'file1': [0, 0, 0, 0, 1, 1],
+                                'file2': [0, 0, 0, 1, 1, 1]})
+
+    np.testing.assert_array_equal(df_limits, df_expected)
