@@ -124,3 +124,32 @@ def compute_max_counter_value_for_each_config(tofpet_id, field, channels, files,
             print("Error")
 
     return pd.concat(results), tofpet_evts
+
+
+def plot_evts_recorded_per_configuration(tofpet_evts, limits):
+    '''
+    It plots the tofpet events and date events
+    '''
+    date_evts = limits.start.diff().values[1:]
+    max1 = 1.5 * np.max(tofpet_evts)
+    max2 = 1.5 * np.max(date_evts)
+
+    fig, ax1 = plt.subplots(figsize=(15,7))
+
+    color = 'tab:red'
+    ax1.set_xlabel('Parameter')
+    ax1.set_ylabel('TOFPET evts', color=color)
+    ax1.plot(tofpet_evts, color=color, drawstyle='steps')
+    ax1.tick_params(axis='y', labelcolor=color)
+    ax1.set_ylim([0, max1])
+
+    ax2 = ax1.twinx()  # instantiate a second axes that shares the same x-axis
+
+    color = 'tab:blue'
+    ax2.set_ylabel('DATE evts', color=color)  # we already handled the x-label with ax1
+    ax2.plot(date_evts, color=color, drawstyle='steps', linestyle='--')
+    ax2.tick_params(axis='y', labelcolor=color)
+    ax2.set_ylim([0, max2])
+
+    fig.tight_layout()  # otherwise the right y-label is slightly clipped
+    plt.show()
