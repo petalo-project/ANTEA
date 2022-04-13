@@ -3,6 +3,13 @@ import pandas           as pd
 import tables           as tb
 import numpy            as np
 
+from matplotlib.dates import MINUTELY, SECONDLY
+from matplotlib.dates import DateFormatter
+from matplotlib.dates import rrulewrapper
+from matplotlib.dates import RRuleLocator
+from datetime         import datetime
+
+
 
 def filter_df_evts(df, evt_start, evt_end):
     '''
@@ -153,3 +160,25 @@ def plot_evts_recorded_per_configuration(tofpet_evts, limits):
 
     fig.tight_layout()  # otherwise the right y-label is slightly clipped
     plt.show()
+
+
+def plot_time_distribution(df_times):
+    '''
+    It plots the events time distribution.
+    '''
+    dtimes = [datetime.fromtimestamp(time) for time in (df_times.timestamp/1e6).values]
+
+    plt.rcParams.update({'font.size': 18})
+    fig, ax = plt.subplots(figsize=(20,7))
+
+    plt.plot_date(dtimes, np.ones_like(dtimes), '.')
+
+    formatter = DateFormatter('%H:%M:%S')
+    rule      = rrulewrapper(SECONDLY, interval=30)
+    loc       = RRuleLocator(rule)
+
+    ax.xaxis.set_major_locator(loc)
+    ax.xaxis.set_major_formatter(formatter)
+    ax.xaxis.set_tick_params(rotation=30)
+    ax.yaxis.set_visible(False)
+    ax.set_title("Events time distribution")
