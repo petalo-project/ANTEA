@@ -19,6 +19,7 @@ def phantom_true_img(ANTEADATADIR):
 sig_intensity  =   4
 bckg_intensity =   1
 r              =  50
+z              =   0
 bckg_sphere_r  =   4
 phi0           = np.pi/6.
 phi_step       = np.pi/3.
@@ -52,7 +53,7 @@ def test_true_signal_crc_is_close_to_one(phantom_true_img):
     ### take the 3d image
     for i in range(0, len(hot_phi)):
         crc, _ = fomf.crc_hot3d(phantom_true_img, sig_intensity, bckg_intensity,
-                                hot_sphere_r[i], r, hot_phi[i],
+                                hot_sphere_r[i], r, hot_phi[i], z,
                                 bckg_sphere_r, phi0, phi_step, nphi,
                                 x_size, y_size, z_size,
                                 xbins, ybins, zbins)
@@ -76,7 +77,7 @@ def test_true_background_crc_is_close_to_zero(phantom_true_img):
     ### take the 3d image
     for i in range(0, len(cold_phi)):
         crc, _ = fomf.crc_cold3d(phantom_true_img, cold_sphere_r[i],
-                                 r, cold_phi[i], bckg_sphere_r,
+                                 r, cold_phi[i], z, bckg_sphere_r,
                                  phi0, phi_step, nphi,
                                  x_size, y_size, z_size, xbins, ybins, zbins)
 
@@ -98,7 +99,7 @@ def test_signal_to_noise_ratio_is_infinite(phantom_true_img):
     ### take the 3d image
     for i in range(0, len(cold_phi)):
         snr, _ = fomf.snr3d(phantom_true_img, hot_sphere_r[i], r, hot_phi[i],
-                            bckg_sphere_r, phi0, phi_step, nphi,
+                            z, bckg_sphere_r, phi0, phi_step, nphi,
                             x_size, y_size, z_size, xbins, ybins, zbins)
 
         assert math.isinf(snr)
