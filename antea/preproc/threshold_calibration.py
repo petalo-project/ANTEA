@@ -182,3 +182,40 @@ def plot_time_distribution(df_times):
     ax.xaxis.set_tick_params(rotation=30)
     ax.yaxis.set_visible(False)
     ax.set_title("Events time distribution")
+
+
+def plot_channels(df_counts, channels, nbits):
+    '''
+    It plots the counts read in each channel vs the vth configured
+    '''
+    plt.rcParams.update({'font.size': 14})
+
+    #Plot size for different number of channels available
+    if len(channels) == 64:
+        fig, ax = plt.subplots(figsize=(40,34))
+
+    elif len(channels) == 48:
+        fig, ax = plt.subplots(figsize=(40,26))
+
+    elif len(channels) == 32:
+        fig, ax = plt.subplots(figsize=(40,17))
+
+    elif len(channels) == 16:
+        fig, ax = plt.subplots(figsize=(40,8))
+
+    rows = int(len(channels)/8)
+
+    for i, ch in enumerate(channels):
+        values = df_counts[df_counts.channel_id == ch]['max'].values
+        ax     = plt.subplot(rows, 8, i+1)
+        ymax   = (2**nbits)
+        plt.plot(values, drawstyle='steps', linewidth=3)
+        plt.ylim(0, 1.1*ymax)
+        plt.setp(ax.get_yticklabels(), fontsize=16)
+        plt.text(15, 0.5*ymax, f"ch: {ch}", horizontalalignment='center',
+                 verticalalignment='center', rotation=0, fontsize=15)
+
+        if i in [0, 1, 2, 8, 9, 10, 16, 17, 18]:
+            plt.setp(ax.get_xticklabels(), fontsize=16)
+        else:
+            plt.setp(ax.get_xticklabels(), visible=False)
