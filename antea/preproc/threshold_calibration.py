@@ -297,3 +297,54 @@ def plot_channels_multiple_runs(dfs, runs_dict, channels, title='', fname=None):
 
     if fname:
         plt.savefig(fname)
+
+
+def find_threshold(df_counter, nbits, vth_t, threshold_2 = None):
+    #vth is a string, it can be vth_t1 or vth_t2
+    '''
+    It returns an array with the thresholds we are looking for. The function
+    changes taking into account if we are looking for the vth_t1 thresholds
+    (cutting noise in 0) or the vth_t2 thresholds.
+    '''
+    vth_1    = np.zeros(64)
+    channels = df_counter['channel_id'].unique()
+    channels.sort()
+
+    if   vth_t == 'vth_t1':
+        valor = 'max'
+    elif vth_t == 'vth_t2':
+        valor = 'expected_rate'
+
+    for i, ch in enumerate(channels):
+        df_filtered = df_counter[df_counter['channel_id']==ch]
+        waveform    = df_filtered[valor].values # max for vth_t1 or expected_rate for vth_t2
+        vth_t1s     = df_filtered[vth_t].values
+
+        if vth_t == 'vth_t1':
+            threshold_v1 = 1
+
+            for j, (count, vth_t1) in enumerate(zip(waveform, vth_t1s)):
+                #We look for the first data that is no null and we save its
+                #vth_t1. If higher than 10, we save the previous one
+                if threshold_v1 <= count:
+                    vth_1[i] = vth_t1
+
+                    if count > 10:
+                        vth_1[i] = vth_t1 - 1
+
+                    break
+
+        elif vth_t == 'vth_t2':
+
+            threshold_v2 = threshold_2 # Expected rate where we want to cut the
+                                       # noise taking into account the activity fit
+
+            for j, (count, vth_t1) in enumerate(zip(waveform, vth_t1s)):
+                #we look for the last data that is null from right to left
+
+                if count > threshold_v2:
+                    vth_1[i] = vth_t1
+
+                    break
+
+    return vth_1

@@ -10,6 +10,7 @@ from antea.preproc.threshold_calibration import compute_limit_evts_based_on_run_
 from antea.preproc.threshold_calibration import process_df
 from antea.preproc.threshold_calibration import compute_max_counter_value_for_each_config
 from antea.preproc.threshold_calibration import process_run
+from antea.preproc.threshold_calibration import find_threshold
 from antea.preproc.io import get_files
 from antea.preproc.io import get_evt_times
 
@@ -232,3 +233,50 @@ def test_process_run(output_tmpdir):
                                 'vth_t1'    : [0, 1, 3, 4, 5]})
 
     assert np.allclose(df_counts, df_expected, atol = 0.001)
+
+
+def test_find_threshold():
+    '''
+    Check the threshold vth_t1 and vth_2 obtantion for each channel
+    '''
+    channels = [0]*64 + [1]*64
+
+    df_1               = pd.DataFrame()
+    df_1['channel_id'] = channels
+
+    #Create a list of max values for all channels
+    first       = [0]*25
+    max_1       = [4, 100, 180, 200, 250, 500, 3000, 10000, 20000, 30000,
+                   40000, 50000, 60000, 63000]
+    max_2       = max_1.copy()
+    max_2[0]    = 12
+    max_2[2]    = 182
+    last        = [2**16] * 25
+    max_counts  = list(np.concatenate((first, max_1, last, first, max_2, last)))
+    df_1['max'] = max_counts
+
+    vth = list(range(64))*2
+    df_1['vth_t1'] = vth
+
+    df_2 = df_1.copy()
+    df_2 = df_2.rename({'vth_t1': 'vth_t2', 'max': 'expected_rate'}, axis=1)
+
+    #Create a list of expected rate values for all channels
+    expect_1      = [50, 200, 3000, 10000, 20000, 40000, 60000, 80000, 100000,
+                     130000, 170000, 220000, 260000, 290000]
+    expect_2      = expect_1.copy()
+    expect_2[0]   = 40
+    expect_2[1]   = 180
+    last_expect   = [300000]*25
+    expected_rate = list(np.concatenate((first, expect_1, last_expect, first,
+                                         expect_2, last_expect)))
+
+    df_2['expected_rate'] = expected_rate
+
+    threshold_1          = find_threshold(df_1, 22, 'vth_t1')
+    threshold_2          = find_threshold(df_2, 22, 'vth_t2', 182)
+    expected_threshold_1 = list([25, 24]) + list([0] * 62)
+    expected_threshold_2 = list([26, 27]) + list([0] * 62)
+
+    np.testing.assert_array_equal(threshold_1, expected_threshold_1)
+    np.testing.assert_array_equal(threshold_2, expected_threshold_2)
