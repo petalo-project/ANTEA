@@ -4,12 +4,15 @@ import tables           as tb
 import numpy            as np
 import os
 
-
 from antea.preproc.threshold_calibration import filter_df_evts
 from antea.preproc.threshold_calibration import get_run_control
 from antea.preproc.threshold_calibration import compute_limit_evts_based_on_run_control
 from antea.preproc.threshold_calibration import process_df
 from antea.preproc.threshold_calibration import compute_max_counter_value_for_each_config
+from antea.preproc.threshold_calibration import process_run
+from antea.preproc.io import get_files
+from antea.preproc.io import get_evt_times
+
 
 def test_filter_df_evts():
     '''
@@ -161,3 +164,71 @@ def test_compute_max_counter_value_for_each_config(output_tmpdir):
 
     assert np.allclose(df, df_expected, atol = 0.001)
     np.testing.assert_array_equal(tofpet_evts, tofpet_evts_expected)
+
+
+def test_process_run(output_tmpdir):
+    '''
+    Check it returns the correct df with the necessary arithmetic operations
+    for each channel and vth value.
+    '''
+    run_number = 11216
+    #Recreate data folder structure
+    new_folder_pattern = os.path.join(output_tmpdir, 'analysis/{run}/hdf5/data/')
+    new_folder         = new_folder_pattern.format(run = run_number)
+    os.makedirs(new_folder)
+
+    #Create HDF5 files with file names unsorted
+    sample_dir_5 = os.path.join(new_folder, 'data_0005.h5')
+    sample_dir_3 = os.path.join(new_folder, 'data_0003.h5')
+
+    df_1_count  = pd.DataFrame({'evt_number' : [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+                          'tofpet_id'  : [0, 0, 2, 0, 0, 0, 2, 2, 2, 2],
+                          'channel_id' : [14, 14, 64, 35, 35, 35, 55, 39, 24, 13],
+                          'run_control': [0, 0, 0, 1, 1, 1, 0, 0, 0, 1],
+                          'count'      : [3000, 3200, 2400, 10000, 11000,
+                                          10500, 9000, 8000, 9500, 16000]})
+
+    df_1_time = df_1_count.copy()
+    df_1_time = df_1_time.drop(['count'], axis = 1)
+    df_1_time['timestamp'] = np.array([1, 2, 3, 4, 5, 6, 7, 8, 9, 10])*10**6
+
+
+    df_2_count = pd.DataFrame({'evt_number' : [11, 12, 13, 14, 15, 16, 17, 18, 19, 20],
+                         'tofpet_id'  : [0, 0, 0, 2, 0, 0, 2, 2, 0, 0],
+                         'channel_id' : [60, 60, 60, 48, 42, 42, 51, 25, 1, 1],
+                         'run_control': [1, 1, 1, 0, 0, 0, 0, 0, 1, 1],
+                         'count'      : [30000, 35000, 33000, 40000, 42000,
+                                         43000, 41000, 39000, 60000, 63000]})
+
+    df_2_time = df_2_count.copy()
+    df_2_time = df_2_time.drop(['count'], axis = 1)
+    df_2_time['timestamp'] = np.array([11, 12, 13, 14, 15, 16, 17, 18, 19, 20])*10**6
+
+
+    df_1_count['run_control'] = df_1_count['run_control'].astype(np.uint8)
+    df_1_time ['run_control'] = df_1_time ['run_control'].astype(np.uint8)
+    df_2_count['run_control'] = df_2_count['run_control'].astype(np.uint8)
+    df_2_time ['run_control'] = df_2_time ['run_control'].astype(np.uint8)
+
+    df_1_count.to_hdf(sample_dir_3, key = 'counter',       format = 'table')
+    df_1_time. to_hdf(sample_dir_3, key = 'dateEvents', format = 'table')
+    df_2_count.to_hdf(sample_dir_5, key = 'counter',       format = 'table')
+    df_2_time. to_hdf(sample_dir_5, key = 'dateEvents', format = 'table')
+
+    tofpet_id = 0
+    nbits = 22
+    field     = 'vth_t1'
+    channels  = list(np.arange(64))
+
+    #Check the result
+    df_counts   = process_run(run_number, nbits, field, tofpet_id, channels, plot = False, folder=new_folder_pattern)
+    df_expected = pd.DataFrame({'channel_id': [14, 35, 60, 42, 1],
+                                'count'     : [2, 3, 3, 2, 2],
+                                'mean'      : [3100, 10500, 32666.67, 42500, 61500],
+                                'std'       : [141.421, 500, 2516.611, 707.106, 2121.320],
+                                'min'       : [3000, 10000, 30000, 42000, 60000],
+                                'max'       : [3200, 11000, 35000, 43000, 63000],
+                                'sum'       : [6200, 31500, 98000, 85000, 123000],
+                                'vth_t1'    : [0, 1, 3, 4, 5]})
+
+    assert np.allclose(df_counts, df_expected, atol = 0.001)

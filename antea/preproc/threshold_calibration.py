@@ -9,6 +9,8 @@ from matplotlib.dates import rrulewrapper
 from matplotlib.dates import RRuleLocator
 from datetime         import datetime
 
+from antea.preproc.io import get_files
+from antea.preproc.io import get_evt_times
 
 
 def filter_df_evts(df, evt_start, evt_end):
@@ -219,3 +221,23 @@ def plot_channels(df_counts, channels, nbits):
             plt.setp(ax.get_xticklabels(), fontsize=16)
         else:
             plt.setp(ax.get_xticklabels(), visible=False)
+
+
+def process_run(run, nbits, field, tofpet_id, channels, plot = False, folder = '/analysis/{run}/hdf5/data/'):
+    '''
+    It returns a df with the necessary arithmetic operations for each channel
+    and vth value. Optionally it plots the time distribution and the events
+    recorded per configuration.
+    '''
+    files                  = get_files(run, folder)
+    df_times               = get_evt_times(files)
+    df_run                 = get_run_control(files)
+    limits                 = compute_limit_evts_based_on_run_control(df_run)
+    df_counts, tofpet_evts = compute_max_counter_value_for_each_config(tofpet_id,
+                             field, channels, files, limits)
+
+    if plot:
+        plot_time_distribution(df_times)
+        plot_evts_recorded_per_configuration(tofpet_evts, limits)
+
+    return df_counts
