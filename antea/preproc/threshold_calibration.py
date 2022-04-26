@@ -241,3 +241,59 @@ def process_run(run, nbits, field, tofpet_id, channels, plot = False, folder = '
         plot_evts_recorded_per_configuration(tofpet_evts, limits)
 
     return df_counts
+
+
+def plot_channels_multiple_runs(dfs, runs_dict, channels, title='', fname=None):
+    '''
+    It plots the channel counts vs the vth from different runs in the same
+    subplot so that it is easier to compare them.
+    '''
+    runs = runs_dict['run_number']
+    nbits = runs_dict['nbits']
+    rows = int(len(channels)/8)
+
+    #Plot size for different number of channels available
+    if len(channels) == 64:
+        fig, ax = plt.subplots(figsize=(40,34))
+
+    elif len(channels) == 48:
+        fig, ax = plt.subplots(figsize=(40,26))
+
+    elif len(channels) == 32:
+        fig, ax = plt.subplots(figsize=(40,17))
+
+    elif len(channels) == 16:
+        fig, ax = plt.subplots(figsize=(40,8))
+
+    colors = iter(['red', 'blue', 'orange', 'green', 'brown', 'yellow'])
+
+    for df_counts, run in zip(dfs, runs):
+        color = next(colors)
+        for i, ch in enumerate(channels):
+            values = df_counts[df_counts.channel_id == ch]['max'].values
+            ax     = plt.subplot(rows, 8, i+1)
+            ymax   = (2**nbits)
+
+            plt.plot(values, drawstyle='steps', linewidth=3, color=color,
+                     alpha=0.5, label=run)
+            plt.ylim(0, 1.1*ymax)
+            plt.text(5, 0.5*ymax, f"ch: {ch}", horizontalalignment='center',
+                     verticalalignment='center', rotation=0, fontsize=13)
+
+            max_label = '2^{{{}}}'.format(nbits)
+            ax.set_yticks([0, 2**nbits])
+            ax.set_yticklabels(['$0$', f'${max_label}$'])
+            plt.setp(ax.get_yticklabels(), fontsize=14)
+
+            if i in [0, 1, 2, 8, 9, 10, 16, 17, 18]:
+                plt.setp(ax.get_xticklabels(), fontsize=18)
+            else:
+                plt.setp(ax.get_xticklabels(), visible=False)
+
+    handles, labels = ax.get_legend_handles_labels()
+    plt.legend(bbox_to_anchor=(1.5, rows + 1.3))
+    plt.suptitle(title)
+    fig.tight_layout()
+
+    if fname:
+        plt.savefig(fname)
