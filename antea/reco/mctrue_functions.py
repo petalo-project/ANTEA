@@ -17,20 +17,20 @@ def select_photoelectric(evt_parts: pd.DataFrame, evt_hits: pd.DataFrame) -> Tup
     """
     Select only the events where one or two photoelectric events occur, and nothing else.
     """
-    sel_volume   = (evt_parts.initial_volume == 'ACTIVE') & (evt_parts.final_volume == 'ACTIVE')
-    sel_name     =  evt_parts.particle_name == 'e-'
-    sel_vol_name = evt_parts[sel_volume & sel_name]
-    ids          = sel_vol_name.particle_id.values
+    sel_volume    = (evt_parts.initial_volume == 'ACTIVE') & (evt_parts.final_volume == 'ACTIVE')
+    sel_name_proc = (evt_parts.particle_name == 'e-') & (evt_parts.creator_proc == 'phot')
+    sel_vol_name  = evt_parts[sel_volume & sel_name_proc]
+    ids           = sel_vol_name.particle_id.values
 
     sel_hits   = find_hits_of_given_particles(ids, evt_hits)
     energies   = sel_hits.groupby(['particle_id'])[['energy']].sum()
     energies   = energies.reset_index()
-    energy_sel = energies[rf.greater_or_equal(energies.energy, 0.476443, allowed_error=1.e-6)]
 
-    sel_vol_name_e  = sel_vol_name[sel_vol_name.particle_id.isin(energy_sel.particle_id)]
+    energy_sel = energies[(energies.energy >= 0.473) & (energies.energy <= 0.513)]
+    gammas     = evt_parts[evt_parts.particle_name == 'gamma']
 
-    primaries = evt_parts[evt_parts.primary == True]
-    sel_all   = sel_vol_name_e[sel_vol_name_e.mother_id.isin(primaries.particle_id.values)]
+    sel_vol_name_e = sel_vol_name  [sel_vol_name  .particle_id.isin(energy_sel.particle_id)]
+    sel_all        = sel_vol_name_e[sel_vol_name_e.mother_id  .isin(gammas.particle_id.values)]
     if len(sel_all) == 0:
         return (False, [])
 
@@ -45,7 +45,7 @@ def select_photoelectric(evt_parts: pd.DataFrame, evt_hits: pd.DataFrame) -> Tup
         true_pos.append(np.average(hit_positions, axis=0, weights=df.energy))
 
     ### Reject events where the two gammas have interacted in the same hemisphere.
-    if (len(true_pos) == 1) & (evt_hits.energy.sum() > 0.511):
+    if (len(true_pos) == 1) & (evt_hits.energy.sum() > 0.513):
        return (False, [])
 
     return (True, true_pos)

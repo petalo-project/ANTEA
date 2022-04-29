@@ -4,6 +4,7 @@ import numpy                 as np
 import pandas                as pd
 import hypothesis.strategies as st
 
+from pytest      import mark
 from hypothesis  import given
 from collections import OrderedDict
 
@@ -62,30 +63,23 @@ def test_select_photoelectric(ANTEADATADIR):
     effect depositing its 511 keV and stores the weighted average position
     of its/their hits.
     """
-    PATH_IN      = os.path.join(ANTEADATADIR, 'ring_test_1000ev.h5')
-    DataSiPM     = db.DataSiPM('petalo', 0)
-    DataSiPM_idx = DataSiPM.set_index('SensorID')
-    sns_response = load_mcsns_response(PATH_IN)
-    threshold    = 2
-    sel_df       = rf.find_SiPMs_over_threshold(sns_response, threshold)
-
+    PATH_IN   = os.path.join(ANTEADATADIR, 'petbox_noncoll_gammas.pet.h5')
     particles = load_mcparticles(PATH_IN)
     hits      = load_mchits(PATH_IN)
     events    = particles.event_id.unique()
 
-    for evt in events[:]:
+    for evt in events:
         evt_parts = particles[particles.event_id == evt]
         evt_hits  = hits     [hits     .event_id == evt]
 
-        select, true_pos = mcf.select_photoelectric(evt_parts, evt_hits)
-
+        select, true_pos = mcf.select_photoelectric(evt_parts,
+                                                    evt_hits)
         if select:
-            assert rf.greater_or_equal(evt_hits.energy.sum(), 0.476443, 1.e-3)
+            assert rf.greater_or_equal(evt_hits.energy.sum(), 0.473)
         else:
             assert len(true_pos) == 0
 
         if len(true_pos) == 1:
-            assert rf.lower_or_equal(evt_hits.energy.sum(), 0.511, 1.e-3)
+            assert rf.lower_or_equal(evt_hits.energy.sum(), 0.513, 1.e-3)
         elif len(true_pos) == 2:
-            assert evt_hits.energy.sum() > 0.511
-
+            assert evt_hits.energy.sum() > 0.513
