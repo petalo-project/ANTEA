@@ -144,12 +144,8 @@ def initial_coord_first_daughter(particles: pd.DataFrame,
     daughters = particles[particles.mother_id == mother_id]
     if len(daughters):
         daughter = daughters.loc[daughters['initial_t'].idxmin()]
-        vtx_pos  = np.array([daughter.initial_x,
-                             daughter.initial_y,
-                             daughter.initial_z])
-        ## the commented line causes errors down the line despite giving
-        ## an identical array... why?
-        ## vtx_pos  = daughter[['initial_x', 'initial_y', 'initial_z']].values
+        ## Type protection needed in access for some reason.
+        vtx_pos  = daughter[['initial_x', 'initial_y', 'initial_z']].values.astype('float32')
         init_vol = daughter.initial_volume
         return vtx_pos, daughter.initial_t, init_vol
 
