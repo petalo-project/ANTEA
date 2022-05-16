@@ -55,15 +55,9 @@ def find_closest_sipm(point: Tuple[float, float, float],
    """
    Find the closest SiPM to a point, given a df of SiPMs.
    """
-   sns_positions = np.array([sipms.X.values, sipms.Y.values, sipms.Z.values]).transpose()
-
-   subtr        = [np.subtract(point, pos) for pos in sns_positions]
-   distances    = [np.linalg.norm(d) for d in subtr]
-   min_dist     = np.min(distances)
-   min_sipm     = np.isclose(distances, min_dist)
-   closest_sipm = sipms[min_sipm]
-
-   return closest_sipm.iloc[0]
+   sipm_xyz  = sipms[['X', 'Y', 'Z']].values
+   distances = np.linalg.norm(np.subtract(sipm_xyz, point), axis=1)
+   return sipms.iloc[np.argmin(distances)]
 
 
 def divide_sipms_in_two_hemispheres(sns_ids: Sequence[int],
@@ -112,9 +106,7 @@ def assign_sipms_to_gammas(sns_response: pd.DataFrame,
         DataSiPM_idx = DataSiPM_idx.set_index('SensorID')
     sipms           = DataSiPM_idx.loc[sns_response.sensor_id]
     sns_ids         = sipms.index.astype('int64').values
-    sns_closest_pos = [np.array([find_closest_sipm(pos, sipms).X,
-                                 find_closest_sipm(pos, sipms).Y,
-                                 find_closest_sipm(pos, sipms).Z])
+    sns_closest_pos = [find_closest_sipm(pos, sipms)[['X', 'Y', 'Z']].values
                        for pos in true_pos]
 
     q1,   q2   = [], []
