@@ -44,7 +44,7 @@ def build_r_map(input_file: str, output_file: str, threshold: float):
         exit()
     print(f'Analyzing file {input_file}')
 
-    sel_df = rf.find_SiPMs_over_threshold(sns_response, threshold)
+    sel_df = sns_response[sns_response.charge > threshold]
 
     particles = pd.read_hdf(input_file, 'MC/particles')
     hits      = pd.read_hdf(input_file, 'MC/hits')

@@ -43,7 +43,8 @@ def find_SiPMs_over_threshold(df: pd.DataFrame,
                               threshold: float) -> pd.DataFrame:
     """
     Integrate the charge in time of each SiPM and select only those with
-    total charge larger than threshold.
+    total charge larger than threshold. This function is kept to be used
+    with old test files.
     """
     tot_charges_df = df.groupby(['event_id','sensor_id'])[['charge']].sum()
     return tot_charges_df[tot_charges_df.charge > threshold].reset_index()
