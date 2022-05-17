@@ -18,9 +18,12 @@ def test_number_of_sensors_is_the_same(ANTEADATADIR):
     DataSiPM     = db.DataSiPMsim_only('petalo', 0) # full body PET
     DataSiPM_idx = DataSiPM.set_index('SensorID')
 
-    PATH_IN       = os.path.join(ANTEADATADIR, 'full_body_1ev.h5')
+    PATH_IN       = os.path.join(ANTEADATADIR, 'full_body_coinc.h5')
     sns_response  = load_mcsns_response(PATH_IN)
     events        = sns_response.event_id.unique()
+
+    evt = events[0]
+    sns_response = sns_response[sns_response.event_id == evt]
 
     fluct_sns_response = apply_charge_fluctuation(sns_response, DataSiPM_idx)
 
