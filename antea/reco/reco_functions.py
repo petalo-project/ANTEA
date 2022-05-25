@@ -1,7 +1,7 @@
 import numpy  as np
 import pandas as pd
 
-from antea.core.exceptions import WaveformEmptyTable
+from antea.core .exceptions    import WaveformEmptyTable
 from antea.utils.map_functions import Map
 
 from typing import Sequence, Tuple
@@ -145,7 +145,9 @@ def initial_coord_first_daughter(particles: pd.DataFrame,
     if len(daughters):
         daughter = daughters.loc[daughters['initial_t'].idxmin()]
         ## Type protection needed in access for some reason.
-        vtx_pos  = daughter[['initial_x', 'initial_y', 'initial_z']].values.astype('float32')
+        vtx_pos  = daughter[['initial_x',
+                             'initial_y',
+                             'initial_z']].values.astype('float32')
         init_vol = daughter.initial_volume
         return vtx_pos, daughter.initial_t, init_vol
 
