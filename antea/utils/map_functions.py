@@ -221,7 +221,6 @@ def load_corrections(filename, *,
                      y_name = 'Y',
                      f_name = 'Factor',
                      u_name = 'Uncertainty',
-                     n_name = 'NEvt',
                      **kwargs):
 
     dst  = load_dst(filename, group, node)
