@@ -115,7 +115,7 @@ def characterize_coincidences(input_file: str, output_file: str, rmap: str):
     for evt in events:
 
         evt_sns = fluct_sns_response[fluct_sns_response.event_id == evt]
-        evt_sns = rf.find_SiPMs_over_threshold(evt_sns, threshold=thr_e)
+        evt_sns = evt_sns[evt_sns.charge > thr_e]
         if len(evt_sns) == 0:
             continue
 

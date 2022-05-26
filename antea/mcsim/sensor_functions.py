@@ -9,26 +9,23 @@ def apply_charge_fluctuation(sns_df: pd.DataFrame, DataSiPM_idx: pd.DataFrame):
     according to a value read from the database.
     """
 
-    sum_sns = sns_df.groupby(['event_id','sensor_id'])[['charge']].sum()
-    sum_sns = sum_sns.reset_index()
-    charges = sum_sns.charge.values
+    charges = sns_df.charge.values
     sipmrd  = charges[:, np.newaxis] # IC function expects a waveform
 
     pe_resolution = DataSiPM_idx.Sigma / DataSiPM_idx.adc_to_pes
-    touched_sipms = sum_sns.sensor_id.values
+    touched_sipms = sns_df.sensor_id.values
     pe_res        = pe_resolution[touched_sipms]
 
     sipm_fluct = np.array(tuple(map(charge_fluctuation, sipmrd, pe_res)))
 
     events      = sns_df.event_id.unique()
-    sns_per_evt = sum_sns.event_id.value_counts()
+    sns_per_evt = sns_df.event_id.value_counts()
     instances   = sns_per_evt[events]
 
     evts         = np.repeat(events, instances)
-    t_bins       = np.repeat(0, len(sipmrd))
     fluct_charge = sipm_fluct.flatten()
     fluct_sns    = pd.DataFrame({'event_id': evts, 'sensor_id': touched_sipms,
-                                 'time_bin': t_bins, 'charge': fluct_charge})
+                                 'charge': fluct_charge})
 
     return fluct_sns
 

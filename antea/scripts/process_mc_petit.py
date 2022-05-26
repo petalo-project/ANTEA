@@ -43,4 +43,4 @@ if __name__ == "__main__":
 
     input_file  = str(sys.argv[1])
     output_file = str(sys.argv[2])
-    process_data_petit(input_file, output_file)
+    process_mc_petit(input_file, output_file)
