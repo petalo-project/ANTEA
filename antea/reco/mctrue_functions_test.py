@@ -1,21 +1,14 @@
 import os
-import math
-import numpy                 as np
-import pandas                as pd
 import hypothesis.strategies as st
 
-from pytest      import mark
 from hypothesis  import given
 from collections import OrderedDict
 
 from .           import reco_functions   as rf
 from .           import mctrue_functions as mcf
-from .. database import load_db          as db
 
 from .. io.mc_io import load_mchits
 from .. io.mc_io import load_mcparticles
-from .. io.mc_io import load_mcsns_response
-from .. io.mc_io import load_mcTOFsns_response
 
 
 

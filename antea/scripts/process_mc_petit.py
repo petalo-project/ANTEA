@@ -1,5 +1,4 @@
 import sys
-import numpy  as np
 import pandas as pd
 
 import antea.reco.petit_reco_functions as prf

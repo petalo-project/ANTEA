@@ -227,7 +227,6 @@ def load_corrections(filename, *,
     dst  = load_dst(filename, group, node)
     x, y = np.unique(dst[x_name].values), np.unique(dst[y_name].values)
     f, u = dst[f_name].values, dst[u_name].values
-    n    = dst[n_name].values
 
     return Map((x, y),
                f.reshape(x.size, y.size),

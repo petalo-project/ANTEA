@@ -1,8 +1,6 @@
 import pandas as pd
 import numpy  as np
 
-from invisible_cities.reco.sensor_functions import charge_fluctuation
-
 def apply_charge_fluctuation(sns_df: pd.DataFrame, DataSiPM_idx: pd.DataFrame):
     """
     Apply a fluctuation in the total detected charge, sensor by sensor,
