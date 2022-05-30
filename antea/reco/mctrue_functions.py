@@ -3,8 +3,6 @@ import pandas as pd
 
 from typing     import Sequence, Tuple
 
-from antea.reco import reco_functions   as rf
-
 
 def find_hits_of_given_particles(p_ids: Sequence[int], hits: pd.DataFrame) -> pd.DataFrame:
     """
@@ -23,8 +21,7 @@ def select_photoelectric(evt_parts: pd.DataFrame, evt_hits: pd.DataFrame) -> Tup
     ids           = sel_vol_name.particle_id.values
 
     sel_hits   = find_hits_of_given_particles(ids, evt_hits)
-    energies   = sel_hits.groupby(['particle_id'])[['energy']].sum()
-    energies   = energies.reset_index()
+    energies   = sel_hits.groupby(['particle_id'], as_index=False).energy.sum()
 
     energy_sel = energies[(energies.energy >= 0.473) & (energies.energy <= 0.513)]
     gammas     = evt_parts[evt_parts.particle_name == 'gamma']
@@ -41,7 +38,7 @@ def select_photoelectric(evt_parts: pd.DataFrame, evt_hits: pd.DataFrame) -> Tup
     sel_hits = sel_hits.groupby(['particle_id'])
     true_pos = []
     for _, df in sel_hits:
-        hit_positions = np.array([df.x.values, df.y.values, df.z.values]).transpose()
+        hit_positions = df[['x', 'y', 'z']].values
         true_pos.append(np.average(hit_positions, axis=0, weights=df.energy))
 
     ### Reject events where the two gammas have interacted in the same hemisphere.

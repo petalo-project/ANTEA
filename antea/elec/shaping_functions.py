@@ -1,6 +1,8 @@
 import numpy  as np
 import pandas as pd
 
+from scipy.signal import fftconvolve
+
 from typing import Sequence, Tuple
 
 
@@ -72,7 +74,7 @@ def sipm_shaping_convolution(tof_response: pd.DataFrame,
     sel_tof = tof_response[(tof_response.sensor_id == s_id) &
                            (tof_response.time < time_window)]
     pe_vect[sel_tof.time.values] = sel_tof.charge.values
-    tdc_conv = convolve_signal_with_shaping(pe_vect, spe_response)
+    tdc_conv = fftconvolve(pe_vect, spe_response)
     return tdc_conv
 
 

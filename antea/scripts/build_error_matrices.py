@@ -1,6 +1,5 @@
 import os
 import sys
-import argparse
 import numpy as np
 
 import antea.mcsim   .fastmc3d as fmc
@@ -67,8 +66,8 @@ def build_error_matrices(input_folder: str, output_folder:str):
 
             event_ids.extend(d['a_event_ids'])
 
-            first_time1.extend(d[f'a_first_time1'])
-            first_time2.extend(d[f'a_first_time2'])
+            first_time1.extend(d['a_first_time1'])
+            first_time2.extend(d['a_first_time2'])
 
             for i in d['a_first_sipm1']:
                 first_sipm1.append(i)
@@ -230,7 +229,7 @@ def build_error_matrices(input_folder: str, output_folder:str):
 
     ## photoelectric-like events
     print('Phot-like')
-    file_name = output_folder + f'errmat_r_phot_like.npz'
+    file_name = output_folder + 'errmat_r_phot_like.npz'
     h, eff, xmin, ymin, dx, dy = fmc.compute_error_mat_2d(true_r       [sel_phot_like],
                                                           diff_r_matrix[sel_phot_like],
                                                           bins   = (r_bins,  r_err_bins_phot),
@@ -242,7 +241,7 @@ def build_error_matrices(input_folder: str, output_folder:str):
 
     ## compton-like events
     print('Compt-like')
-    file_name = output_folder + f'errmat_r_compt_like.npz'
+    file_name = output_folder + 'errmat_r_compt_like.npz'
     h, eff, xmin, ymin, dx, dy = fmc.compute_error_mat_2d(true_r       [sel_compt_like],
                                                           diff_r_matrix[sel_compt_like],
                                                           bins   = (r_bins,  r_err_bins_compt),
@@ -260,7 +259,7 @@ def build_error_matrices(input_folder: str, output_folder:str):
 
     ## photoelectric-like events
     print('Phot-like')
-    file_name = output_folder + f'errmat_phi_phot_like.npz'
+    file_name = output_folder + 'errmat_phi_phot_like.npz'
     h, eff, xmin, ymin, zmin, dx, dy, dz = fmc.compute_error_mat_3d(true_phi       [sel_phot_like],
                                                                     true_r         [sel_phot_like],
                                                                     diff_phi_matrix[sel_phot_like],
@@ -273,7 +272,7 @@ def build_error_matrices(input_folder: str, output_folder:str):
 
     ## compton-like events
     print('Compt-like')
-    file_name = output_folder + f'errmat_phi_compt_like.npz'
+    file_name = output_folder + 'errmat_phi_compt_like.npz'
     h, eff, xmin, ymin, zmin, dx, dy, dz = fmc.compute_error_mat_3d(true_phi       [sel_compt_like],
                                                                     true_r         [sel_compt_like],
                                                                     diff_phi_matrix[sel_compt_like],
@@ -293,7 +292,7 @@ def build_error_matrices(input_folder: str, output_folder:str):
 
     ## photoelectric-like events
     print('Phot-like')
-    file_name = output_folder + f'errmat_z_phot_like.npz'
+    file_name = output_folder + 'errmat_z_phot_like.npz'
     h, eff, xmin, ymin, zmin, dx, dy, dz = fmc.compute_error_mat_3d(true_z       [sel_phot_like],
                                                                     true_r       [sel_phot_like],
                                                                     diff_z_matrix[sel_phot_like],
@@ -305,7 +304,7 @@ def build_error_matrices(input_folder: str, output_folder:str):
 
     ## compton-like events
     print('Compt-like')
-    file_name = output_folder + f'errmat_z_compt_like.npz'
+    file_name = output_folder + 'errmat_z_compt_like.npz'
     h, eff, xmin, ymin, zmin, dx, dy, dz = fmc.compute_error_mat_3d(true_z       [sel_compt_like],
                                                                     true_r       [sel_compt_like],
                                                                     diff_z_matrix[sel_compt_like],
@@ -325,7 +324,7 @@ def build_error_matrices(input_folder: str, output_folder:str):
 
     ## photoelectric-like events
     print('Phot-like')
-    file_name = output_folder + f'errmat_t_phot_like.npz'
+    file_name = output_folder + 'errmat_t_phot_like.npz'
     h, eff, xmin, ymin, dx, dy = fmc.compute_error_mat_2d(true_t               [sel_phot_like],
                                                           diff_reco_t_matrix[sel_phot_like],
                                                           bins   = (t_bins,  t_err_bins_phot),
@@ -336,7 +335,7 @@ def build_error_matrices(input_folder: str, output_folder:str):
 
     ## compton-like events
     print('Compt-like')
-    file_name = output_folder + f'errmat_t_compt_like.npz'
+    file_name = output_folder + 'errmat_t_compt_like.npz'
     h, eff, xmin, ymin, dx, dy = fmc.compute_error_mat_2d(true_t               [sel_compt_like],
                                                         diff_reco_t_matrix[sel_compt_like],
                                                         bins   = (t_bins,  t_err_bins_compt),

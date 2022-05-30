@@ -339,7 +339,6 @@ def test_change_unsigned_type_sipm(ANTEADATADIR):
     hits         = load_mchits           (PATH_IN)
     particles    = load_mcparticles      (PATH_IN)
     sns_response = load_mcsns_response   (PATH_IN)
-    tof_response = load_mcTOFsns_response(PATH_IN).astype('float64')
     events       = particles.event_id.unique()
     charge_range = (1000, 1400)
     for evt in events[:]:
@@ -367,7 +366,6 @@ def test_select_coincidences(ANTEADATADIR):
     """
     PATH_IN      = os.path.join(ANTEADATADIR, 'ring_test_1000ev.h5')
     sns_response = load_mcsns_response(PATH_IN)
-    tof_response = load_mcTOFsns_response(PATH_IN)
     threshold    = 2
     charge_range = (1000, 1400)
     radius_range = ( 165,  195)

@@ -1,12 +1,7 @@
 import os
 import pytest
-import numpy  as np
-import tables as tb
 
-from pandas      import DataFrame
 from collections import namedtuple
-
-from invisible_cities.core import system_of_units as units
 
 db_data  = namedtuple('db_data', 'detector nsipms conf_label')
 

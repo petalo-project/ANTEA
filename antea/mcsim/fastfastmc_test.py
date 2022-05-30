@@ -1,6 +1,4 @@
 import os
-import numpy  as np
-import pandas as pd
 
 from  .            import fastfastmc as ffmc
 from  . errmat     import errmat

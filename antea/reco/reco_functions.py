@@ -1,7 +1,7 @@
 import numpy  as np
 import pandas as pd
 
-from antea.core.exceptions import WaveformEmptyTable
+from antea.core .exceptions    import WaveformEmptyTable
 from antea.utils.map_functions import Map
 
 from typing import Sequence, Tuple
@@ -16,7 +16,7 @@ def greater_or_equal(f1: float, f2: float,
     return f1 >= f2 - allowed_error
 
 
-def from_cartesian_to_cyl(pos: Sequence[np.array]) -> Sequence[np.array]:
+def from_cartesian_to_cyl(pos: Sequence[np.ndarray]) -> Sequence[np.ndarray]:
     cyl_pos = np.array([np.sqrt(pos[:,0]**2+pos[:,1]**2),
                         np.arctan2(pos[:,1], pos[:,0]),
                         pos[:,2]]).transpose()
@@ -46,8 +46,8 @@ def find_SiPMs_over_threshold(df: pd.DataFrame,
     total charge larger than threshold. This function is kept to be used
     with old test files.
     """
-    tot_charges_df = df.groupby(['event_id','sensor_id'])[['charge']].sum()
-    return tot_charges_df[tot_charges_df.charge > threshold].reset_index()
+    tot_charges_df = df.groupby(['event_id','sensor_id'], as_index=False).charge.sum()
+    return tot_charges_df[tot_charges_df.charge > threshold]
 
 
 def find_closest_sipm(point: Tuple[float, float, float],
@@ -55,15 +55,9 @@ def find_closest_sipm(point: Tuple[float, float, float],
    """
    Find the closest SiPM to a point, given a df of SiPMs.
    """
-   sns_positions = np.array([sipms.X.values, sipms.Y.values, sipms.Z.values]).transpose()
-
-   subtr        = [np.subtract(point, pos) for pos in sns_positions]
-   distances    = [np.linalg.norm(d) for d in subtr]
-   min_dist     = np.min(distances)
-   min_sipm     = np.isclose(distances, min_dist)
-   closest_sipm = sipms[min_sipm]
-
-   return closest_sipm.iloc[0]
+   sipm_xyz  = sipms[['X', 'Y', 'Z']].values
+   distances = np.linalg.norm(np.subtract(sipm_xyz, point), axis=1)
+   return sipms.iloc[np.argmin(distances)]
 
 
 def divide_sipms_in_two_hemispheres(sns_ids: Sequence[int],
@@ -81,22 +75,14 @@ def divide_sipms_in_two_hemispheres(sns_ids: Sequence[int],
     Return the lists of the ids, the charges and the positions of the
     SiPMs of the two groups.
     """
+    scalar_prods = sns_positions.dot(reference_pos)
 
-    q1,   q2   = [], []
-    pos1, pos2 = [], []
-    id1, id2   = [], []
-    for sns_id, sns_pos, charge in zip(sns_ids, sns_positions, sns_charges):
-        scalar_prod = sns_pos.dot(reference_pos)
-        if scalar_prod > 0.:
-            q1  .append(charge)
-            pos1.append(sns_pos)
-            id1 .append(sns_id)
-        else:
-            q2  .append(charge)
-            pos2.append(sns_pos)
-            id2 .append(sns_id)
+    mask1 = scalar_prods >  0
+    mask2 = scalar_prods <= 0
 
-    return np.array(id1), np.array(id2), np.array(pos1), np.array(pos2), np.array(q1), np.array(q2)
+    return (sns_ids      [mask1], sns_ids      [mask2],
+            sns_positions[mask1], sns_positions[mask2],
+            sns_charges  [mask1], sns_charges  [mask2])
 
 
 
@@ -120,9 +106,7 @@ def assign_sipms_to_gammas(sns_response: pd.DataFrame,
         DataSiPM_idx = DataSiPM_idx.set_index('SensorID')
     sipms           = DataSiPM_idx.loc[sns_response.sensor_id]
     sns_ids         = sipms.index.astype('int64').values
-    sns_closest_pos = [np.array([find_closest_sipm(pos, sipms).X,
-                                 find_closest_sipm(pos, sipms).Y,
-                                 find_closest_sipm(pos, sipms).Z])
+    sns_closest_pos = [find_closest_sipm(pos, sipms)[['X', 'Y', 'Z']].values
                        for pos in true_pos]
 
     q1,   q2   = [], []
@@ -159,16 +143,15 @@ def initial_coord_first_daughter(particles: pd.DataFrame,
     """
     daughters = particles[particles.mother_id == mother_id]
     if len(daughters):
-        min_t    = daughters.initial_t.min()
-        daughter = particles[(particles.mother_id == mother_id) &
-                             (particles.initial_t == min_t)].iloc[0]
-        vtx_pos  = np.array([daughter.initial_x,
-                             daughter.initial_y,
-                             daughter.initial_z])
+        daughter = daughters.loc[daughters['initial_t'].idxmin()]
+        ## Type protection needed in access for some reason.
+        vtx_pos  = daughter[['initial_x',
+                             'initial_y',
+                             'initial_z']].values.astype('float32')
         init_vol = daughter.initial_volume
-        return vtx_pos, min_t, init_vol
-    else:
-        return [], float('inf'), None
+        return vtx_pos, daughter.initial_t, init_vol
+
+    return [], float('inf'), None
 
 
 def part_first_hit(hits: pd.DataFrame,
@@ -178,12 +161,10 @@ def part_first_hit(hits: pd.DataFrame,
     """
     part_hits = hits[hits.particle_id == part_id]
     if len(part_hits):
-        t_min    = part_hits.time.min()
-        p_hit    = hits[(hits.particle_id == part_id) & (hits.time == t_min)]
-        part_pos = np.array([p_hit.x.values, p_hit.y.values, p_hit.z.values]).transpose()[0]
-        return part_pos, t_min
-    else:
-        return [], float('inf')
+        p_hit    = part_hits.loc[part_hits['time'].idxmin()]
+        part_pos = p_hit[['x', 'y', 'z']].values
+        return part_pos, p_hit.time
+    return [], float('inf')
 
 
 def find_first_time_of_sensors(tof_response: pd.DataFrame,
@@ -219,12 +200,11 @@ def find_hit_distances_from_true_pos(hits: pd.DataFrame,
     Calculates the distances of all the hits in the same hemisphere of a given point,
     from the given point.
     """
-    positions       = np.array([hits.x, hits.y, hits.z]).transpose()
+    positions       = hits[['x', 'y', 'z']].values
     scalar_products = positions.dot(true_pos)
-    int_hits = hits[scalar_products >= 0]
-    pos_hits = np.array([int_hits.x.values, int_hits.y.values, int_hits.z.values]).transpose()
 
-    distances = np.linalg.norm(np.subtract(pos_hits, true_pos), axis=1)
+    mask      = scalar_products >= 0
+    distances = np.linalg.norm(np.subtract(positions[mask], true_pos), axis=1)
 
     return distances
 
@@ -246,7 +226,6 @@ def find_first_interactions_in_active(particles: pd.DataFrame,
     sel_all   = sel_vol_name[sel_vol_name.mother_id.isin(primaries.particle_id.values)]
     ### Calculate the initial vertex.
     gamma_pos1, gamma_pos2 = [], []
-    vol1      , vol2       = [], []
     min_t1    , min_t2     = float('inf'), float('inf')
     if len(sel_all[sel_all.mother_id == 1]) > 0:
         gamma_pos1, min_t1, _ = initial_coord_first_daughter(sel_all, 1)
@@ -315,19 +294,14 @@ def reconstruct_coincidences(sns_response: pd.DataFrame,
     if 'SensorID' in DataSiPM_idx.columns:
         DataSiPM_idx = DataSiPM_idx.set_index('SensorID')
 
-    max_sns = sns_response[sns_response.charge == sns_response.charge.max()]
-    ## If by chance two sensors have the maximum charge, choose one (arbitrarily)
-    if len(max_sns) != 1:
-        max_sns = max_sns[max_sns.sensor_id == max_sns.sensor_id.min()]
-    max_sipm = DataSiPM_idx.loc[max_sns.sensor_id]
-    max_pos  = np.array([max_sipm.X.values, max_sipm.Y.values, max_sipm.Z.values]).transpose()[0]
+    max_sns  = sns_response.loc[sns_response['charge'].idxmax()].sensor_id
+    max_sipm = DataSiPM_idx.loc[max_sns]
+    max_pos  = max_sipm[['X', 'Y', 'Z']].values
 
     sipms         = DataSiPM_idx.loc[sns_response.sensor_id]
-    sns_ids       = sipms.index.astype('int64').values
-    sns_positions = np.array([sipms.X.values, sipms.Y.values, sipms.Z.values]).transpose()
-    sns_charges   = sns_response.charge
+    sns_positions = sipms[['X', 'Y', 'Z']].values
 
-    sns1, sns2, pos1, pos2, q1, q2 = divide_sipms_in_two_hemispheres(sns_ids, sns_positions, sns_charges, max_pos)
+    sns1, sns2, pos1, pos2, q1, q2 = divide_sipms_in_two_hemispheres(sipms.index.values, sns_positions, sns_response.charge.values, max_pos)
 
     tot_q1 = sum(q1)
     tot_q2 = sum(q2)
@@ -387,7 +361,7 @@ def reconstruct_position(q: Sequence[float],
     ## Calculate R
     posr, qr = sel_coord(pos, q, thr_r)
     if len(posr) != 0:
-        pos_phi = from_cartesian_to_cyl(np.array(posr))[:,1]
+        pos_phi = from_cartesian_to_cyl(posr)[:,1]
         _, var_phi = phi_mean_var(pos_phi, qr)
         r = Rmap(np.sqrt(var_phi)).value
     else:
@@ -420,7 +394,7 @@ def calculate_average_SiPM_pos(min_ids: Sequence[int],
     Calculates the geometrical average position of the SiPMs with IDs in the list.
     """
     sipm     = DataSiPM_idx.loc[np.abs(min_ids)]
-    sipm_pos = np.array([sipm.X.values, sipm.Y.values, sipm.Z.values]).transpose()
+    sipm_pos = sipm[['X', 'Y', 'Z']].values
     ave_pos  = np.average(sipm_pos, axis=0)
 
     return ave_pos

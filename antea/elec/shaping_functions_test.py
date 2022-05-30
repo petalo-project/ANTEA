@@ -1,7 +1,9 @@
 import os
 import numpy                 as np
-import pandas                as pd
 import hypothesis.strategies as st
+
+from scipy.signal  import fftconvolve
+from numpy.testing import assert_almost_equal
 
 from hypothesis     import given
 from pytest         import mark
@@ -119,3 +121,15 @@ def test_build_convoluted_df(e, s_id, l2):
         assert wf_df.event_id .dtype == 'int32'
         assert wf_df.sensor_id.dtype == 'int32'
         assert wf_df.time .dtype     == 'int32'
+
+
+@given(l, s)
+def test_convolve_fftconvolve_equivalent(l, s):
+    """
+    Check that the fftconvolve function returns
+    the same array as convolve_signal_with_shaping.
+    """
+    spe_response, _ = shf.normalize_sipm_shaping(np.unique(np.array(l)), tau_sipm)
+    conv_res        = shf.convolve_signal_with_shaping(np.array(s), spe_response)
+    fftconv_res     = fftconvolve(np.array(s), spe_response)
+    assert_almost_equal(conv_res, fftconv_res)

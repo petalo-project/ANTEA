@@ -1,33 +1,24 @@
 import pandas as pd
 import numpy  as np
 
-from invisible_cities.reco.sensor_functions import charge_fluctuation
-
 def apply_charge_fluctuation(sns_df: pd.DataFrame, DataSiPM_idx: pd.DataFrame):
     """
     Apply a fluctuation in the total detected charge, sensor by sensor,
     according to a value read from the database.
     """
-
-    charges = sns_df.charge.values
-    sipmrd  = charges[:, np.newaxis] # IC function expects a waveform
+    def rand_normal(sig):
+        return np.random.normal(0, sig)
 
     pe_resolution = DataSiPM_idx.Sigma / DataSiPM_idx.adc_to_pes
-    touched_sipms = sns_df.sensor_id.values
-    pe_res        = pe_resolution[touched_sipms]
+    ## The next line avoids resetting the names in the original.
+    pe_resolution = pe_resolution.reset_index().rename(columns={'SensorID': 'sensor_id'})
+    fluct_sns     = sns_df.join(pe_resolution.set_index('sensor_id'), on='sensor_id')
+    fluct_sns.rename(columns={0:'pe_res'}, inplace=True)
 
-    sipm_fluct = np.array(tuple(map(charge_fluctuation, sipmrd, pe_res)))
+    fluct_sns['charge'] += np.apply_along_axis(rand_normal, 0, fluct_sns.pe_res)
 
-    events      = sns_df.event_id.unique()
-    sns_per_evt = sns_df.event_id.value_counts()
-    instances   = sns_per_evt[events]
-
-    evts         = np.repeat(events, instances)
-    fluct_charge = sipm_fluct.flatten()
-    fluct_sns    = pd.DataFrame({'event_id': evts, 'sensor_id': touched_sipms,
-                                 'charge': fluct_charge})
-
-    return fluct_sns
+    columns    = ['event_id', 'sensor_id', 'charge']
+    return fluct_sns.loc[fluct_sns.charge > 0, columns]
 
 
 def apply_sipm_pde(sns_df: pd.DataFrame, pde: float) -> pd.DataFrame:

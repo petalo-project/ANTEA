@@ -1,6 +1,5 @@
 import os
 import numpy  as np
-import tables as tb
 import pandas as pd
 import shutil as utils
 

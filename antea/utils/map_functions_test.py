@@ -3,10 +3,8 @@ import pytest
 import numpy  as np
 import tables as tb
 
-from pytest        import fixture
 from pytest        import mark
 from pytest        import raises
-from collections   import namedtuple
 from numpy.testing import assert_allclose
 
 from antea.utils.map_functions  import Map
