@@ -1,6 +1,3 @@
-import pandas as pd
-import numpy as np
-from glob import glob
 import matplotlib.pylab as plt
 
 from antea.preproc.io import get_files

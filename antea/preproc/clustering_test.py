@@ -1,6 +1,5 @@
 import numpy as np
 import pandas as pd
-from sklearn.cluster import DBSCAN
 from antea.preproc.clustering import compute_clusters
 from antea.preproc.clustering import compute_evt_number_combined_with_cluster_id
 

@@ -1,6 +1,4 @@
-import matplotlib.pylab as plt
 import pandas           as pd
-import tables           as tb
 import numpy            as np
 import os
 
@@ -11,8 +9,6 @@ from antea.preproc.threshold_calibration import process_df
 from antea.preproc.threshold_calibration import compute_max_counter_value_for_each_config
 from antea.preproc.threshold_calibration import process_run
 from antea.preproc.threshold_calibration import find_threshold
-from antea.preproc.io import get_files
-from antea.preproc.io import get_evt_times
 
 
 def test_filter_df_evts():

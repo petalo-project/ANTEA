@@ -3,7 +3,6 @@ import tables as tb
 import numpy  as np
 import os
 
-from glob import glob
 from antea.preproc.io import compute_file_chunks_indices
 from antea.preproc.io import write_corrected_df_daq
 from antea.preproc.io import get_files

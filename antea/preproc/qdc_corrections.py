@@ -1,5 +1,5 @@
 import pandas as pd
-import numpy  as np
+import numpy as np
 
 from scipy.interpolate import interp1d
 from antea.preproc.tdc_corrections import compute_integration_window_size
