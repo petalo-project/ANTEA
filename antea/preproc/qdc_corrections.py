@@ -6,7 +6,8 @@ from antea.preproc.tdc_corrections import compute_integration_window_size
 
 def correct_efine_wrap_around(df):
     '''
-    Corrects the efine value
+    Corrects the efine value according to equation 5 in the PETsys datasheet
+    (rev 13)
     '''
     df['efine'] = (df['efine'] + 14) % 1024
 
@@ -58,6 +59,11 @@ def create_qdc_interpolator_df(fname_qdc_0, fname_qdc_2=None):
 
 
 def compute_efine_correction_using_linear_interpolation(df, df_interpolators):
+    '''
+    It creates a new column in the dataframe with the efine corrected after
+    applying the linear interpolation function to each group of tofpet id,
+    channel id and tac id.
+    '''
     df['correction']      =  df.apply(lambda row: df_interpolators[row.tofpet_id, row.channel_id, row.tac_id](row.intg_w), axis=1)
     # Interpolator returns a 0-dimensional np array instead of a float
     df['efine_corrected'] = (df.efine - df.correction).astype(np.float64)

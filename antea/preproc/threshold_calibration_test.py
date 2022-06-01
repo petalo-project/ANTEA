@@ -63,8 +63,8 @@ def test_get_run_control(output_tmpdir):
 
 def test_compute_limit_evts_based_on_run_control():
     '''
-    Check the correct limit obtantion for each group of data based on
-    run control number.
+    Check that each group obtains the correct limit based on the run
+    control number
     '''
     df = pd.DataFrame({'evt_number' : [1, 2, 3, 4, 5, 6, 7, 8, 9, 10,
                                        11, 12, 13, 14, 15, 16, 17, 18, 19, 20],
@@ -86,7 +86,8 @@ def test_compute_limit_evts_based_on_run_control():
 
 def test_process_df():
     '''
-    Check the correct obtantion of statistical operations for each group of data
+    Check that the correct results are obtained using the statistical
+    operations for each group of data.
     '''
 
     df       = pd.DataFrame({'channel_id' : [13, 13, 13, 13, 13, 13, 14, 14,
@@ -96,9 +97,9 @@ def test_process_df():
 
     field    = 'vth_t1'
     channels = list(range(64))
-    params   = 28
+    value   = 28
 
-    df_tmp      = process_df(df, channels, field, params)
+    df_tmp      = process_df(df, channels, field, value)
     df_expected = pd.DataFrame({'channel_id': [13, 14],
                                 'count'     : [6, 5],
                                 'mean'      : [3652.83, 169.6],
@@ -113,8 +114,8 @@ def test_process_df():
 
 def test_compute_max_counter_value_for_each_config(output_tmpdir):
     '''
-    Check the correct obtantion of statistical operations for each group of data
-    and the tofpet events array
+    Check that the correct results are obtained using statistical operations and
+    the tofpet events array for each group of data.
     '''
     tofpet_id = 0
     field     = 'vth_t1'
@@ -233,7 +234,8 @@ def test_process_run(output_tmpdir):
 
 def test_find_threshold():
     '''
-    Check the threshold vth_t1 and vth_2 obtantion for each channel
+    Check that the correct results of threshold vth_t1 and vth_t2 are obtained
+    for each channel.
     '''
     channels = [0]*64 + [1]*64
 

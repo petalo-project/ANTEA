@@ -3,7 +3,8 @@ import numpy  as np
 
 def correct_tfine_wrap_around(df):
     '''
-    Corrects the tfine values
+    Corrects the tfine values according to equation 5 in the PETsys datasheet
+    (rev 13).
     '''
     df['tfine'] = (df['tfine'] + 14) % 1024
 

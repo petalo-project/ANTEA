@@ -3,8 +3,9 @@ from sklearn.cluster import DBSCAN
 
 def compute_clusters(df):
     '''
-    Assign a cluster id for each real event. Each real event is compound of
-    values that do not differ in more than 10 units.
+    Assign a cluster id for each real event. Each real event is made of rows
+    with timestamps that differ less than a fixed number of clock ticks (eps)
+    from each other.
     '''
 
     values = df.tcoarse_extended.values

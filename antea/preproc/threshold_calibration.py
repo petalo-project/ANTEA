@@ -24,8 +24,9 @@ def filter_df_evts(df, evt_start, evt_end):
 
 def get_run_control(files):
     '''
-    It returns a dataframe with data from all files given and it adds a new
-    column of the run control differences.
+    It returns a dataframe with data from all given files and it adds a new
+    column of the run control differences. The run control is a bit that flips
+    each time a start-stop occurs in the system configuration.
     '''
     dfs = []
 
@@ -78,18 +79,19 @@ def compute_limit_evts_based_on_run_control(df_run):
     return df_limits
 
 
-def process_df(df, channels, field, params):
+def process_df(df, channels, field, value):
     '''
     It returns a dataframe with the statistical operations of count, mean, std,
-    min, max and sum of the values selected for each vth_t1 or vth_t2. Variable
-    field can be 'vth_t1' or 'vth_t2' and params is the corresponding vth .
+    min, max and sum of the values selected for each vth_t1 or vth_t2. The field
+    variable can be 'vth_t1' or 'vth_t2' and the value variable is the
+    corresponding value of vth_t1 or vth_t2.
     '''
     df_filtered    = df[df.channel_id.isin(channels)][['channel_id', 'count']]
     operations     = ['count', 'mean', 'std', 'min', 'max', 'sum']
     df_agg         = df_filtered.groupby('channel_id').agg(operations)
     df_agg.columns = operations
     df_tmp         = df_agg.reset_index()
-    df_tmp[field]  = params
+    df_tmp[field]  = value
     return df_tmp
 
 
