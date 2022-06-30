@@ -26,6 +26,7 @@ jobs:
         source $CONDA/etc/profile.d/conda.sh
         source manage.sh work_in_python_version_no_tests ${{ matrix.python-version }}
         cd -
+        pip install -r requirements.txt
     - name: Run tests
       run: |
         source $CONDA/etc/profile.d/conda.sh
