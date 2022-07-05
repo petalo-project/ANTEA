@@ -140,6 +140,9 @@ def characterize_coincidences(input_file: str, output_file: str, rmap: str):
             c0 += 1
             continue
 
+        sns1 = sns1.astype('int64')
+        sns2 = sns2.astype('int64')
+
         q1   = np.array(q1)
         q2   = np.array(q2)
         pos1 = np.array(pos1)
