@@ -204,7 +204,9 @@ def find_hit_distances_from_true_pos(hits: pd.DataFrame,
     scalar_products = positions.dot(true_pos)
 
     mask      = scalar_products >= 0
-    distances = np.linalg.norm(np.subtract(positions[mask], true_pos), axis=1)
+    diff      = np.subtract(positions[mask], true_pos)
+    diff      = np.array(diff, dtype=np.float32)
+    distances = np.linalg.norm(diff, axis=1)
 
     return distances
 
