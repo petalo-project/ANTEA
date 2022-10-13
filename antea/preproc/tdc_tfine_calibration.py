@@ -86,3 +86,31 @@ def compute_normalized_histogram(values, hist_range, bins):
     counts = counts / counts.sum()
 
     return counts, xs
+
+
+def plot_phase_histograms(df, hist_range, bins, phases, text=True, offset=0):
+    '''
+    It plots some channel phases distribution to see its tfine range.
+    '''
+    fig, ax = plt.subplots(figsize=(10,7))
+    plt.rc('font', size=12)
+    ax      = plt.subplot(1, 1, 1)
+
+    for phase in phases:
+        tfines     = df[df.delay == phase].tfine.values
+        counts, xs = compute_normalized_histogram(tfines, hist_range, bins)
+
+        plt.hist(xs, weights=counts, range=hist_range, bins=bins, alpha=0.5,
+                 label="Phase {}".format(phase))
+        if text:
+            if phase in [330,270,210,150,90,30]:
+                plt.text(counts.argmax() + offset, 0.04, f"{phase}",
+                         horizontalalignment='center', verticalalignment='center',
+                         rotation=90, fontsize=14)
+            elif phase in [360,300,240,180,120,60,0]:
+                plt.text(counts.argmax() + offset, 0.03, f"{phase}",
+                         horizontalalignment='center', verticalalignment='center',
+                         rotation=90, fontsize=14)
+
+    lines, labels = fig.axes[-1].get_legend_handles_labels()
+    fig.legend(lines, labels,bbox_to_anchor=(1.15, 0.5),loc = 'center right')
