@@ -72,3 +72,17 @@ def process_df_to_assign_tpulse_delays(files, limits, configs):
         results.append(df_filtered)
 
     return pd.concat(results), tofpet_evts, wrong_rows, wrong_ch_t
+
+
+def compute_normalized_histogram(values, hist_range, bins):
+    '''
+    It returns the counts and edges to plot a normalized histogram given
+    the values array, range and bins wanted.
+    '''
+    counts, xedges = np.histogram(values, range = hist_range, bins = bins)
+
+    xstep  = xedges[1]   - xedges[0]
+    xs     = xedges[:-1] + xstep/2
+    counts = counts / counts.sum()
+
+    return counts, xs

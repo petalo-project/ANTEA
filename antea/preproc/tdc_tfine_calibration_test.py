@@ -3,6 +3,7 @@ import numpy            as np
 import os
 
 from antea.preproc.tdc_tfine_calibration import process_df_to_assign_tpulse_delays
+from antea.preproc.tdc_tfine_calibration import compute_normalized_histogram
 
 
 
@@ -56,3 +57,24 @@ def test_process_df_to_assign_tpulse_delays(output_tmpdir):
     np.testing.assert_array_equal(tofpet_evts, tofpet_evts_expected)
     np.testing.assert_array_equal(wrong_rows, wrong_rows_expected)
     np.testing.assert_array_equal(wrong_ch_t, wrong_ch_t_expected)
+
+
+def test_compute_normalized_histogram():
+    '''
+    Check that the counts and edges obtained from a values
+    array given are correct.
+    '''
+    bins       = 360
+    hist_range = np.array([0, 360])
+    values     = np.array([200, 201, 201, 202, 202, 202, 203, 203, 203, 203,
+                           203, 204, 204, 204, 205, 205, 206])
+
+    counts, xs      = compute_normalized_histogram(values, hist_range, bins)
+
+    counts_expected = np.concatenate((np.tile(np.arange(1), 200), np.array([1, 2,
+                      3, 5, 3, 2, 1])/17 , np.tile(np.arange(1), 153)), axis = 0)
+
+    xs_expected     = np.arange(0.5, 360.5, 1)
+
+    assert np.allclose(counts, counts_expected, atol = 0.001)
+    assert np.allclose(xs, xs_expected, atol = 0.001)
