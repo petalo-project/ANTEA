@@ -114,3 +114,36 @@ def plot_phase_histograms(df, hist_range, bins, phases, text=True, offset=0):
 
     lines, labels = fig.axes[-1].get_legend_handles_labels()
     fig.legend(lines, labels,bbox_to_anchor=(1.15, 0.5),loc = 'center right')
+
+
+def fit_gaussian(values, plot=False, text = False):
+    '''
+    It returns the gaussian fit parameters, their errors
+    and the fit chi squared.
+    '''
+    hist_range = [values.min(), values.max()]
+    bins       = np.int(hist_range[1] - hist_range[0])
+
+    counts, xedges = np.histogram(values, range=hist_range, bins=bins)
+    xstep          = xedges[1] - xedges[0]
+    xs             = xedges[:-1] + xstep/2
+
+    fit_result               = fit(gauss, xs, counts, (100., np.mean(values),
+                                   np.sqrt(np.var(values))))
+    amp, mu, sigma           = fit_result.values
+    err_amp,err_mu,err_sigma = fit_result.errors
+    chi2                     = fit_result.chi2
+
+    if plot:
+        plt.plot(xs, fit_result.fn(xs), linewidth=2,label='fit')
+        plt.hist(xs, weights=counts, range=hist_range, bins=bins,label = 'counts');
+        plt.legend()
+
+    if text:
+        print('The center of the gaussian fit is', mu)
+        print('The error of the gaussian center is',err_mu)
+        print('The sigma of the gaussian fit is', sigma)
+        print('The error of the gaussian sigma is', err_sigma)
+        print('The chi2 is', chi2)
+
+    return mu, err_mu, sigma, err_sigma, chi2

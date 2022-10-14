@@ -1,9 +1,11 @@
 import pandas           as pd
 import numpy            as np
 import os
+import random
 
 from antea.preproc.tdc_tfine_calibration import process_df_to_assign_tpulse_delays
 from antea.preproc.tdc_tfine_calibration import compute_normalized_histogram
+from antea.preproc.tdc_tfine_calibration import fit_gaussian
 
 
 
@@ -78,3 +80,22 @@ def test_compute_normalized_histogram():
 
     assert np.allclose(counts, counts_expected, atol = 0.001)
     assert np.allclose(xs, xs_expected, atol = 0.001)
+
+
+def test_fit_gaussian():
+    '''
+    Check that the gaussian fit return the correct
+    mean and sigma values.
+    '''
+    mu_expected    = 5
+    sigma_expected = 1.5
+    values         = np.random.normal(loc = mu_expected, scale = sigma_expected,
+                                      size=10000).astype(int)
+
+    mu, err_mu, sigma, err_sigma, chi2 = fit_gaussian(values)
+
+    mu_tol    = 0.01 * mu_expected
+    sigma_tol = 0.05 * sigma_expected
+
+    assert np.allclose(mu, mu_expected, atol = mu_tol)
+    assert np.allclose(sigma, sigma_expected, atol = sigma_tol)
