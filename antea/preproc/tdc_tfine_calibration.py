@@ -18,6 +18,7 @@ from antea.preproc.threshold_calibration import get_run_control
 from antea.preproc.threshold_calibration import compute_limit_evts_based_on_run_control
 from antea.preproc.threshold_calibration import filter_df_evts
 from antea.preproc.threshold_calibration import plot_evts_recorded_per_configuration
+from antea.preproc.fit_functions         import skewnormal_function
 
 from invisible_cities.core.fit_functions import fit
 from invisible_cities.core.fit_functions import gauss
@@ -147,3 +148,58 @@ def fit_gaussian(values, plot=False, text = False):
         print('The chi2 is', chi2)
 
     return mu, err_mu, sigma, err_sigma, chi2
+
+
+def fit_semigaussian(values, plot=False, text = False):
+    '''
+    It returns the skewnormal fit parameters, their errors
+    and the fit chi squared.
+    '''
+    hist_range = [values.min(), values.max()]
+    bins       = hist_range[1] - hist_range[0]
+
+    counts, xedges = np.histogram(values, range = hist_range, bins = bins)
+    xstep          = xedges[1]   - xedges[0]
+    xs             = xedges[:-1] + xstep/2
+
+    fit_result     = fit(skewnormal_function, xs, counts, (0.5, np.median(values),
+                         np.sqrt(np.median(values)),1000))
+
+    chi2                                         = fit_result.chi2
+    shape, location, scale, gain                 = fit_result.values
+    err_shape, err_location, err_scale, err_gain = fit_result.errors
+
+    #Convert skewnormal parameters to gaussian parameters:
+
+    d         = shape / np.sqrt(1 + shape**2)
+    err_d     = err_shape / (1 + shape**2)**(3/2)
+
+    comun     = np.sqrt(2 / np.pi) * d - (4 - np.pi)/4 * ((d*np.sqrt(2/np.pi))**3 /
+                (1 - 2 * d**2 / np.pi)**(3/2) * np.sqrt(1 - 2 * d**2 /
+                np.pi)) - np.sign(shape) * np.exp(-2*np.pi / np.abs(shape))/2
+    err_comun = np.sqrt((err_shape * np.pi * np.exp(-2*np.pi/np.abs(shape)) / shape**2)**2 +
+                        (err_d * (-2*(np.pi - 8)*d**4 + np.pi*(3*np.pi - 20)*d**2 +
+                        2*np.pi**2) / (np.sqrt(2*np.pi) * (np.pi - 2*d**2)**2))**2)
+
+    moda      = location + scale * comun
+    err_moda  = np.sqrt(err_location**2 + (err_scale*comun)**2 + (scale*err_comun)**2)
+
+    sigma     = np.abs(scale * np.sqrt(1 - (2*d**2/np.pi)))
+    err_sigma = np.sqrt((err_scale * np.sqrt(1 - (2*d**2 / np.pi)))**2 +
+                        (err_d * 2 * scale * d / (np.sqrt(np.pi) *
+                        np.sqrt(np.pi - 2*d**2)))**2)
+
+    if plot:
+        plt.plot(xs, fit_result.fn(xs), linewidth=2,label='fit')
+        plt.hist(xs, weights=counts, range=hist_range, bins=bins,label = 'counts');
+        plt.legend()
+
+    if text:
+        print('The center of the semigaussian is ',      moda)
+        print('The error of the semigaussian center is ',err_moda)
+        print('The sigma of the semigaussian is ',       sigma)
+        print('The error of the semigaussian sigma is ', err_sigma)
+        print('The chi2 is ',                            chi2)
+        print('The shape is ',                           shape)
+
+    return moda, err_moda, sigma, err_sigma, chi2, shape, location, scale

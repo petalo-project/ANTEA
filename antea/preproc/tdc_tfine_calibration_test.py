@@ -3,10 +3,12 @@ import numpy            as np
 import os
 import random
 
+from scipy.stats      import skewnorm
+
 from antea.preproc.tdc_tfine_calibration import process_df_to_assign_tpulse_delays
 from antea.preproc.tdc_tfine_calibration import compute_normalized_histogram
 from antea.preproc.tdc_tfine_calibration import fit_gaussian
-
+from antea.preproc.tdc_tfine_calibration import fit_semigaussian
 
 
 def test_process_df_to_assign_tpulse_delays(output_tmpdir):
@@ -99,3 +101,39 @@ def test_fit_gaussian():
 
     assert np.allclose(mu, mu_expected, atol = mu_tol)
     assert np.allclose(sigma, sigma_expected, atol = sigma_tol)
+
+
+def test_fit_semigaussian():
+    '''
+    Check that the skewnormal fit returns the correct
+    mean, sigma and skew values.
+    '''
+    skew_expected  = 2
+    loc_expected   = 5
+    scale_expected = 1.5
+    values         = []
+
+    x            = np.linspace(0,15,16).astype(int)
+    pdf_skewnorm = (skewnorm.pdf(x, skew_expected, loc_expected,
+                                 scale_expected)*100).astype(int)
+
+    for i in range(len(x)):
+
+        rep = (np.tile(x[i], pdf_skewnorm[i]))
+
+        if len(rep) == 0:
+            continue
+        else:
+            values.append(rep)
+
+    values = np.concatenate(values)
+
+    mu, err_mu, sigma, err_sigma, chi2, skew, loc, scale = fit_semigaussian(values)
+
+    loc_tol   = 0.10 * loc_expected
+    scale_tol = 0.05 * scale_expected
+    skew_tol  = 0.25 * skew_expected
+
+    assert np.allclose(loc,   loc_expected,   atol = loc_tol)
+    assert np.allclose(scale, scale_expected, atol = scale_tol)
+    assert np.allclose(skew,  skew_expected,  atol = skew_tol)
