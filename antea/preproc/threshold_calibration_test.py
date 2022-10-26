@@ -273,8 +273,8 @@ def test_find_threshold():
 
     threshold_1          = find_threshold(df_1, 22, 'vth_t1')
     threshold_2          = find_threshold(df_2, 22, 'vth_t2', 182)
-    expected_threshold_1 = list([25, 24]) + list([0] * 62)
-    expected_threshold_2 = list([26, 27]) + list([0] * 62)
+    expected_threshold_1 = list([25, 25]) + list([0] * 62)
+    expected_threshold_2 = list([25, 26]) + list([0] * 62)
 
     np.testing.assert_array_equal(threshold_1, expected_threshold_1)
     np.testing.assert_array_equal(threshold_2, expected_threshold_2)

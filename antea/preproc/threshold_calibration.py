@@ -325,14 +325,11 @@ def find_threshold(df_counter, nbits, vth_t, threshold_2 = None):
         if vth_t == 'vth_t1':
             threshold_v1 = 1
 
-            for j, (count, vth_t1) in enumerate(zip(waveform, vth_t1s)):
-                #We look for the first data that is no null and we save its
-                #vth_t1. If higher than 10, we save the previous one
-                if threshold_v1 <= count:
-                    vth_1[i] = vth_t1
-
-                    if count > 10:
-                        vth_1[i] = vth_t1 - 1
+            for j, (count, vth_t1) in enumerate(zip(waveform[::-1], vth_t1s[::-1])):
+                #We look for the first data that is no null from right to left
+                #and we save its previous vth_t1.
+                if threshold_v1 > count:
+                    vth_1[i] = vth_t1 + 1
 
                     break
 
@@ -341,10 +338,11 @@ def find_threshold(df_counter, nbits, vth_t, threshold_2 = None):
             threshold_v2 = threshold_2 # Expected rate where we want to cut the
                                        # noise taking into account the activity fit
 
-            for j, (count, vth_t1) in enumerate(zip(waveform, vth_t1s)):
-                #we look for the last data that is null from right to left
+            for j, (count, vth_t1) in enumerate(zip(waveform[::-1], vth_t1s[::-1])):
+                #we look for the first data that is lower than the expected rate
+                #given from right to left and we save it.
 
-                if count > threshold_v2:
+                if count < threshold_v2:
                     vth_1[i] = vth_t1
 
                     break
