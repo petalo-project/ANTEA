@@ -108,14 +108,14 @@ def test_fit_semigaussian():
     Check that the skewnormal fit returns the correct
     mean, sigma and skew values.
     '''
-    skew_expected  = 2
-    loc_expected   = 5
-    scale_expected = 1.5
+    skew_expected  = -2
+    loc_expected   = 250
+    scale_expected = 2
     values         = []
 
-    x            = np.linspace(0,15,16).astype(int)
+    x            = np.linspace(loc_expected - 7,loc_expected + 7,14).astype(int)
     pdf_skewnorm = (skewnorm.pdf(x, skew_expected, loc_expected,
-                                 scale_expected)*100).astype(int)
+                                 scale_expected)*1000).astype(int)
 
     for i in range(len(x)):
 
@@ -130,10 +130,21 @@ def test_fit_semigaussian():
 
     mu, err_mu, sigma, err_sigma, chi2, skew, loc, scale = fit_semigaussian(values)
 
-    loc_tol   = 0.10 * loc_expected
-    scale_tol = 0.05 * scale_expected
-    skew_tol  = 0.25 * skew_expected
+    # Convert semigaussian expected location to gaussian:
 
-    assert np.allclose(loc,   loc_expected,   atol = loc_tol)
-    assert np.allclose(scale, scale_expected, atol = scale_tol)
-    assert np.allclose(skew,  skew_expected,  atol = skew_tol)
+    d         = skew_expected / np.sqrt(1 + skew_expected**2)
+    comun_exp = np.sqrt(2 / np.pi) * d - (4 - np.pi)/4 * ((d*np.sqrt(2/np.pi))**3 /
+                (1 - 2 * d**2 / np.pi)**(3/2) * np.sqrt(1 - 2 * d**2 /
+                np.pi)) - np.sign(skew_expected) * np.exp(-2*np.pi /
+                np.abs(skew_expected))/2
+
+    mu_expected    = loc_expected + scale_expected * comun_exp
+
+    loc_tol   = 0.01 * loc_expected
+    scale_tol = 0.05 * scale_expected
+    skew_tol  = 0.1 * np.abs(skew_expected)
+
+    assert np.allclose(loc, loc_expected, atol = loc_tol)
+    assert np.allclose(mu, mu_expected, atol = loc_tol)
+    assert np.allclose(np.abs(scale), scale_expected, atol = scale_tol)
+    assert np.allclose(skew, skew_expected, atol = skew_tol)
