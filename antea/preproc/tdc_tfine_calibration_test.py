@@ -9,6 +9,7 @@ from antea.preproc.tdc_tfine_calibration import process_df_to_assign_tpulse_dela
 from antea.preproc.tdc_tfine_calibration import compute_normalized_histogram
 from antea.preproc.tdc_tfine_calibration import fit_gaussian
 from antea.preproc.tdc_tfine_calibration import fit_semigaussian
+from antea.preproc.tdc_tfine_calibration import one_distribution_fit
 
 
 def test_process_df_to_assign_tpulse_delays(output_tmpdir):
@@ -148,3 +149,68 @@ def test_fit_semigaussian():
     assert np.allclose(mu, mu_expected, atol = loc_tol)
     assert np.allclose(np.abs(scale), scale_expected, atol = scale_tol)
     assert np.allclose(skew, skew_expected, atol = skew_tol)
+
+
+def test_one_distribution_fit():
+    '''
+    Check the data obtained after fitting to a single distribution.
+    '''
+
+    skew_expected  = -2
+    loc_expected   = 250
+    scale_expected = 2
+    values         = []
+    values_exp     = []
+
+    x            = np.linspace(loc_expected - 7,loc_expected + 7,14).astype(int)
+    pdf_skewnorm = (skewnorm.pdf(x, skew_expected, loc_expected,
+                                 scale_expected)*1000).astype(int)
+
+    for i in range(len(x)):
+
+        rep = (np.tile(x[i], pdf_skewnorm[i]))
+
+        if len(rep) == 0:
+            continue
+        else:
+            values.append(rep)
+
+    values = np.concatenate(values)
+
+    fit_values, fit_errors, fit_chi = one_distribution_fit(values)
+
+    # Convert semigaussian expected location to gaussian:
+    d              = skew_expected / np.sqrt(1 + skew_expected**2)
+    comun_exp      = np.sqrt(2/np.pi) * d - (4 - np.pi) / 4 * ((d*np.sqrt(2/np.pi))**3/
+                     (1 - 2*d**2/np.pi)**(3/2) * np.sqrt(1 - 2*d**2/
+                     np.pi)) - np.sign(skew_expected) * np.exp(-2*np.pi/
+                     np.abs(skew_expected))/2
+    mu_expected    = loc_expected + scale_expected * comun_exp
+
+
+    loc_tol   = 0.01 * loc_expected
+    scale_tol = 0.05 * scale_expected
+
+    #Also, check the exception using experimental data:
+
+    y_exp = np.array([1,   58,  364, 619, 1702, 917, 405, 155, 29,  4,   2 ])
+    x_exp = np.array([187, 188, 189, 190, 191,  192, 193, 194, 195, 196, 197])
+
+    for i in range(len(x_exp)):
+
+        rep_exp = (np.tile(x_exp[i], y_exp[i]))
+
+        if len(rep_exp) == 0:
+            continue
+        else:
+            values_exp.append(rep_exp)
+
+    values_exp = np.concatenate(values_exp)
+
+    fit_values_exp, fit_errors_exp, fit_chi_exp = one_distribution_fit(values_exp)
+    aprox_mode_exp = np.median(values_exp)
+
+    assert np.allclose(fit_values[0], mu_expected,   atol = loc_tol)
+    assert np.equal(fit_values[0], fit_values[2])
+    assert np.allclose(fit_values_exp[0], aprox_mode_exp, atol = loc_tol)
+    assert np.equal(fit_values_exp[0], fit_values_exp[2])

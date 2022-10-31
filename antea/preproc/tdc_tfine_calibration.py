@@ -203,3 +203,32 @@ def fit_semigaussian(values, plot=False, text = False):
         print('The shape is ',                           shape)
 
     return moda, err_moda, sigma, err_sigma, chi2, shape, location, scale
+
+
+def one_distribution_fit(data_fit):
+    '''
+    It applies the semigaussian fit to the distribution unless it can't fit it,
+    and then it fits a gaussian function.
+    '''
+    try:
+
+        mode, err_mode, sigma, err_sigma, chi, shape, location, scale = fit_semigaussian(data_fit)
+
+        mode_r      = mode_l      = mode
+        sigma_r     = sigma_l     = sigma
+        chi_r       = chi_l       = chi
+        err_mode_r  = err_mode_l  = err_mode
+        err_sigma_r = err_sigma_l = err_sigma
+
+    except(RuntimeError):
+
+        mode, err_mode, sigma, err_sigma, chi = fit_gaussian(data_fit)
+
+        mode_r      = mode_l      = mode
+        sigma_r     = sigma_l     = sigma
+        chi_r       = chi_l       = chi
+        err_mode_r  = err_mode_l  = err_mode
+        err_sigma_r = err_sigma_l = err_sigma
+
+    return [[mode_l, np.abs(sigma_l), mode_r, np.abs(sigma_r)],
+            [err_mode_l, err_sigma_l, err_mode_r, err_sigma_r], [chi_l, chi_r]]
