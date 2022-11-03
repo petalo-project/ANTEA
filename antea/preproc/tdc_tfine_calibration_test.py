@@ -10,6 +10,7 @@ from antea.preproc.tdc_tfine_calibration import compute_normalized_histogram
 from antea.preproc.tdc_tfine_calibration import fit_gaussian
 from antea.preproc.tdc_tfine_calibration import fit_semigaussian
 from antea.preproc.tdc_tfine_calibration import one_distribution_fit
+from antea.preproc.tdc_tfine_calibration import two_distributions_fit
 
 
 def test_process_df_to_assign_tpulse_delays(output_tmpdir):
@@ -214,3 +215,171 @@ def test_one_distribution_fit():
     assert np.equal(fit_values[0], fit_values[2])
     assert np.allclose(fit_values_exp[0], aprox_mode_exp, atol = loc_tol)
     assert np.equal(fit_values_exp[0], fit_values_exp[2])
+
+
+def test_two_distributions_fit():
+    '''
+    Check the data obtained after fitting to a double distribution.
+    The data for checking the exceptions is experimental.
+    '''
+
+    ###Creating the double skewnorm distribution:
+    skew_expected  = -2
+    loc_expected_l = 180
+    loc_expected_r = 300
+    scale_expected = 2
+    percentage     = 60
+
+    values_l       = []
+    values_r       = []
+    values_eq      = []
+    values_exp_l   = []
+    values_exp_r   = []
+    values_exp_eq  = []
+
+
+    x_l = np.linspace(loc_expected_l - 7, loc_expected_l + 7, 14).astype(int)
+    x_r = np.linspace(loc_expected_r - 7, loc_expected_r + 7, 14).astype(int)
+    x   = np.concatenate((x_l, x_r), axis = 0)
+
+    ## Left bigger distribution
+    pdf_skewnorm_l_b = (skewnorm.pdf(x_l, skew_expected, loc_expected_l,
+                                     scale_expected)*1000).astype(int)
+    pdf_skewnorm_r_s = (skewnorm.pdf(x_r, skew_expected, loc_expected_r,
+                                     scale_expected)*500).astype(int)
+    pdf_skewnorm_l   = np.concatenate((pdf_skewnorm_l_b, pdf_skewnorm_r_s), axis = 0)
+
+    for i in range(len(x)):
+
+        rep = (np.tile(x[i], pdf_skewnorm_l[i]))
+
+        if len(rep) == 0:
+            continue
+        else:
+            values_l.append(rep)
+
+    values_l = np.concatenate(values_l)
+
+    ## Right bigger distribution
+    pdf_skewnorm_l_s = (skewnorm.pdf(x_l, skew_expected, loc_expected_l,
+                                     scale_expected)*500).astype(int)
+    pdf_skewnorm_r_b = (skewnorm.pdf(x_r, skew_expected, loc_expected_r,
+                                     scale_expected)*1000).astype(int)
+    pdf_skewnorm_r   = np.concatenate((pdf_skewnorm_l_s, pdf_skewnorm_r_b), axis = 0)
+
+    for i in range(len(x)):
+
+        rep = (np.tile(x[i], pdf_skewnorm_r[i]))
+
+        if len(rep) == 0:
+            continue
+        else:
+            values_r.append(rep)
+
+    values_r = np.concatenate(values_r)
+
+    ## Equal distributions
+    pdf_skewnorm_eq      = np.concatenate((pdf_skewnorm_l_b, pdf_skewnorm_r_b), axis = 0)
+
+    for i in range(len(x)):
+
+        rep = (np.tile(x[i], pdf_skewnorm_eq[i]))
+
+        if len(rep) == 0:
+            continue
+        else:
+            values_eq.append(rep)
+
+    values_eq = np.concatenate(values_eq)
+
+    ### Experimental data for checking the exception:
+
+    y_exp = np.array([1,   58,  364, 619, 1702, 917, 405, 155, 29,  4,   2 ])
+    x_exp = np.array([187, 188, 189, 190, 191,  192, 193, 194, 195, 196, 197])
+
+    ## Left bigger distribution
+    pdf_skewnorm_l_exp = np.concatenate((y_exp, pdf_skewnorm_r_b), axis = 0)
+    x_exp_l_all        = np.concatenate((x_exp, x_r), axis = 0)
+
+    for i in range(len(x_exp_l_all)):
+
+        rep_exp = (np.tile(x_exp_l_all[i], pdf_skewnorm_l_exp[i]))
+
+        if len(rep_exp) == 0:
+            continue
+        else:
+            values_exp_l.append(rep_exp)
+
+    values_exp_l = np.concatenate(values_exp_l)
+
+    ## Right bigger distribution
+    pdf_skewnorm_r_exp = np.concatenate((pdf_skewnorm_l_b, y_exp), axis = 0)
+    x_exp_r_all        = np.concatenate((x_l, x_exp + 100), axis = 0)
+
+    for i in range(len(x_exp_r_all)):
+
+        rep_exp = (np.tile(x_exp_r_all[i], pdf_skewnorm_r_exp[i]))
+
+        if len(rep_exp) == 0:
+            continue
+        else:
+            values_exp_r.append(rep_exp)
+
+    values_exp_r = np.concatenate(values_exp_r)
+
+    ## Equal distributions
+    pdf_skewnorm_eq_exp = np.concatenate((y_exp, y_exp), axis = 0)
+    x_exp_eq_all        = np.concatenate((x_exp, x_exp + 100), axis = 0)
+
+    for i in range(len(x_exp_eq_all)):
+
+        rep_exp = (np.tile(x_exp_eq_all[i], pdf_skewnorm_eq_exp[i]))
+
+        if len(rep_exp) == 0:
+            continue
+        else:
+            values_exp_eq.append(rep_exp)
+
+    values_exp_eq = np.concatenate(values_exp_eq)
+
+
+    fit_vals_l,      _, _ = two_distributions_fit(values_l, percentage)
+    fit_vals_r,      _, _ = two_distributions_fit(values_r, percentage)
+    fit_vals_eq,     _, _ = two_distributions_fit(values_eq, percentage)
+    fit_vals_exp_l,  _, _ = two_distributions_fit(values_exp_l, percentage)
+    fit_vals_exp_r,  _, _ = two_distributions_fit(values_exp_r, percentage)
+    fit_vals_exp_eq, _, _ = two_distributions_fit(values_exp_eq, percentage)
+
+    # Convert semigaussian expected location to gaussian:
+    d     = skew_expected / np.sqrt(1 + skew_expected**2)
+    comun = np.sqrt(2/np.pi)*d - (4 - np.pi)/4*((d * np.sqrt(2/np.pi))**3/
+            (1 - 2 * d**2/np.pi)**(3/2) * np.sqrt(1 - 2*d**2/
+            np.pi)) - np.sign(skew_expected)*np.exp(-2*np.pi/np.abs(skew_expected))/2
+
+    mu_expected_l = loc_expected_l + scale_expected * comun
+    mu_expected_r = loc_expected_r + scale_expected * comun
+
+    aprox_mode_exp_l = np.median(x_exp)
+    aprox_mode_exp_r = np.median(x_exp + 100)
+
+    loc_tol_l = 0.01 * loc_expected_l
+    loc_tol_r = 0.01 * loc_expected_r
+    scale_tol = 0.05 * scale_expected
+
+    assert np.allclose(fit_vals_l[0],      mu_expected_l,     atol = loc_tol_l)
+    assert np.allclose(fit_vals_l[0],      fit_vals_l[2],     atol = loc_tol_l)
+
+    assert np.allclose(fit_vals_r[0],      mu_expected_r,     atol = loc_tol_r)
+    assert np.allclose(fit_vals_r[0],      fit_vals_r[2],     atol = loc_tol_r)
+
+    assert np.allclose(fit_vals_eq[0],     mu_expected_l,     atol = loc_tol_l)
+    assert np.allclose(fit_vals_eq[2],     mu_expected_r,     atol = loc_tol_r)
+
+    assert np.allclose(fit_vals_exp_l[0],  aprox_mode_exp_l,  atol = loc_tol_l)
+    assert np.allclose(fit_vals_exp_l[0],  fit_vals_exp_l[2], atol = loc_tol_l)
+
+    assert np.allclose(fit_vals_exp_r[0],  aprox_mode_exp_r,  atol = loc_tol_r)
+    assert np.allclose(fit_vals_exp_r[0],  fit_vals_exp_r[2], atol = loc_tol_r)
+
+    assert np.allclose(fit_vals_exp_eq[0], aprox_mode_exp_l,  atol = loc_tol_l)
+    assert np.allclose(fit_vals_exp_eq[2], aprox_mode_exp_r,  atol = loc_tol_r)

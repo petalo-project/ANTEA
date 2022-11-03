@@ -232,3 +232,115 @@ def one_distribution_fit(data_fit):
 
     return [[mode_l, np.abs(sigma_l), mode_r, np.abs(sigma_r)],
             [err_mode_l, err_sigma_l, err_mode_r, err_sigma_r], [chi_l, chi_r]]
+
+
+def two_distributions_fit(data_fit, percentage):
+    '''
+    It applies the semigaussian fit to both distributions. If one
+    distribution has got more data than the parameter "percentage"
+    it does the fit to the bigger distribution. If not, it does both fits
+    '''
+    range_fit = data_fit.max() - data_fit.min()
+
+     # Fit Left
+    data_fit_sel  = data_fit[data_fit < (range_fit/2.0 + data_fit.min())]
+    range_fit_sel = data_fit_sel.max() - data_fit_sel.min()
+
+    div = len(data_fit_sel)/len(data_fit)
+
+    if (range_fit_sel == 0): #Only one bin left
+        mode_l, sigma_l, chi_l = [data_fit_sel.min(), 1, 0]
+
+    elif (div > (percentage/100)): #Almost all data is on the left side
+
+        try: # Left big semigaussian
+            fit_result  = fit_semigaussian(data_fit_sel)
+
+            mode_r      = mode_l      = fit_result[0]
+            err_mode_r  = err_mode_l  = fit_result[1]
+            sigma_r     = sigma_l     = fit_result[2]
+            err_sigma_r = err_sigma_l = fit_result[3]
+            chi_r       = chi_l       = fit_result[4]
+
+        except(RuntimeError): #Left big gaussian
+            fit_result  = fit_gaussian(data_fit_sel)
+
+            mode_r      = mode_l      = fit_result[0]
+            err_mode_r  = err_mode_l  = fit_result[1]
+            sigma_r     = sigma_l     = fit_result[2]
+            err_sigma_r = err_sigma_l = fit_result[3]
+            chi_r       = chi_l       = fit_result[4]
+
+    elif ((div > (100-percentage)/100) & (div < (percentage/100))):
+
+        try: #Left equal semigaussian
+            fit_result  = fit_semigaussian(data_fit_sel)
+
+            mode_l      = fit_result[0]
+            err_mode_l  = fit_result[1]
+            sigma_l     = fit_result[2]
+            err_sigma_l = fit_result[3]
+            chi_l       = fit_result[4]
+
+        except(RuntimeError): #Left equal gaussian
+            fit_result  = fit_gaussian(data_fit_sel)
+
+            mode_l      = fit_result[0]
+            err_mode_l  = fit_result[1]
+            sigma_l     = fit_result[2]
+            err_sigma_l = fit_result[3]
+            chi_l       = fit_result[4]
+
+
+    #Fit Right
+    data_fit_sel  = data_fit[data_fit > (range_fit/2.0 + data_fit.min())]
+    range_fit_sel = data_fit_sel.max() - data_fit_sel.min()
+
+    div = len(data_fit_sel)/len(data_fit)
+
+    if (range_fit_sel == 0): #Only one bin left
+        mode_r, sigma_r, chi_r = [data_fit_sel.min(), 1, 0]
+
+    elif (div > (percentage/100)): #Almost all data is on the right side
+
+        try: # Right big semigaussian
+            fit_result  = fit_semigaussian(data_fit_sel)
+
+            mode_l      = mode_r      = fit_result[0]
+            err_mode_l  = err_mode_r  = fit_result[1]
+            sigma_l     = sigma_r     = fit_result[2]
+            err_sigma_l = err_sigma_r = fit_result[3]
+            chi_l       = chi_r       = fit_result[4]
+
+
+        except(RuntimeError): # Right big gaussian
+            fit_result  = fit_gaussian(data_fit_sel)
+
+            mode_l      = mode_r      = fit_result[0]
+            err_mode_l  = err_mode_r  = fit_result[1]
+            sigma_l     = sigma_r     = fit_result[2]
+            err_sigma_l = err_sigma_r = fit_result[3]
+            chi_l       = chi_r       = fit_result[4]
+
+    elif ((div > (100-percentage)/100) & (div < (percentage/100))):
+
+        try: # Right equal semigaussian
+            fit_result  = fit_semigaussian(data_fit_sel)
+
+            mode_r      = fit_result[0]
+            err_mode_r  = fit_result[1]
+            sigma_r     = fit_result[2]
+            err_sigma_r = fit_result[3]
+            chi_r       = fit_result[4]
+
+        except(RuntimeError): # Right equal gaussian
+            fit_result  = fit_gaussian(data_fit_sel)
+
+            mode_r      = fit_result[0]
+            err_mode_r  = fit_result[1]
+            sigma_r     = fit_result[2]
+            err_sigma_r = fit_result[3]
+            chi_r       = fit_result[4]
+
+    return [[mode_l, np.abs(sigma_l), mode_r, np.abs(sigma_r)],
+           [err_mode_l, err_sigma_l, err_mode_r, err_sigma_r], [chi_l, chi_r]]
