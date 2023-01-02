@@ -22,3 +22,15 @@ def linear_regression(x, slope, origin):
     '''Linear function'''
 
     return slope * x + origin
+
+
+def linear_regression_inv_corr(x, slope, origin, shift):
+    '''
+    Inverted linear function with shift and period correction.
+    '''
+    period = 360
+
+    possible = (x - origin) /slope - shift
+    possible[possible < 0] = possible[possible < 0] + period
+
+    return possible
