@@ -16,3 +16,9 @@ def skewnormal_function(values, shape, location, scale, gain):
     cdf = (1 + erf(shape * t / np.sqrt(2))) / 2
 
     return 2 * gain / scale * pdf * cdf
+
+
+def linear_regression(x, slope, origin):
+    '''Linear function'''
+
+    return slope * x + origin
