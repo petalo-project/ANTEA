@@ -4,6 +4,7 @@ import os
 import random
 
 from scipy.stats      import skewnorm
+from pytest           import raises
 
 from antea.preproc.tdc_tfine_calibration import process_df_to_assign_tpulse_delays
 from antea.preproc.tdc_tfine_calibration import compute_normalized_histogram
@@ -11,6 +12,8 @@ from antea.preproc.tdc_tfine_calibration import fit_gaussian
 from antea.preproc.tdc_tfine_calibration import fit_semigaussian
 from antea.preproc.tdc_tfine_calibration import one_distribution_fit
 from antea.preproc.tdc_tfine_calibration import two_distributions_fit
+from antea.preproc.tdc_tfine_calibration import select_fitting_distribution
+
 
 
 def test_process_df_to_assign_tpulse_delays(output_tmpdir):
@@ -383,3 +386,94 @@ def test_two_distributions_fit():
 
     assert np.allclose(fit_vals_exp_eq[0], aprox_mode_exp_l,  atol = loc_tol_l)
     assert np.allclose(fit_vals_exp_eq[2], aprox_mode_exp_r,  atol = loc_tol_r)
+
+
+def test_select_fitting_distribution():
+    '''
+    Check we obtain the correct results when fitting
+    one semigaussian distribution or two semigaussian distribution.
+    It also checks the error exception.
+    '''
+    ###Creating data for one skewnorm distribution:
+
+    skew_expected  = -2
+    loc_expected   = 250
+    scale_expected = 2
+    values         = []
+
+    x            = np.linspace(loc_expected - 7,loc_expected + 7,14).astype(int)
+    pdf_skewnorm = (skewnorm.pdf(x, skew_expected, loc_expected,
+                                 scale_expected)*1000).astype(int)
+
+    for i in range(len(x)):
+
+        rep = (np.tile(x[i], pdf_skewnorm[i]))
+
+        if len(rep) == 0:
+            continue
+        else:
+            values.append(rep)
+
+    values = np.concatenate(values)
+
+    ###Creating the double skewnorm distribution:
+
+    loc_expected_l = 180
+    loc_expected_r = 300
+    percentage     = 60
+    values_double  = []
+
+    x_l      = np.linspace(loc_expected_l - 7, loc_expected_l + 7, 14).astype(int)
+    x_r      = np.linspace(loc_expected_r - 7, loc_expected_r + 7, 14).astype(int)
+    x_double = np.concatenate((x_l, x_r), axis = 0)
+
+    ## Left bigger distribution
+    pdf_skewnorm_l_b = (skewnorm.pdf(x_l, skew_expected, loc_expected_l,
+                                 scale_expected)*1000).astype(int)
+    pdf_skewnorm_r_s = (skewnorm.pdf(x_r, skew_expected, loc_expected_r,
+                                 scale_expected)*500).astype(int)
+    pdf_skewnorm_l   = np.concatenate((pdf_skewnorm_l_b, pdf_skewnorm_r_s), axis = 0)
+
+    for i in range(len(x_double)):
+
+        rep_double = (np.tile(x_double[i], pdf_skewnorm_l[i]))
+
+        if len(rep_double) == 0:
+            continue
+        else:
+            values_double.append(rep_double)
+
+    values_double = np.concatenate(values_double)
+
+    ###Creating no skewnorm distribution for exception
+    y_unif_1      = np.repeat(np.linspace(100, 200, 101), 100)
+    y_unif_2      = np.repeat(np.linspace(300, 400, 101), 300)
+    y_unif_double = np.concatenate((y_unif_1, y_unif_2), axis = 0)
+
+
+    fit_res        = select_fitting_distribution(values, percentage)
+    fit_res_double = select_fitting_distribution(values_double, percentage)
+
+    # Convert semigaussian expected location to gaussian:
+    d         = skew_expected / np.sqrt(1 + skew_expected**2)
+    comun     = np.sqrt(2/np.pi)*d - (4 - np.pi)/4*((d * np.sqrt(2/np.pi))**3/
+                        (1 - 2*d**2/np.pi)**(3/2)*np.sqrt(1 - 2*d**2/np.pi)) - np.sign(
+                    skew_expected)*np.exp(-2*np.pi/np.abs(skew_expected))/2
+
+    mu_expected_l = loc_expected_l + scale_expected * comun
+    mu_expected   = loc_expected   + scale_expected * comun
+
+    loc_tol_l = 0.01 * loc_expected_l
+    loc_tol   = 0.01 * loc_expected
+
+    assert np.allclose(fit_res_double[0][0], mu_expected_l,        atol = loc_tol_l)
+    assert np.allclose(fit_res_double[0][0], fit_res_double[0][2], atol = loc_tol_l)
+
+    assert np.allclose(fit_res[0][0],        mu_expected,          atol = loc_tol)
+    assert np.allclose(fit_res[0][0],        fit_res[0][2],        atol = loc_tol)
+
+    with raises(RuntimeError):
+        select_fitting_distribution(y_unif_1, percentage)
+
+    with raises(RuntimeError):
+        select_fitting_distribution(y_unif_double, percentage)

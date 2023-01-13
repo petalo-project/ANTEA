@@ -344,3 +344,25 @@ def two_distributions_fit(data_fit, percentage):
 
     return [[mode_l, np.abs(sigma_l), mode_r, np.abs(sigma_r)],
            [err_mode_l, err_sigma_l, err_mode_r, err_sigma_r], [chi_l, chi_r]]
+
+def select_fitting_distribution(data_fit, percentage):
+    '''
+    It selects the two distributions fit or the one distribution
+    fit depending on the data standard deviation.
+    '''
+
+    if  data_fit.std() > 10: # Two distributions
+        try:
+            fit_values = two_distributions_fit(data_fit, percentage)
+
+        except:
+            raise RuntimeError('Error in fitting two distributions')
+
+    else:                    # One distribution
+        try:
+            fit_values  = one_distribution_fit(data_fit)
+
+        except:
+            raise RuntimeError('Error in fitting one distribution')
+
+    return fit_values
