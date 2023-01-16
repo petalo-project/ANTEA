@@ -14,6 +14,7 @@ from antea.preproc.tdc_tfine_calibration import one_distribution_fit
 from antea.preproc.tdc_tfine_calibration import two_distributions_fit
 from antea.preproc.tdc_tfine_calibration import select_fitting_distribution
 from antea.preproc.tdc_tfine_calibration import fit_all_channel_phases
+from antea.preproc.tdc_tfine_calibration import filter_anomalous_values_in_mode
 
 
 def test_process_df_to_assign_tpulse_delays(output_tmpdir):
@@ -565,3 +566,41 @@ def test_fit_all_channel_phases(output_tmpdir):
     assert np.allclose(df_tfine['phase']     , df_tfine_expected['phase'])
     assert np.allclose(df_tfine['mode_l']    , df_tfine_expected['mode_l'], loc_tol_l)
     assert np.allclose(df_tfine['mode_r']    , df_tfine_expected['mode_r'], loc_tol_r)
+
+def test_filter_anomalous_values_in_mode():
+    '''
+    Check if the correction done in mode values obtained
+    from the skewnorm fit is correct.
+    '''
+
+    df = pd.DataFrame({'channel_id' : [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                       'tac_id'     : [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                       'phase'      : [0, 10, 20, 30, 40, 50, 60, 70, 80, 90],
+                       'mode_l'     : [350.7, 237.5, 241.2, 342.0, 339.7, 337.3,
+                                       334.6, 223.9, 325.2, 326.2],
+                       'err_mode_l' : [0.317, 0.519, 0.515, 0.300, 0.305, 3020,
+                                       0.290, 0.793, 0.691, 0.315],
+
+                       'mode_r'     : [350.7, 347.5, 345.2, 342.0, 339.7, 337.3,
+                                       334.6, 331.9, 328.2, 326.2],
+                       'err_mode_r' : [0.317, 0.219, 0.215, 0.300, 0.305, 3020,
+                                       0.290, 0.593, 0.691, 0.315]})
+
+    df_expected =  pd.DataFrame({'phase'      : [0, 10, 20, 30, 40, 60, 70, 80, 90],
+                                 'mode_l'     : [350.7, 237.5, 241.2, 342.0, 339.7,
+                                                 334.6, 223.9, 325.2, 326.2],
+                                 'err_mode_l' : [0.317, 0.519, 0.515, 0.300, 0.305,
+                                                 0.290, 0.793, 0.691, 0.315],
+                                 'mode_r'     : [350.7, 347.5, 345.2, 342.0, 339.7,
+                                                 334.6, 331.9, 328.2, 326.2],
+                                 'err_mode_r' : [0.317, 0.219, 0.215, 0.300, 0.305,
+                                                 0.290, 0.593, 0.691, 0.315],
+                                 'mode'       : [350.7, 347.5, 345.2, 342.0, 339.7,
+                                                 334.6, 331.9, 325.2, 326.2],
+                                 'err_mode'   : [0.317, 0.219, 0.215, 0.300, 0.305,
+                                                 0.290, 0.593, 0.691, 0.315],
+                                 'diff'       : [0, -113.2, 3.7, 100.8, -2.3,-5.1, -110.7,
+                                                 101.3, 1.0]})
+
+    df = filter_anomalous_values_in_mode(df)
+    assert np.allclose(df, df_expected)

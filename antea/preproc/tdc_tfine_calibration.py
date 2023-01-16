@@ -401,3 +401,32 @@ def fit_all_channel_phases(filename, channels, percentage):
                                          'chi_l', 'mode_r','err_mode_r', 'sigma_r',
                                          'err_sigma_r', 'chi_r'])
     return df_tfine_semigaus
+
+def filter_anomalous_values_in_mode(df):
+    '''
+    It selects wrong values obtained from skewnorm fit taking into
+    account the error in mode and the values in mode, and it deletes them
+    or changes their value.
+    '''
+    # Select rows with both err_mode_l & err_mode_d larger than 1000
+    index_wrong_rows = df[(df.err_mode_l > 1000) & (df.err_mode_r > 1000)].index
+    df = df.drop(index_wrong_rows).reset_index(drop=True)
+
+    df['mode'] = df.mode_l
+    df['err_mode'] = df.err_mode_l
+
+    # Swap problematic values in mode
+    df['diff']  = df['mode'].diff()
+    df = df.fillna(0)
+    df_error_neg    = df[df['diff'] < -100]
+    df_error_pos    = df[df['diff'] >  100]
+
+    for start, end in zip(df_error_neg.index, df_error_pos.index):
+
+        #We change to the right:
+        df.loc[start:end-1, 'mode']     = df.loc[start:end-1].mode_r
+        df.loc[start:end-1,'err_mode']  = df.loc[start:end-1].err_mode_r
+
+    df = df.drop(columns=['channel_id', 'tac_id'])
+
+    return df
