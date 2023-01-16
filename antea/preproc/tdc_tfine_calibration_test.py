@@ -15,6 +15,7 @@ from antea.preproc.tdc_tfine_calibration import two_distributions_fit
 from antea.preproc.tdc_tfine_calibration import select_fitting_distribution
 from antea.preproc.tdc_tfine_calibration import fit_all_channel_phases
 from antea.preproc.tdc_tfine_calibration import filter_anomalous_values_in_mode
+from antea.preproc.tdc_tfine_calibration import TDC_linear_fit
 
 
 def test_process_df_to_assign_tpulse_delays(output_tmpdir):
@@ -604,3 +605,36 @@ def test_filter_anomalous_values_in_mode():
 
     df = filter_anomalous_values_in_mode(df)
     assert np.allclose(df, df_expected)
+
+def test_TDC_linear_fit():
+    '''
+    Check that the linear fit returns the correct coefficients.
+    '''
+
+    slope  = -0.42
+    origin = 238
+    mu     = 0
+    sigma  = 0.5
+    y_gaus = []
+    x      = np.random.randint(0, 175, 25)
+
+    # Add a gaussian error to all values
+    for i in range(25):
+        gaus = random.gauss(mu, sigma)
+        y_gaus.append(gaus)
+
+    y     = slope*x + origin + y_gaus
+    y_val = slope*30 + origin
+
+    df = pd.DataFrame()
+    df['phase'] = x
+    df['mode']  = y
+
+    coeff, coeff_err, chisq_r, func = TDC_linear_fit(df)
+
+    tol_origin = 0.01 * origin
+    tol_val    = 0.01 * y_val
+
+    assert np.allclose(slope,  coeff[0], atol = 0.01)
+    assert np.allclose(origin, coeff[1], atol = tol_origin)
+    assert np.allclose(y_val,  func(30), atol = tol_val)

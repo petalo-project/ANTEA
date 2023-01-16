@@ -19,6 +19,7 @@ from antea.preproc.threshold_calibration import compute_limit_evts_based_on_run_
 from antea.preproc.threshold_calibration import filter_df_evts
 from antea.preproc.threshold_calibration import plot_evts_recorded_per_configuration
 from antea.preproc.fit_functions         import skewnormal_function
+from antea.preproc.fit_functions         import linear_regression
 
 from invisible_cities.core.fit_functions import fit
 from invisible_cities.core.fit_functions import gauss
@@ -430,3 +431,21 @@ def filter_anomalous_values_in_mode(df):
     df = df.drop(columns=['channel_id', 'tac_id'])
 
     return df
+
+def TDC_linear_fit(df):
+    '''
+    It applies a linear fit to the data.
+    '''
+
+    slope  = (df.phase[1] - df.phase[0])/(df['mode'][1] - df['mode'][0])
+    origin = df['mode'][0] - slope * df.phase[0]
+
+    fit_result = fit(linear_regression, df['phase'], df['mode'],
+                         (slope, origin), ftol=1E-12, maxfev=1000, method='trf')
+
+    coeff     = fit_result.values
+    coeff_err = fit_result.errors
+    chisq_r   = fit_result.chi2
+    func      = fit_result.fn
+
+    return coeff, coeff_err, chisq_r, func
