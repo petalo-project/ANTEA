@@ -13,7 +13,7 @@ from antea.preproc.tdc_tfine_calibration import fit_semigaussian
 from antea.preproc.tdc_tfine_calibration import one_distribution_fit
 from antea.preproc.tdc_tfine_calibration import two_distributions_fit
 from antea.preproc.tdc_tfine_calibration import select_fitting_distribution
-
+from antea.preproc.tdc_tfine_calibration import fit_all_channel_phases
 
 
 def test_process_df_to_assign_tpulse_delays(output_tmpdir):
@@ -477,3 +477,91 @@ def test_select_fitting_distribution():
 
     with raises(RuntimeError):
         select_fitting_distribution(y_unif_double, percentage)
+
+def test_fit_all_channel_phases(output_tmpdir):
+    '''
+    Check the values obtained in the DataFrame are correct.
+    '''
+    ## Create data for file:
+
+    skew_expected  = -2
+    loc_expected_l = 180
+    loc_expected_r = 300
+    scale_expected = 2
+
+    values_l = []
+    values   = []
+
+    # Double distribution:
+    x_l = np.linspace(loc_expected_l - 7, loc_expected_l + 7, 14).astype(int)
+    x_r = np.linspace(loc_expected_r - 7, loc_expected_r + 7, 14).astype(int)
+    x   = np.concatenate((x_l, x_r), axis = 0)
+
+    pdf_skewnorm_l_b = (skewnorm.pdf(x_l, skew_expected, loc_expected_l,
+                                 scale_expected)*1000).astype(int)
+    pdf_skewnorm_r_s = (skewnorm.pdf(x_r, skew_expected, loc_expected_r,
+                                 scale_expected)*500).astype(int)
+    pdf_skewnorm_l   = np.concatenate((pdf_skewnorm_l_b, pdf_skewnorm_r_s), axis = 0)
+
+    for i in range(len(x)):
+
+        rep = (np.tile(x[i], pdf_skewnorm_l[i]))
+
+        if len(rep) == 0:
+            continue
+        else:
+            values_l.append(rep)
+
+    values_l = np.concatenate(values_l)
+
+    # One distribution:
+    for i in range(len(x_r)):
+
+        rep_r = (np.tile(x_r[i], pdf_skewnorm_r_s[i]))
+
+        if len(rep_r) == 0:
+            continue
+        else:
+            values.append(rep_r)
+
+    values = np.concatenate(values)
+
+    ## Create file:
+    filein = os.path.join(output_tmpdir, 'tdc_phases.h5')
+
+    df_0   = pd.DataFrame({'channel_id'  : 0,
+                           'tac_id'      : 0,
+                           'delay'       : 0.0,
+                           'tfine'       : values_l})
+
+    df_01  = pd.DataFrame({'channel_id' : 0,
+                           'tac_id'     : 1,
+                           'delay'      : 6.0,
+                           'tfine'      : values})
+
+    df_0   = df_0.append(df_01)
+    df_1   = df_0.copy()
+    df_1['channel_id'] = 1
+
+    df_0.to_hdf(filein, key = 'ch0')
+    df_1.to_hdf(filein, key = 'ch1')
+
+    channels   = np.arange(2)
+    percentage = 60
+
+    df_tfine = fit_all_channel_phases(filein, channels, percentage)
+
+    df_tfine_expected = pd.DataFrame({'channel_id' : [0, 0 ,1, 1],
+                                      'tac_id'     : [0, 1, 0, 1],
+                                      'phase'      : [0.0, 6.0, 0.0, 6.0],
+                                      'mode_l'     : [178.93, 298.93, 178.93, 298.93],
+                                      'mode_r'     : [178.93, 298.93, 178.93, 298.93]})
+
+    loc_tol_l = 0.01 * loc_expected_l
+    loc_tol_r = 0.01 * loc_expected_r
+
+    assert np.allclose(df_tfine['channel_id'], df_tfine_expected['channel_id'])
+    assert np.allclose(df_tfine['tac_id']    , df_tfine_expected['tac_id'])
+    assert np.allclose(df_tfine['phase']     , df_tfine_expected['phase'])
+    assert np.allclose(df_tfine['mode_l']    , df_tfine_expected['mode_l'], loc_tol_l)
+    assert np.allclose(df_tfine['mode_r']    , df_tfine_expected['mode_r'], loc_tol_r)

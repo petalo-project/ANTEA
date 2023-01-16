@@ -366,3 +366,38 @@ def select_fitting_distribution(data_fit, percentage):
             raise RuntimeError('Error in fitting one distribution')
 
     return fit_values
+
+def fit_all_channel_phases(filename, channels, percentage):
+    '''
+    It fits all channel's phases and return the results in a dataframe.
+    '''
+
+    res = []
+
+    for ch in channels:
+        data_ch = pd.read_hdf(filename,key= 'ch' + str(ch))
+        tac = data_ch['tac_id'].unique()
+
+        for tc in tac:
+            data_tc = data_ch[data_ch['tac_id']==tc]
+
+            # Find delay arrays:
+            delays = data_tc['delay'].unique()
+
+            for i in delays:
+                data_fit = data_tc[data_tc['delay']==i].tfine
+
+                if data_fit.size > 0:
+
+                    fit_values = select_fitting_distribution(data_fit, percentage)
+
+                    res.append([ch, tc, i, fit_values[0][0], fit_values[1][0],
+                                fit_values[0][1], fit_values[1][1], fit_values[2][0],
+                                fit_values[0][2], fit_values[1][2], fit_values[0][3],
+                                fit_values[1][3], fit_values[2][1]])
+
+    df_tfine_semigaus = pd.DataFrame(res,columns=['channel_id','tac_id','phase',
+                                         'mode_l','err_mode_l','sigma_l','err_sigma_l',
+                                         'chi_l', 'mode_r','err_mode_r', 'sigma_r',
+                                         'err_sigma_r', 'chi_r'])
+    return df_tfine_semigaus
