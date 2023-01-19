@@ -16,6 +16,7 @@ from antea.preproc.tdc_tfine_calibration import select_fitting_distribution
 from antea.preproc.tdc_tfine_calibration import fit_all_channel_phases
 from antea.preproc.tdc_tfine_calibration import filter_anomalous_values_in_mode
 from antea.preproc.tdc_tfine_calibration import TDC_linear_fit
+from antea.preproc.tdc_tfine_calibration import TDC_double_linear_fit
 
 
 def test_process_df_to_assign_tpulse_delays(output_tmpdir):
@@ -638,3 +639,69 @@ def test_TDC_linear_fit():
     assert np.allclose(slope,  coeff[0], atol = 0.01)
     assert np.allclose(origin, coeff[1], atol = tol_origin)
     assert np.allclose(y_val,  func(30), atol = tol_val)
+
+def test_TDC_double_linear_fit():
+    '''
+    Check the correct results of the linear coefficients,
+    the shift point and the data frames obtained from
+    the two linear fits.
+    '''
+
+    ###Create both linear distributions:
+
+    # Parameters lineal low:
+    slope_low   = -0.42
+    origin_low  = 238
+    x_low       = np.concatenate([[0], np.random.randint(0, 175, 25), [175]], axis = 0)
+
+    # Parameters lineal high:
+    slope_high  = -0.42
+    origin_high = 380
+    x_high      = np.concatenate([[180], np.random.randint(180, 360, 25), [360]], axis = 0)
+
+    # Add a gaussian error to all values
+    mu     = 0
+    sigma  = 0.5
+    y_gaus = []
+
+    for i in range(27):
+        gaus = random.gauss(mu, sigma)
+        y_gaus.append(gaus)
+
+    y_low  = slope_low  * x_low  + origin_low  + y_gaus
+    y_high = slope_high * x_high + origin_high + y_gaus
+
+    df_low = pd.DataFrame({'channel_id' : 0,
+                           'tac_id'     : 0,
+                           'phase'      : x_low,
+                           'mode'       : y_low})
+
+    df_high = pd.DataFrame({'channel_id' : 0,
+                            'tac_id'     : 0,
+                            'phase'      : x_high,
+                            'mode'       : y_high})
+
+    df = pd.concat([df_low, df_high]).reset_index(drop = True)
+
+    channel = 0
+    tac     = 0
+    coeff, coeff_err, shifts_vals, chisq_r, dfs = TDC_double_linear_fit(df, channel, tac)
+
+    shift_ph_expected   = 177.5
+    shift_mode_expected = 234.45
+
+    tol_orig_low   = 0.01 * origin_low
+    tol_orig_high  = 0.01 * origin_high
+    tol_shift_ph   = 0.01 * shift_ph_expected
+    tol_shift_mode = 0.01 * shift_mode_expected
+
+    assert np.allclose(slope_low,   coeff[0][0], atol = 0.01)
+    assert np.allclose(origin_low,  coeff[0][1], atol = tol_orig_low)
+    assert np.allclose(slope_high,  coeff[1][0], atol = 0.01)
+    assert np.allclose(origin_high, coeff[1][1], atol = tol_orig_high)
+
+    assert np.allclose(shift_ph_expected, shifts_vals[0], atol = tol_shift_ph)
+    assert np.allclose(shift_mode_expected, shifts_vals[1], atol = tol_shift_mode)
+
+    assert np.allclose(df_low, dfs[0])
+    assert np.allclose(df_high, dfs[1])

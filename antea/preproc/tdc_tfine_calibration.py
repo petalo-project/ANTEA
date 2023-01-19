@@ -449,3 +449,50 @@ def TDC_linear_fit(df):
     func      = fit_result.fn
 
     return coeff, coeff_err, chisq_r, func
+
+def TDC_double_linear_fit(data, channel, tac, plot=False):
+    '''
+    Applies a linear fit to each linear distribution.
+    '''
+
+    #Find gap
+    df = data[(data['tac_id']==tac)&(data['channel_id']==channel)].reset_index(drop = True)
+
+    high_ph  = df[df['mode'] == df['mode'].max()].phase.values[0]
+    low_ph   = df[df['mode'] == df['mode'].min()].phase.values[0]
+    shift_ph = (high_ph + low_ph)/2
+
+    high_mode  = df[df['phase'] == high_ph]['mode'].values[0]
+    low_mode   = df[df['phase'] == low_ph]['mode'].values[0]
+    shift_mode = (high_mode + low_mode)/2
+
+    ### Low linear regression
+    df_low_ph = df[df['phase'] < shift_ph].reset_index(drop = True)
+
+    coeff_low, coeff_err_low, chisq_r_low, func_low = TDC_linear_fit(df_low_ph)
+
+    ### High linear regression
+    df_high_ph = df[df['phase'] > shift_ph].reset_index(drop = True)
+
+    coeff_high, coeff_err_high, chisq_r_high, func_high = TDC_linear_fit(df_high_ph)
+
+    print('Channel =',channel,' / TAC =',tac, '/ CHISQR_l =',round(chisq_r_low, 4),
+          '/ CHISQR_h =', round(chisq_r_high, 4), '/ SHIFT_PHASE=', shift_ph)
+
+    if plot==True:
+        figure, ax = plt.subplots(figsize=(4,4))
+        ax = plt.subplot(1,1,1)
+
+        phase_fine_low  = np.arange(0, shift_ph)
+        phase_fine_high = np.arange(shift_ph, 360)
+
+        ax.plot(func_low(phase_fine_low), phase_fine_low, 'b-', label="Fit")
+        ax.plot(func_high(phase_fine_high), phase_fine_high, 'b-')
+
+        ax.set_xlabel("TFINE")
+        ax.set_ylabel("PHASE")
+        plt.legend(loc='lower left')
+        plt.grid()
+
+    return [coeff_low, coeff_high], [coeff_err_low, coeff_err_high], [shift_ph,
+           shift_mode], [chisq_r_low, chisq_r_high], [df_low_ph, df_high_ph]
