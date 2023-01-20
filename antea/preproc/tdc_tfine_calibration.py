@@ -496,3 +496,73 @@ def TDC_double_linear_fit(data, channel, tac, plot=False):
 
     return [coeff_low, coeff_high], [coeff_err_low, coeff_err_high], [shift_ph,
            shift_mode], [chisq_r_low, chisq_r_high], [df_low_ph, df_high_ph]
+
+def fit_all_channel_modes(filename, plot=False):
+    '''
+    It fits all data to a double linear distribution and return a dataframe
+    with the data obtained.
+    '''
+
+    data = pd.read_hdf(filename, key = 'tfine')
+
+    df   = data.groupby(['channel_id', 'tac_id']).apply(filter_anomalous_values_in_mode)
+    df   = df.reset_index().drop(columns=['level_2', 'diff'])
+
+    if plot:
+        figure, ax = plt.subplots(figsize=(20,210))
+
+    i          = 0
+    res_linear = []
+    channels   = df['channel_id'].unique()
+
+    for chan in channels:
+        tacs = df['tac_id'].unique()
+
+        for tac in tacs:
+            i = i+1
+
+            coeff, coeff_err, shifts_vals, chi2, dfs = TDC_double_linear_fit(df,chan,tac)
+
+            slope_low   = coeff[0][0]
+            origin_low  = coeff[0][1]
+            slope_high  = coeff[1][0]
+            origin_high = coeff[1][1]
+            shift_ph    = shifts_vals[0]
+            shift_mode  = shifts_vals[1]
+
+            res_linear.append([chan, tac, slope_low, coeff_err[0][0], origin_low,
+                               coeff_err[0][1], slope_high, coeff_err[1][0],
+                               origin_high, coeff_err[1][1], shift_ph, shift_mode,
+                               chi2[0], chi2[1]])
+
+            if plot:
+
+                datos  = df[(df.channel_id == chan) & (df.tac_id == tac)]['mode']
+                phases = df[(df.channel_id == chan) & (df.tac_id == tac)].phase
+
+                inverse_low  = linear_regression_inv(dfs[0]['mode'], slope_low,
+                                                     origin_low, shift_ph)
+                inverse_high = linear_regression_inv(dfs[1]['mode'], slope_high,
+                                                     origin_high, shift_ph)
+
+                ax = plt.subplot(64,4,i)
+
+                ax.plot(dfs[0]['mode'], inverse_low,'g*-', label="Fit corr. low")
+                ax.plot(dfs[1]['mode'], inverse_high,'b*-', label="Fit corr. high")
+                ax.plot(datos, phases,'r.',label="Data")
+
+                ax.set_xlabel("TFINE", fontsize = 14)
+                ax.set_ylabel("PHASE", fontsize=14)
+                ax.set_title(channel, loc='left')
+                figure.tight_layout()
+                figure.subplots_adjust(hspace = 0.6,wspace = 0.2)
+                plt.legend()
+
+
+    df_tfine_linear = pd.DataFrame(res_linear, columns=['channel_id', 'tac_id',
+                                   'slope_low', 'slope_low_err', 'origin_low',
+                                   'origin_low_err', 'slope_high', 'slope_high_err',
+                                   'origin_high', 'origin_high_err', 'shift_phase',
+                                   'shift_mode', 'chi2_low', 'chi2_high'])
+
+    return df_tfine_linear

@@ -17,6 +17,7 @@ from antea.preproc.tdc_tfine_calibration import fit_all_channel_phases
 from antea.preproc.tdc_tfine_calibration import filter_anomalous_values_in_mode
 from antea.preproc.tdc_tfine_calibration import TDC_linear_fit
 from antea.preproc.tdc_tfine_calibration import TDC_double_linear_fit
+from antea.preproc.tdc_tfine_calibration import fit_all_channel_modes
 
 
 def test_process_df_to_assign_tpulse_delays(output_tmpdir):
@@ -705,3 +706,53 @@ def test_TDC_double_linear_fit():
 
     assert np.allclose(df_low, dfs[0])
     assert np.allclose(df_high, dfs[1])
+
+def test_fit_all_channel_modes(output_tmpdir):
+    '''
+    Check the values obtained in the DataFrame after the double linear
+    fit are correct.
+    '''
+
+    df = pd.DataFrame({'channel_id' : [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                       'tac_id'     : [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                       'phase'      : [0, 10, 20, 30, 40, 50, 60, 70, 80, 90],
+                       'mode_l'     : [40, 30, 20, 10, 0, 140, 130, 120, 110, 100],
+                       'err_mode_l' : [0.317, 0.219, 0.215, 0.300, 0.305, 0.020,
+                                       0.290, 0.593, 0.691, 0.315],
+                       'mode_r'     : [40, 30, 20, 10, 0, 140, 130, 120, 110, 100],
+                       'err_mode_r' : [0.317, 0.219, 0.215, 0.300, 0.305, 0.020,
+                                       0.290, 0.593, 0.691, 0.315]})
+
+    df1 = df.copy()
+    df1['tac_id']     = 1
+    df2 = df.copy()
+    df2['channel_id'] = 1
+    df3 = df.copy()
+    df3['tac_id']     = 1
+    df3['channel_id'] = 1
+
+    dfs = pd.concat([df, df1, df2, df3]).reset_index(drop = True)
+
+    ## Create file:
+    filein = os.path.join(output_tmpdir, 'tdc_modes.h5')
+    dfs.to_hdf(filein, key = 'tfine')
+
+    df_tfine_linear = fit_all_channel_modes(filein)
+
+    df_linear_expected = pd.DataFrame({'channel_id'  : [0, 0, 1, 1],
+                                       'tac_id'      : [0, 1, 0, 1],
+                                       'slope_low'   : -1,
+                                       'origin_low'  : 40,
+                                       'slope_high'  : -1,
+                                       'origin_high' : 190,
+                                       'shift_phase' : 45,
+                                       'shift_mode'  : 70})
+
+    assert np.allclose(df_linear_expected.channel_id,  df_tfine_linear.channel_id)
+    assert np.allclose(df_linear_expected.tac_id,      df_tfine_linear.tac_id)
+    assert np.allclose(df_linear_expected.slope_low,   df_tfine_linear.slope_low)
+    assert np.allclose(df_linear_expected.origin_low,  df_tfine_linear.origin_low)
+    assert np.allclose(df_linear_expected.slope_high,  df_tfine_linear.slope_high)
+    assert np.allclose(df_linear_expected.origin_high, df_tfine_linear.origin_high)
+    assert np.allclose(df_linear_expected.shift_phase, df_tfine_linear.shift_phase)
+    assert np.allclose(df_linear_expected.shift_mode,  df_tfine_linear.shift_mode)
