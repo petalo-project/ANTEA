@@ -540,9 +540,9 @@ def fit_all_channel_modes(filename, plot=False):
                 datos  = df[(df.channel_id == chan) & (df.tac_id == tac)]['mode']
                 phases = df[(df.channel_id == chan) & (df.tac_id == tac)].phase
 
-                inverse_low  = linear_regression_inv(dfs[0]['mode'], slope_low,
+                inverse_low  = linear_regression_inv_corr(dfs[0]['mode'], slope_low,
                                                      origin_low, shift_ph)
-                inverse_high = linear_regression_inv(dfs[1]['mode'], slope_high,
+                inverse_high = linear_regression_inv_corr(dfs[1]['mode'], slope_high,
                                                      origin_high, shift_ph)
 
                 ax = plt.subplot(64,4,i)
