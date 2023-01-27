@@ -20,6 +20,7 @@ from antea.preproc.threshold_calibration import filter_df_evts
 from antea.preproc.threshold_calibration import plot_evts_recorded_per_configuration
 from antea.preproc.fit_functions         import skewnormal_function
 from antea.preproc.fit_functions         import linear_regression
+from antea.preproc.fit_functions         import linear_regression_inv_corr
 
 from invisible_cities.core.fit_functions import fit
 from invisible_cities.core.fit_functions import gauss
