@@ -554,7 +554,7 @@ def fit_all_channel_modes(filename, plot=False):
 
                 ax.set_xlabel("TFINE", fontsize = 14)
                 ax.set_ylabel("PHASE", fontsize=14)
-                ax.set_title(channel, loc='left')
+                ax.set_title(chan, loc='left')
                 figure.tight_layout()
                 figure.subplots_adjust(hspace = 0.6,wspace = 0.2)
                 plt.legend()
