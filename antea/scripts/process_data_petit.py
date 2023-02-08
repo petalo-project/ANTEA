@@ -40,6 +40,7 @@ def process_data_petit(input_file, output_file):
         df0 = pd.concat([df0, df_center], ignore_index=False, sort=False)
 
     df    = df0.reset_index()
+    df    = df.astype({'evt_number': int})
     store = pd.HDFStore(output_file, "w", complib=str("zlib"), complevel=4)
     store.put('data', df, format='table', data_columns=True)
     store.close()
