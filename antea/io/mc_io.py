@@ -30,7 +30,6 @@ class mc_sns_response_writer:
         sns_resp_dict = sns_response[evt_number]
         sns_resp = pd.DataFrame({'event_id':  [evt_number for i in range(len(sns_resp_dict))],
                                   'sensor_id': list(sns_resp_dict.keys()),
-                                  'time_bin':  [0 for i in range(len(sns_resp_dict))],
                                   'charge':    list(sns_resp_dict.values())})
         self.store.append('MC/'+self.sns_df_name, sns_resp, format='t', data_columns=True)
 
