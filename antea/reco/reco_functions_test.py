@@ -261,7 +261,7 @@ def test_part_first_hit(ANTEADATADIR, part_id):
            assert tmin_from_pos <= t
 
 
-def test_find_first_time_of_sensors(ANTEADATADIR):
+def test_find_first_time_of_sensors_old(ANTEADATADIR):
     """
     Checks that the function find_first_time_of_sensors returns the sensors id
     and the time of the first photoelectron detected among all sensors
@@ -287,8 +287,35 @@ def test_find_first_time_of_sensors(ANTEADATADIR):
             assert np.all(rf.lower_or_equal(time_from_id, times))
 
 
+def test_find_first_time_of_sensors(ANTEADATADIR):
+    """
+    Checks that the function find_first_time_of_sensors returns the sensors id
+    and the time of the first photoelectron detected among all sensors
+    per event. The sensor id must be positive.
+    """
+    PATH_IN = os.path.join(ANTEADATADIR, 'full_body_1evt_new_tof.h5')
+    tof_response = load_mcTOFsns_response(PATH_IN)
+    events       = tof_response.event_id.unique()
+    for evt in events:
+        tof   = tof_response[tof_response.event_id==evt]
+        times = np.round(tof.time.values / units.ps)
+        tof   = tof.drop('time', axis=1)
+        tof.insert(len(tof.columns), 'time', times.astype(int))
+        tof.insert(len(tof.columns), 'charge', np.ones(len(times)).astype(int))
+
+        sns_ids      = tof.sensor_id.unique()
+        times        = tof.time
+        ids, time    = rf.find_first_time_of_sensors(tof, sns_ids, n_pe=1)
+        time_from_id = tof[tof.sensor_id == ids[0]].time.min()
+
+        assert ids[0] > 0
+        for t in times:
+            assert np.all(rf.lower_or_equal(time, times))
+            assert np.all(rf.lower_or_equal(time_from_id, times))
+
+
 @given(n_pe)
-def test_find_first_time_of_sensors_average_and_jitter(ANTEADATADIR, n_pe):
+def test_find_first_time_of_sensors_average_and_jitter_old(ANTEADATADIR, n_pe):
     """
     Checks that the function find_first_time_of_sensors returns
     the number of sensors used in the calculation and that the times
@@ -316,6 +343,33 @@ def test_find_first_time_of_sensors_average_and_jitter(ANTEADATADIR, n_pe):
         assert np.all(rf.lower_or_equal(min_time, rest_of_times))
 
 
+@given(n_pe)
+def test_find_first_time_of_sensors_average_and_jitter(ANTEADATADIR, n_pe):
+    """
+    Checks that the function find_first_time_of_sensors returns
+    the number of sensors used in the calculation and that the times
+    of the sensors not used in the calculation are always larger than
+    or equal to the minimum time.
+    """
+    PATH_IN = os.path.join(ANTEADATADIR, 'full_body_1evt_new_tof.h5')
+    tof_response = load_mcTOFsns_response(PATH_IN)
+    events       = tof_response.event_id.unique()
+    for evt in events:
+        tof   = tof_response[tof_response.event_id==evt]
+        times = np.round(tof.time.values / units.ps)
+
+        sns_ids = tof.sensor_id.unique()
+        ids, min_time  = rf.find_first_time_of_sensors(tof, sns_ids, n_pe)
+
+        assert len(ids) <= n_pe
+
+        rest_of_ids   = [x for x in sns_ids if x not in ids]
+        rest_of_times = tof[tof.sensor_id.isin(rest_of_ids)].time.values
+
+        assert np.all(rf.lower_or_equal(min_time, rest_of_times))
+
+
+
 l = st.lists(st.integers(min_value=-10000, max_value=-1000), min_size=1, max_size=5)
 
 @given(l)
@@ -324,7 +378,7 @@ def test_find_first_time_of_sensors_raises_WaveformEmptyTable(l):
     Tests that function find_first_time_of_sensors raises an exception
     if input tof is empty.
     """
-    keys  = np.array(['event_id', 'sensor_id', 'time_bin', 'charge'])
+    keys  = np.array(['event_id', 'sensor_id', 'time', 'charge'])
     wf_df = pd.DataFrame({}, columns = keys)
 
     with raises(WaveformEmptyTable):
