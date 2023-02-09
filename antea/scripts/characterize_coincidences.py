@@ -153,7 +153,7 @@ def characterize_coincidences(input_file: str, output_file: str, rmap: str):
         if sigma_sipm > 0:
             times = np.round(np.random.normal(times, sigma_sipm))
         evt_tof = evt_tof.drop('time', axis=1) # drop original time
-        evt_tof.insert(len(evt_tof.columns), 'time', times.astype(int)) # round to 1 ps 
+        evt_tof.insert(len(evt_tof.columns), 'time', np.round(times)) # round to 1 ps 
         evt_tof.insert(len(evt_tof.columns), 'charge', np.ones(len(times)).astype(int)) # add 1 unit of charge per time
 
         ## produce a TOF dataframe with convolved time response
