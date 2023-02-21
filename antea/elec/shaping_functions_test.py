@@ -72,7 +72,7 @@ def test_convolve_sipm_shaping(l, s):
 @mark.parametrize('filename',
                   (('ring_test.h5'),
                    ('full_body_1ev.h5')))
-def test_sipm_shaping_convolution(ANTEADATADIR, filename):
+def test_sipm_shaping_convolution_old_tof(ANTEADATADIR, filename):
     """
     Check that the function sipm_shaping_convolution
     returns a table with the adequate dimensions
@@ -91,6 +91,35 @@ def test_sipm_shaping_convolution(ANTEADATADIR, filename):
         evt_tof = tof_response[tof_response.event_id == evt]
         times   = evt_tof.time_bin.values * tof_bin_size / units.ps
         evt_tof.insert(4, 'time', times.astype(int))
+        tof_sns = evt_tof.sensor_id.unique()
+        for s_id in tof_sns:
+            tdc_conv = shf.sipm_shaping_convolution(evt_tof, spe_resp, s_id, time_window)
+            assert len(tdc_conv) == time_window + len(spe_resp) - 1
+            if len(evt_tof[(evt_tof.sensor_id == s_id) &
+                         (evt_tof.time >= time_window)]) == 0:
+                assert np.count_nonzero(tdc_conv) > 0
+
+
+def test_sipm_shaping_convolution(ANTEADATADIR):
+    """
+    Check that the function sipm_shaping_convolution
+    returns a table with the adequate dimensions
+    and that the table always contains non-zero values
+    if there are times in the window.
+    """
+    PATH_IN        = os.path.join(ANTEADATADIR, 'full_body_1evt_new_tof.h5')
+    tof_response   = load_mcTOFsns_response(PATH_IN)
+    events         = tof_response.event_id.unique()
+    time_window    = 5000
+    time           = np.arange(0, time_window)
+    spe_resp, _    = shf.normalize_sipm_shaping(time, tau_sipm)
+
+    for evt in events:
+        evt_tof = tof_response[tof_response.event_id == evt]
+        times   = np.round(evt_tof.time.values / units.ps)
+        evt_tof = evt_tof.drop('time', axis=1)
+        evt_tof.insert(len(evt_tof.columns), 'time', times.astype(int))
+        evt_tof.insert(len(evt_tof.columns), 'charge', np.ones(len(times)).astype(int))
         tof_sns = evt_tof.sensor_id.unique()
         for s_id in tof_sns:
             tdc_conv = shf.sipm_shaping_convolution(evt_tof, spe_resp, s_id, time_window)

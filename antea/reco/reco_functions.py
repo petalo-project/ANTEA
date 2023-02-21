@@ -346,8 +346,8 @@ def find_coincidence_timestamps(tof_response: pd.DataFrame,
     Finds the first time and the IDs of the sensors used to calculate it
     for each one of two sets of sensors, given a sensor response dataframe.
     """
-    min1, time1 = find_first_time_of_sensors(tof_response, -sns1, n_pe)
-    min2, time2 = find_first_time_of_sensors(tof_response, -sns2, n_pe)
+    min1, time1 = find_first_time_of_sensors(tof_response, sns1, n_pe)
+    min2, time2 = find_first_time_of_sensors(tof_response, sns2, n_pe)
 
     return min1, min2, time1, time2
 

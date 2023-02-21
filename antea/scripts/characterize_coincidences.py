@@ -10,7 +10,6 @@ import antea.reco.mctrue_functions  as mcf
 import antea.elec.shaping_functions as shf
 import antea.mcsim.sensor_functions as snsf
 
-from antea.io.mc_io import read_sensor_bin_width_from_conf
 from antea.io.mc_io import load_mcparticles, load_mchits
 from antea.io.mc_io import load_mcsns_response, load_mcTOFsns_response
 
@@ -102,8 +101,6 @@ def characterize_coincidences(input_file: str, output_file: str, rmap: str):
 
     fluct_sns_response = snsf.apply_charge_fluctuation(sns_response, DataSiPM_idx)
 
-    tof_bin_size = read_sensor_bin_width_from_conf(input_file, tof=True)
-
     particles    = load_mcparticles      (input_file)
     hits         = load_mchits           (input_file)
     tof_response = load_mcTOFsns_response(input_file)
@@ -119,12 +116,10 @@ def characterize_coincidences(input_file: str, output_file: str, rmap: str):
         if len(evt_sns) == 0:
             continue
 
-        ids_over_thr = evt_sns.sensor_id.astype('int64').values
-
         evt_parts = particles   [particles   .event_id == evt]
         evt_hits  = hits        [hits        .event_id == evt]
         evt_tof   = tof_response[tof_response.event_id == evt]
-        evt_tof   = evt_tof     [evt_tof     .sensor_id.isin(-ids_over_thr)]
+        evt_tof   = evt_tof     [evt_tof     .sensor_id.isin(evt_sns.sensor_id)]
         if len(evt_tof) == 0:
             continue
 
@@ -140,9 +135,6 @@ def characterize_coincidences(input_file: str, output_file: str, rmap: str):
             c0 += 1
             continue
 
-        sns1 = sns1.astype('int64')
-        sns2 = sns2.astype('int64')
-
         q1   = np.array(q1)
         q2   = np.array(q2)
         pos1 = np.array(pos1)
@@ -156,11 +148,13 @@ def characterize_coincidences(input_file: str, output_file: str, rmap: str):
             continue
 
         ## Use absolute times in units of ps
-        times = evt_tof.time_bin.values * tof_bin_size / units.ps
+        times = evt_tof.time / units.ps
         ## add SiPM jitter, if different from zero
         if sigma_sipm > 0:
             times = np.round(np.random.normal(times, sigma_sipm))
-        evt_tof.insert(len(evt_tof.columns), 'time', times.astype(int)) # here we have bins of 1 ps
+        evt_tof = evt_tof.drop('time', axis=1) # drop original time
+        evt_tof.insert(len(evt_tof.columns), 'time', np.round(times)) # round to 1 ps 
+        evt_tof.insert(len(evt_tof.columns), 'charge', np.ones(len(times)).astype(int)) # add 1 unit of charge per time
 
         ## produce a TOF dataframe with convolved time response
         tof_sns = evt_tof.sensor_id.unique()
