@@ -213,10 +213,11 @@ def find_hit_distances_from_true_pos(hits: pd.DataFrame,
 
 def find_first_interactions_in_active(particles: pd.DataFrame,
                                       hits: pd.DataFrame,
-                                      photo_range: float = 1.)-> Tuple[Tuple[float, float, float],
-                                                                       Tuple[float, float, float],
-                                                                       float, float,
-                                                                       bool, bool]:
+                                      photo_range: float = 1.,
+                                      petit: bool = False)-> Tuple[Tuple[float, float, float],
+                                                                   Tuple[float, float, float],
+                                                                   float, float,
+                                                                   bool, bool]:
     """
     Looks for the first interaction of primary gammas in the active volume.
     """
@@ -224,27 +225,41 @@ def find_first_interactions_in_active(particles: pd.DataFrame,
     sel_volume   = (particles.initial_volume == 'ACTIVE') & (particles.final_volume == 'ACTIVE')
     sel_name     = particles.particle_name == 'e-'
     sel_vol_name = particles[sel_volume & sel_name]
-    primaries = particles[particles.primary == True]
-    sel_all   = sel_vol_name[sel_vol_name.mother_id.isin(primaries.particle_id.values)]
+    if petit:
+        gammas	  = particles[particles.particle_name == 'gamma']
+        positrons = particles[(particles.particle_name == 'e+') &
+                              (particles.initial_volume == 'NA22_SOURCE')]
+        gammas    = gammas[(gammas.creator_proc == 'pos_annihil') &
+                           (gammas.mother_id.isin(positrons.particle_id.values))]
+    else:
+        gammas = particles[particles.primary == True]
+
+    if len(gammas) != 2:
+        print('Cannot find two true gamma interactions for this event')
+        return [], [], None, None, None, None
+
+    id1 = gammas.particle_id.values[0]
+    id2 = gammas.particle_id.values[1]
+    sel_all   = sel_vol_name[sel_vol_name.mother_id.isin(gammas.particle_id.values)]
     ### Calculate the initial vertex.
     gamma_pos1, gamma_pos2 = [], []
     min_t1    , min_t2     = float('inf'), float('inf')
-    if len(sel_all[sel_all.mother_id == 1]) > 0:
-        gamma_pos1, min_t1, _ = initial_coord_first_daughter(sel_all, 1)
+    if len(sel_all[sel_all.mother_id == id1]) > 0:
+        gamma_pos1, min_t1, _ = initial_coord_first_daughter(sel_all, id1)
 
-    if len(sel_all[sel_all.mother_id == 2]) > 0:
-        gamma_pos2, min_t2, _ = initial_coord_first_daughter(sel_all, 2)
+    if len(sel_all[sel_all.mother_id == id2]) > 0:
+        gamma_pos2, min_t2, _ = initial_coord_first_daughter(sel_all, id2)
 
     ### Calculate the minimum time among the hits of a given primary gamma,
     ### if any.
-    if len(hits[hits.particle_id == 1]) > 0:
-        g_pos1, g_min_t1 = part_first_hit(hits, 1)
+    if len(hits[hits.particle_id == id1]) > 0:
+        g_pos1, g_min_t1 = part_first_hit(hits, id1)
         if g_min_t1 < min_t1:
             min_t1     = g_min_t1
             gamma_pos1 = g_pos1
 
-    if len(hits[hits.particle_id == 2]) > 0:
-        g_pos2, g_min_t2 = part_first_hit(hits, 2)
+    if len(hits[hits.particle_id == id2]) > 0:
+        g_pos2, g_min_t2 = part_first_hit(hits, id2)
         if g_min_t2 < min_t2:
             min_t2     = g_min_t2
             gamma_pos2 = g_pos2
