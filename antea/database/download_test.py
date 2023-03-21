@@ -15,7 +15,7 @@ def test_create_table_sqlite(output_tmpdir):
         os.remove(dbfile)
 
     connSqlite = sqlite3.connect(dbfile)
-    connMySql  = pymysql.connect(host="neutrinos1.ific.uv.es",
+    connMySql  = pymysql.connect(host="next.ific.uv.es",
                                 user='petaloreader',passwd='petaloreader', db=dbname)
 
     cursorMySql  = connMySql .cursor()

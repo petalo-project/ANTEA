@@ -61,7 +61,7 @@ def loadDB(dbname : str):
         pass
 
     connSqlite = sqlite3.connect(dbfile)
-    connMySql  = pymysql.connect(host="neutrinos1.ific.uv.es",
+    connMySql  = pymysql.connect(host="next.ific.uv.es",
                                 user='petaloreader',passwd='petaloreader', db=dbname)
 
     cursorMySql  = connMySql .cursor()
