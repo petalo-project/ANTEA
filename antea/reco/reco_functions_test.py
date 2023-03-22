@@ -385,6 +385,28 @@ def test_find_first_time_of_sensors_raises_WaveformEmptyTable(l):
         rf.find_first_time_of_sensors(wf_df, l)
 
 
+def test_find_first_interactions_in_active_petit(ANTEADATADIR):
+    """
+    This test checks that the two 511-keV gammas created by positron annihilation
+    are found correctly in a specific event of a PETit simulation.
+    """
+    PATH_IN   = os.path.join(ANTEADATADIR, 'petbox_noncoll_gammas.pet.h5')
+    particles = load_mcparticles(PATH_IN)
+    hits      = load_mchits(PATH_IN)
+    events    = particles.event_id.unique()
+
+    evt = 2
+    evt_parts = particles[particles.event_id == evt]
+    evt_hits  = hits     [hits     .event_id == evt]
+
+    true_a, true_b, true_ta, true_tb, pha, phb = rf.find_first_interactions_in_active(evt_parts, evt_hits, petit=True)
+    assert true_a.all()
+    assert true_b.all()
+
+
+
+
+
 def test_change_unsigned_type_sipm(ANTEADATADIR):
     """
     Fails when database sensor id values are unsigned.
@@ -471,6 +493,7 @@ def test_select_coincidences(ANTEADATADIR):
             assert not true_pos1 and not true_pos2
             assert not len(pos1) and not len(pos2)
             assert not len(q1)   and not len(q2)
+
 
 
 def test_only_gamma_hits_interaction():
