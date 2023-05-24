@@ -136,7 +136,7 @@ def assign_sipms_to_gammas(sns_response: pd.DataFrame,
 
 def initial_coord_first_daughter(particles: pd.DataFrame,
                                  mother_id: int) -> Tuple[Tuple[float, float, float],
-                                                          int, str]:
+                                                          float, str]:
     """
     Returns the position, time and volume of the initial vertex
     of the first daughter of a given particle.
@@ -155,7 +155,7 @@ def initial_coord_first_daughter(particles: pd.DataFrame,
 
 
 def part_first_hit(hits: pd.DataFrame,
-                   part_id: int) -> Tuple[Tuple[float, float, float], int]:
+                   part_id: int) -> Tuple[Tuple[float, float, float], float, str]:
     """
     Returns the position and time of the first hit of a given particle.
     """
@@ -163,8 +163,8 @@ def part_first_hit(hits: pd.DataFrame,
     if len(part_hits):
         p_hit    = part_hits.loc[part_hits['time'].idxmin()]
         part_pos = p_hit[['x', 'y', 'z']].values
-        return part_pos, p_hit.time
-    return [], float('inf')
+        return part_pos, p_hit.time, p_hit.label
+    return [], float('inf'), None
 
 
 def find_first_time_of_sensors(tof_response: pd.DataFrame,
@@ -211,6 +211,95 @@ def find_hit_distances_from_true_pos(hits: pd.DataFrame,
     return distances
 
 
+def find_b2b_gammas(particles: pd.DataFrame, source: bool = False)-> pd.DataFrame:
+    """
+    Returns a dataframe with the two almost back-to-back, almost 511 keV gammas.
+    The case of two primary gammas (source == false) or a Na22 source are considered.
+    """
+    if source:
+        gammas	  = particles[particles.particle_name == 'gamma']
+        positrons = particles[(particles.particle_name == 'e+') &
+                              (particles.initial_volume == 'NA22_SOURCE')]
+        gammas    = gammas[(gammas.creator_proc == 'pos_annihil') &
+                           (gammas.mother_id.isin(positrons.particle_id.values))]
+    else:
+        gammas = particles[particles.primary == True]
+
+    return gammas
+
+def calculate_initial_vertex(selected_part: pd.DataFrame,
+                             hits: pd.DataFrame,
+                             id1: int, id2: int)-> Tuple[Tuple[float, float, float],
+                                                         Tuple[float, float, float],
+                                                         float, float,
+                                                         str, str]:
+    """
+    Looks for the first interaction of gammas.
+    """
+
+    ### Calculate the initial vertex.
+    gamma_pos1, gamma_pos2 = [], []
+    min_t1    , min_t2     = float('inf'), float('inf')
+    vol1      , vol2       = None, None
+    if len(selected_part[selected_part.mother_id == id1]) > 0:
+        gamma_pos1, min_t1, vol1 = initial_coord_first_daughter(selected_part, id1)
+
+    if len(selected_part[selected_part.mother_id == id2]) > 0:
+        gamma_pos2, min_t2, vol2 = initial_coord_first_daughter(selected_part, id2)
+
+    ### Calculate the minimum time among the hits of a given primary gamma,
+    ### if any.
+    if len(hits[hits.particle_id == id1]) > 0:
+        g_pos1, g_min_t1, g_vol1 = part_first_hit(hits, id1)
+        if g_min_t1 < min_t1:
+            min_t1     = g_min_t1
+            gamma_pos1 = g_pos1
+            vol1       = g_vol1
+
+    if len(hits[hits.particle_id == id2]) > 0:
+        g_pos2, g_min_t2, g_vol2 = part_first_hit(hits, id2)
+        if g_min_t2 < min_t2:
+            min_t2     = g_min_t2
+            gamma_pos2 = g_pos2
+            vol2       = g_vol2
+
+    gamma_pos1 = np.array(gamma_pos1, dtype=float)
+    gamma_pos2 = np.array(gamma_pos2, dtype=float)
+
+    return gamma_pos1, gamma_pos2, min_t1, min_t2, vol1, vol2
+
+
+def find_first_interactions(particles: pd.DataFrame,
+                            hits: pd.DataFrame,
+                            source: bool = False)-> Tuple[Tuple[float, float, float],
+                                                          Tuple[float, float, float],
+                                                          float, float,
+                                                          str, str]:
+    """
+    Looks for the first interaction of primary gammas.
+    """
+    gammas = find_b2b_gammas(particles, source)
+    if len(gammas) != 2:
+        print('Cannot find the two ~511 keV gammas for this event')
+        return [], [], None, None, None, None
+
+    id1 = gammas.particle_id.values[0]
+    id2 = gammas.particle_id.values[1]
+
+    ### select electrons
+    electrons  = particles[particles.particle_name == 'e-']
+    daughter_e = electrons[electrons.mother_id.isin(gammas.particle_id.values)]
+
+    ### Calculate the initial vertex.
+    gamma_pos1, gamma_pos2, min_t1, min_t2, vol1, vol2 = calculate_initial_vertex(daughter_e, hits, id1, id2)
+    if not len(gamma_pos1) or not len(gamma_pos2):
+        print("Cannot find two true gamma interactions for this event")
+        return [], [], None, None, None, None
+
+    return gamma_pos1, gamma_pos2, min_t1, min_t2, vol1, vol2
+
+
+
 def find_first_interactions_in_active(particles: pd.DataFrame,
                                       hits: pd.DataFrame,
                                       photo_range: float = 1.,
@@ -221,49 +310,22 @@ def find_first_interactions_in_active(particles: pd.DataFrame,
     """
     Looks for the first interaction of primary gammas in the active volume.
     """
-    ### select electrons, primary gammas daughters in ACTIVE
-    sel_volume   = (particles.initial_volume == 'ACTIVE') & (particles.final_volume == 'ACTIVE')
-    sel_name     = particles.particle_name == 'e-'
-    sel_vol_name = particles[sel_volume & sel_name]
-    if petit:
-        gammas	  = particles[particles.particle_name == 'gamma']
-        positrons = particles[(particles.particle_name == 'e+') &
-                              (particles.initial_volume == 'NA22_SOURCE')]
-        gammas    = gammas[(gammas.creator_proc == 'pos_annihil') &
-                           (gammas.mother_id.isin(positrons.particle_id.values))]
-    else:
-        gammas = particles[particles.primary == True]
-
+    gammas = find_b2b_gammas(particles, petit)
     if len(gammas) != 2:
-        print('Cannot find two true gamma interactions for this event')
+        print('Cannot find the two ~511 keV gammas for this event')
         return [], [], None, None, None, None
 
     id1 = gammas.particle_id.values[0]
     id2 = gammas.particle_id.values[1]
-    sel_all   = sel_vol_name[sel_vol_name.mother_id.isin(gammas.particle_id.values)]
+
+    ### select electrons, primary gammas daughters in ACTIVE
+    sel_volume   = (particles.initial_volume == 'ACTIVE') & (particles.final_volume == 'ACTIVE')
+    sel_name     = particles.particle_name == 'e-'
+    sel_vol_name = particles[sel_volume & sel_name]
+    sel_all      = sel_vol_name[sel_vol_name.mother_id.isin(gammas.particle_id.values)]
+
     ### Calculate the initial vertex.
-    gamma_pos1, gamma_pos2 = [], []
-    min_t1    , min_t2     = float('inf'), float('inf')
-    if len(sel_all[sel_all.mother_id == id1]) > 0:
-        gamma_pos1, min_t1, _ = initial_coord_first_daughter(sel_all, id1)
-
-    if len(sel_all[sel_all.mother_id == id2]) > 0:
-        gamma_pos2, min_t2, _ = initial_coord_first_daughter(sel_all, id2)
-
-    ### Calculate the minimum time among the hits of a given primary gamma,
-    ### if any.
-    if len(hits[hits.particle_id == id1]) > 0:
-        g_pos1, g_min_t1 = part_first_hit(hits, id1)
-        if g_min_t1 < min_t1:
-            min_t1     = g_min_t1
-            gamma_pos1 = g_pos1
-
-    if len(hits[hits.particle_id == id2]) > 0:
-        g_pos2, g_min_t2 = part_first_hit(hits, id2)
-        if g_min_t2 < min_t2:
-            min_t2     = g_min_t2
-            gamma_pos2 = g_pos2
-
+    gamma_pos1, gamma_pos2, min_t1, min_t2, _, _ = calculate_initial_vertex(sel_all, hits, id1, id2)
     if not len(gamma_pos1) or not len(gamma_pos2):
         print("Cannot find two true gamma interactions for this event")
         return [], [], None, None, None, None
