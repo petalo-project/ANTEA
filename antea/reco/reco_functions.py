@@ -116,10 +116,10 @@ def assign_sipms_to_gammas(sns_response: pd.DataFrame,
     sns_positions = np.array([sipms.X.values, sipms.Y.values, sipms.Z.values]).transpose()
     sns_charges   = sns_response.charge
     closest_pos   = sns_closest_pos[0] ## Look at the first one, which always exists.
+
     ### The sensors on the same semisphere are grouped together,
     ### and those on the opposite side, too, only
     ### if two interactions have been detected.
-
     for sns_id, sns_pos, charge in zip(sns_ids, sns_positions, sns_charges):
         scalar_prod = sns_pos.dot(closest_pos)
         if scalar_prod > 0.:
@@ -157,7 +157,7 @@ def initial_coord_first_daughter(particles: pd.DataFrame,
 def part_first_hit(hits: pd.DataFrame,
                    part_id: int) -> Tuple[Tuple[float, float, float], float, str]:
     """
-    Returns the position and time of the first hit of a given particle.
+    Returns the position, time and volume of the first hit of a given particle.
     """
     part_hits = hits[hits.particle_id == part_id]
     if len(part_hits):
@@ -271,12 +271,14 @@ def calculate_initial_vertex(selected_part: pd.DataFrame,
 
 def find_first_interactions(particles: pd.DataFrame,
                             hits: pd.DataFrame,
+                            vol: str = None,
                             source: bool = False)-> Tuple[Tuple[float, float, float],
                                                           Tuple[float, float, float],
                                                           float, float,
                                                           str, str]:
     """
-    Looks for the first interaction of primary gammas.
+    Returns the position, time and volume of the first interaction
+    of each primary gammas.
     """
     gammas = find_b2b_gammas(particles, source)
     if len(gammas) != 2:
@@ -287,6 +289,8 @@ def find_first_interactions(particles: pd.DataFrame,
     id2 = gammas.particle_id.values[1]
 
     ### select electrons
+    if vol:
+        particles = particles[(particles.initial_volume == vol) & (particles.final_volume == vol)]
     electrons  = particles[particles.particle_name == 'e-']
     daughter_e = electrons[electrons.mother_id.isin(gammas.particle_id.values)]
 
@@ -308,30 +312,16 @@ def find_first_interactions_in_active(particles: pd.DataFrame,
                                                                    float, float,
                                                                    bool, bool]:
     """
-    Looks for the first interaction of primary gammas in the active volume.
+    Returns the first interaction of each primary gammas in the active volume
+    and distinguish if they are photoelectric-like or they aren't.
     """
-    gammas = find_b2b_gammas(particles, petit)
-    if len(gammas) != 2:
-        print('Cannot find the two ~511 keV gammas for this event')
-        return [], [], None, None, None, None
 
-    id1 = gammas.particle_id.values[0]
-    id2 = gammas.particle_id.values[1]
-
-    ### select electrons, primary gammas daughters in ACTIVE
-    sel_volume   = (particles.initial_volume == 'ACTIVE') & (particles.final_volume == 'ACTIVE')
-    sel_name     = particles.particle_name == 'e-'
-    sel_vol_name = particles[sel_volume & sel_name]
-    sel_all      = sel_vol_name[sel_vol_name.mother_id.isin(gammas.particle_id.values)]
-
-    ### Calculate the initial vertex.
-    gamma_pos1, gamma_pos2, min_t1, min_t2, _, _ = calculate_initial_vertex(sel_all, hits, id1, id2)
+    gamma_pos1, gamma_pos2, min_t1, min_t2, _, _ = find_first_interactions(particles, hits, 'ACTIVE', petit)
     if not len(gamma_pos1) or not len(gamma_pos2):
         print("Cannot find two true gamma interactions for this event")
         return [], [], None, None, None, None
 
     ## find if the event is photoelectric-like
-
     distances1 = find_hit_distances_from_true_pos(hits, gamma_pos1)
     if max(distances1) > photo_range: ## hits at <1 mm distance are considered of the same point
         phot_like1 = False
