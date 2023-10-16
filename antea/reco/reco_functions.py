@@ -349,14 +349,12 @@ def reconstruct_coincidences(sns_response: pd.DataFrame,
                                                    float, float,
                                                    Sequence[int], Sequence[int]]:
     """
-    Finds the SiPM with maximum charge. Divide the SiPMs in two groups,
+    Finds the SiPM with maximum charge. Divides the SiPMs in two groups,
     separated by the plane perpendicular to the line connecting this SiPM
     with the centre of the cylinder.
     The true position of the first gamma interaction in ACTIVE is also
-    returned for each of the two primary gammas (labeled 1 and 2 following
-    GEANT4 ids). The two SiPM groups are assigned to their correspondent
-    true gamma by position.
-    A range of charge is given to select singles in the photoelectric peak.
+    returned for each of the two primary gammas.
+    The two SiPM groups are assigned to their correspondent true gamma by position.
     DataSiPM_idx is assumed to be indexed on the sensor ids. If it is not,
     it is indexed inside the function.
     """
@@ -370,7 +368,10 @@ def reconstruct_coincidences(sns_response: pd.DataFrame,
     sipms         = DataSiPM_idx.loc[sns_response.sensor_id]
     sns_positions = sipms[['X', 'Y', 'Z']].values
 
-    sns1, sns2, pos1, pos2, q1, q2 = divide_sipms_in_two_hemispheres(sipms.index.values, sns_positions, sns_response.charge.values, max_pos)
+    sns1, sns2, pos1, pos2, q1, q2 = divide_sipms_in_two_hemispheres(sipms.index.values,
+                                                                     sns_positions,
+                                                                     sns_response.charge.values,
+                                                                     max_pos)
 
     tot_q1 = sum(q1)
     tot_q2 = sum(q2)
@@ -380,7 +381,8 @@ def reconstruct_coincidences(sns_response: pd.DataFrame,
     if not sel1 or not sel2:
         return [], [], [], [], None, None, None, None, [], []
 
-    true_pos1, true_pos2, true_t1, true_t2, _, _ = find_first_interactions_in_active(particles, hits)
+    true_pos1, true_pos2, true_t1, true_t2, _, _ = find_first_interactions_in_active(particles,
+                                                                                     hits)
 
     if not len(true_pos1) or not len(true_pos2):
         print("Cannot find two true gamma interactions for this event")
