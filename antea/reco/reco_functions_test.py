@@ -248,17 +248,22 @@ def test_part_first_hit(ANTEADATADIR, part_id):
     events    = hits.event_id.unique()
 
     for evt in events:
-        hits_sel  = hits[hits.event_id == evt]
-        part_hits = hits_sel[hits_sel.particle_id == part_id]
-        pos, tmin = rf.part_first_hit(part_hits, part_id)
+        hits_sel       = hits[hits.event_id == evt]
+        part_hits      = hits_sel[hits_sel.particle_id == part_id]
+        pos, tmin, vol = rf.part_first_hit(part_hits, part_id)
         if not len(pos): continue
 
-        hit_times = part_hits.time
-        tmin_from_pos = hits_sel[np.isclose(hits_sel.x, pos[0]) & np.isclose(hits_sel.y, pos[1]) & np.isclose(hits_sel.z, pos[2])].time.min()
+        hit_times     = part_hits.time
+        tmin_from_pos = hits_sel[np.isclose(hits_sel.x, pos[0]) &
+                                 np.isclose(hits_sel.y, pos[1]) &
+                                 np.isclose(hits_sel.z, pos[2])].time.min()
 
         for t in hit_times:
            assert tmin <= t
            assert tmin_from_pos <= t
+
+        min_vol = part_hits.iloc[np.argmin(part_hits.time.values)].label
+        assert vol == min_vol
 
 
 def test_find_first_time_of_sensors_old(ANTEADATADIR):
@@ -522,7 +527,7 @@ def test_only_gamma_hits_interaction():
 
    hits_data = {'event_id': [0, 0], 'x': [-181.8, 181.8], 'y': [20.2, -20.2],
                 'z': [-69.2, 69.2], 'time': [0.63, 0.67], 'energy': [1, 1],
-                'particle_id': [4, 2]}
+                'particle_id': [4, 2], 'label': ['ACTIVE', 'ACTIVE']}
    hits = pd.DataFrame(hits_data)
 
    sns_data = {'event_id': [0, 0], 'sensor_id': [2021, 3503],
