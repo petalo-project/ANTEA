@@ -25,7 +25,7 @@ def process_mc_petit(input_file, output_file):
     df = mcio.load_mcsns_response(input_file)
 
     evt_groupby     = ['event_id']
-    df['tofpet_id'] = df['sensor_id'].apply(prf.tofpetid)
+    df.insert(len(df.columns), 'tofpet_id', df['sensor_id'].apply(prf.tofpetid))
 
     df_coinc  = prf.compute_coincidences(df, evt_groupby=evt_groupby)
     df_center = prf.select_evts_with_max_charge_at_center(df_coinc, evt_groupby=evt_groupby, variable='charge')
