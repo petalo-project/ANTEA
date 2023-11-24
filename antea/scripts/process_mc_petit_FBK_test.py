@@ -3,7 +3,7 @@ import os
 from . process_mc_petit_FBK import process_mc_petit_FBK
 
 
-def test_process_mc_petit(ANTEADATADIR, config_tmpdir):
+def test_process_mc_petit_FBK(ANTEADATADIR, config_tmpdir):
     """
     Checks that the function to process petit data with FBK SiPMs works.
     """

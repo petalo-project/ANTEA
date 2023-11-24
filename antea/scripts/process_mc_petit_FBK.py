@@ -108,11 +108,11 @@ def sim_saturation_vicente(df: pd.DataFrame, rec_time: int):
     return df
     
 
-def process_mc_petit_FBK(input_file: str, output_file: str, recovery_time: int)
+def process_mc_petit_FBK(input_file: str, output_file: str, recovery_time: int):
 
     """
     This function selects data events in coincidence and it saves the maximum
-    chargeof the event in each the plane and the minimum time. It also computes
+    charge of the event in each plane and the minimum time. It also computes
     the charge obtained in a SiPM with and without saturation. Finally, it sums 
     the charge of 4 in 4 sensors to compare with real data.
     """
@@ -155,7 +155,7 @@ def process_mc_petit_FBK(input_file: str, output_file: str, recovery_time: int)
         print(f'File {input_file} not found')
         exit()
     except KeyError:
-        print(f'No object named MC/tof_sns_response in file {input_file}'')
+        print(f'No object named MC/tof_sns_response in file {input_file}')
         exit()
     except:
         print(f'Unknown error in {input_file}')
@@ -179,7 +179,7 @@ def process_mc_petit_FBK(input_file: str, output_file: str, recovery_time: int)
         print('bunch', n)
         evt_range = events[n*n_evts_per_bunch:(n+1)*n_evts_per_bunch]
         b_sns   = tof_response[tof_response.event_id.isin(evt_range)]
-        charge_df = b_sns.groupby(['event_id','sns_cells'], as_index=False).apply(sim_saturation_vicente, rec_time=rec_time)
+        charge_df = b_sns.groupby(['event_id','sns_cells'], as_index=False).apply(sim_saturation_vicente, rec_time=recovery_time)
 
         ### Create DataFrame for charge data, with and without saturation:
         print('creating charge dataFrames')
