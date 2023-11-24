@@ -71,11 +71,7 @@ def num_sensors_4in4(df):
 
             sns_comp = (np.array([100, 101, 108, 109]) + j + n).tolist()
 
-            if n < 390: # To change the TOFPET plane
-                df = df.replace({'sensor_id':sns_comp}, new_sns[i])
-
-            else:
-                df = df.replace({'sensor_id':sns_comp}, new_sns[i])
+            df = df.replace({'sensor_id':sns_comp}, new_sns[i])
 
             if (i == 3) | (i == 7) | (i == 11): # To change the row in a tile
                 j += 10
@@ -130,11 +126,6 @@ def process_mc_petit_FBK(input_file: str, output_file: str, recovery_time: int):
     sigma_sipm    = 40 #ps SiPM jitter
     sigma_elec    = 30 #ps electronic jitter
     timestamp_thr = 0.25 # PETsys threshold to extract the timestamp
-
-    start = int(sys.argv[1])
-    numb  = int(sys.argv[2])
-    rec_time = float(sys.argv[3])
-
     
     ### Data to save
     sensor_id0, sensor_id2   = [], []
@@ -174,15 +165,14 @@ def process_mc_petit_FBK(input_file: str, output_file: str, recovery_time: int):
     n_evts           = len(events)
     n_evts_per_bunch = int(100)
     n_bunches        = int(np.ceil(n_evts / n_evts_per_bunch))
-    print(n_evts, n_bunches)
+   
     for n in range(n_bunches):
-        print('bunch', n)
+        
         evt_range = events[n*n_evts_per_bunch:(n+1)*n_evts_per_bunch]
         b_sns   = tof_response[tof_response.event_id.isin(evt_range)]
         charge_df = b_sns.groupby(['event_id','sns_cells'], as_index=False).apply(sim_saturation_vicente, rec_time=recovery_time)
 
         ### Create DataFrame for charge data, with and without saturation:
-        print('creating charge dataFrames')
         charge_df.insert(len(charge_df.columns), 'original_pe', np.ones(len(charge_df.sensor_id.values)).astype(int))
 
         # With saturation
@@ -210,7 +200,6 @@ def process_mc_petit_FBK(input_file: str, output_file: str, recovery_time: int):
         sns_coinc = sns_coinc.reset_index()
 
         c_events = sns_coinc.event_id.unique()
-        print(f'Number of events = {len(events)}')
 
         for evt in c_events:
             evt_sns = sns_coinc[sns_coinc.event_id == evt]
@@ -261,12 +250,12 @@ def process_mc_petit_FBK(input_file: str, output_file: str, recovery_time: int):
             try:
                 min_id0, min_t0 = rf.find_first_time_of_sensors(evt_tof_exp_dist, sns0, n_pe)
             except WaveformEmptyTable:
-                print(f'TOF dataframe has no minimum time in plane 0 for event {evt}')
+                # TOF dataframe has no minimum time in plane 0
                 min_id0, min_t0 = [-1], -1
             try:
                 min_id2, min_t2 = rf.find_first_time_of_sensors(evt_tof_exp_dist, sns2, n_pe)
             except:
-                print(f'TOF dataframe has no minimum time in plane 2 for event {evt}')
+                # TOF dataframe has no minimum time in plane 2
                 min_id2, min_t2 = [-1], -1
 
             ## select SiPM with max charge
