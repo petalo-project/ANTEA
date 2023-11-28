@@ -30,3 +30,22 @@ def apply_sipm_pde(sns_df: pd.DataFrame, pde: float) -> pd.DataFrame:
     sns_df = sns_df.drop(['charge'], axis=1).rename(columns={'det_charge': 'charge'})
 
     return sns_df
+    
+    
+
+
+
+def apply_sipm_saturation(df: pd.DataFrame, rec_time: int):
+    """
+    This function creates a new column named 'charge' applying 
+    sensor saturation taking into account their recovery time. 
+    """
+    def exp(x: Sequence[float], tau: int):
+    return np.exp(-x/tau)
+    
+    diff_time = np.diff(df.time.values)
+    v_frac    = 1 - exp(diff_time, rec_time)
+    charges   = np.insert(v_frac, 0, 1)
+    df.insert(len(df.columns), 'charge', charges.astype(float))
+
+    return df
