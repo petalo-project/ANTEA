@@ -26,84 +26,6 @@ where:
 - recovery_time is the time that FBK SiPMs take to recover. 
 """
 
-def num_sensors_4in4(df): 
-    
-    """
-    This function replaces the sensor_id in the data with 
-    the ordering usually used: TOFPET 0 from 11 to 88 and TOFPET 2
-    from 111 to 188; tacking into account the combination of 4 SiPMs, 
-    as they are read 4 by 4 in the real set-up.
-    """
-
-    j = 0 # To go through the sensors of a tile.
-    n = 0 # To change the tile
-    
-    num_tiles   = 8
-    num_sensors = 16
-
-    new_sns_1 = np.array([11, 12, 13, 14, 
-                          21, 22, 23, 24, 
-                          31, 32, 33, 34, 
-                          41, 42, 43, 44])
-
-    for k in np.arange(num_tiles):
-
-        if   k == 0:
-            new_sns = new_sns_1       # tile 1
-        elif k == 1:
-            new_sns = new_sns_1 + 4   # tile 2
-        elif k == 2:
-            new_sns = new_sns_1 + 40  # tile 3
-        elif k == 3:
-            new_sns = new_sns_1 + 44  # tile 4
-        elif k == 4:
-            new_sns = new_sns_1 + 100 # tile 5
-        elif k == 5:
-            new_sns = new_sns_1 + 104 # tile 6
-        elif k == 6:
-            new_sns = new_sns_1 + 140 # tile 7
-        elif k == 7:
-            new_sns = new_sns_1 + 144 # tile 8       
-
-        n = k*100
-
-        for i in np.arange(num_sensors):
-
-            sns_comp = (np.array([100, 101, 108, 109]) + j + n).tolist()
-
-            df = df.replace({'sensor_id':sns_comp}, new_sns[i])
-
-            if (i == 3) | (i == 7) | (i == 11): # To change the row in a tile
-                j += 10
-            else:
-                j += 2
-        j = 0
-
-    return df
-
-
-def exp(x: Sequence[float], tau: int):
-    
-    """ 
-    This function returns the exponential for the given data.
-    """
-    return np.exp(-x/tau)
-
-
-def sim_saturation_vicente(df: pd.DataFrame, rec_time: int):
-    """
-    This function creates a new column named 'charge' applying 
-    sensor saturation taking into account their recovery time. 
-    """
-    
-    diff_time = np.diff(df.time.values)
-    v_frac    = 1 - exp(diff_time, rec_time)
-    charges   = np.insert(v_frac, 0, 1)
-    df.insert(len(df.columns), 'charge', charges.astype(float))
-
-    return df
-    
-
 def process_mc_petit_FBK(input_file: str, output_file: str, recovery_time: int):
 
     """
@@ -158,7 +80,7 @@ def process_mc_petit_FBK(input_file: str, output_file: str, recovery_time: int):
     tof_response = tof_response.rename(columns={'sensor_id':'sns_cells'})
     tof_sensors  = tof_response.sns_cells.values // 10000
     tof_response['sensor_id'] = tof_sensors
-    tof_response = num_sensors_4in4(tof_response)
+    tof_response = prf.compute_charge_in_groups_of_4sensors(tof_response)
 
     ### Apply saturation:
     events = tof_response.event_id.unique()
@@ -170,7 +92,7 @@ def process_mc_petit_FBK(input_file: str, output_file: str, recovery_time: int):
         
         evt_range = events[n*n_evts_per_bunch:(n+1)*n_evts_per_bunch]
         b_sns   = tof_response[tof_response.event_id.isin(evt_range)]
-        charge_df = b_sns.groupby(['event_id','sns_cells'], as_index=False).apply(sim_saturation_vicente, rec_time=recovery_time)
+        charge_df = b_sns.groupby(['event_id','sns_cells'], as_index=False).apply(snsf.apply_sipm_saturation, rec_time=recovery_time)
 
         ### Create DataFrame for charge data, with and without saturation:
         charge_df.insert(len(charge_df.columns), 'original_pe', np.ones(len(charge_df.sensor_id.values)).astype(int))
