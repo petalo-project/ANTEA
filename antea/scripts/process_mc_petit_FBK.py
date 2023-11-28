@@ -80,7 +80,7 @@ def process_mc_petit_FBK(input_file: str, output_file: str, recovery_time: int):
     tof_response = tof_response.rename(columns={'sensor_id':'sns_cells'})
     tof_sensors  = tof_response.sns_cells.values // 10000
     tof_response['sensor_id'] = tof_sensors
-    tof_response = prf.compute_charge_in_groups_of_4sensors(tof_response)
+    tof_response = prf.apply_same_sensor_id_in_groups_of_4sensors(tof_response)
 
     ### Apply saturation:
     events = tof_response.event_id.unique()

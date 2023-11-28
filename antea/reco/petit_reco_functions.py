@@ -150,13 +150,14 @@ def compute_charge_ratio_in_corona(df: pd.DataFrame,
     return (cor_ch/tot_ch_d).fillna(0)
     
     
-def compute_charge_in_groups_of_4sensors(df): 
+def apply_same_sensor_id_in_groups_of_4sensors(df): 
     
     """
-    This function replaces the sensor_id in the data with 
-    the ordering usually used: TOFPET 0 from 11 to 88 and TOFPET 2
-    from 111 to 188; tacking into account the combination of 4 SiPMs, 
-    as they are read 4 by 4 in the real set-up.
+    This function is to be used with FBK sensors which are numbered 
+    in a specific way (100...163, 200...263, 300...363, etc.). This function 
+    replaces this sensor_id with the ordering usually used: TOFPET 0 from 
+    11 to 88 and TOFPET 2 from 111 to 188. It also takes into account the 
+    combination of 4 SiPMs, as they are read in groups of 4 in the real set-up.
     """
 
     j = 0 # To go through the sensors of a tile.
