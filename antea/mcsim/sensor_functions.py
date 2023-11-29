@@ -43,7 +43,7 @@ def apply_sipm_saturation(df: pd.DataFrame, rec_time: int):
     sensor saturation taking into account their recovery time. 
     """
     def exp(x: Sequence[float], tau: int):
-    return np.exp(-x/tau)
+    	return np.exp(-x/tau)
     
     diff_time = np.diff(df.time.values)
     v_frac    = 1 - exp(diff_time, rec_time)
