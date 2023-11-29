@@ -53,3 +53,22 @@ def test_detected_charge_is_not_greater_than_original(ANTEADATADIR, pde):
         det_sns     = det_sns_evt.charge.sum()
 
         assert det_sns <= sum_sns
+        
+        
+def test_apply_sipm_saturation(ANTEADATADIR):
+    '''
+    Checks that the charge after applying the SiPM saturation
+    is never higher than the original charge.
+    '''
+    PATH_IN       = os.path.join(ANTEADATADIR, 'petit_mc_fbk_test.pet.h5')
+    sns_response  = load_mcsns_response(PATH_IN)
+    events        = sns_response.event_id.unique()
+
+    evt = events[0]
+    rec_time = 80
+    sns_response = sns_response[sns_response.event_id == evt]
+
+    sat_sns_response = sns_response.groupby(['event_id','sensor_id'], as_index=False).apply(apply_sipm_saturation, rec_time)
+
+    assert  (sat_sns_response.charge.values).tolist() <= (np.ones(len(sat_sns_response.charge))).tolist()
+
