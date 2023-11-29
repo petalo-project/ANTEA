@@ -1,6 +1,8 @@
 import pandas as pd
 import numpy  as np
 
+from typing     import Sequence
+
 def apply_charge_fluctuation(sns_df: pd.DataFrame, DataSiPM_idx: pd.DataFrame):
     """
     Apply a fluctuation in the total detected charge, sensor by sensor,
