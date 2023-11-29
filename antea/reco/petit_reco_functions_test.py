@@ -107,3 +107,17 @@ def test_contained_evts_and_compute_ratio_in_corona(ANTEADATADIR, filename, det_
 
     ratios = prf.compute_charge_ratio_in_corona(df, evt_groupby=evt_groupby, variable=variable, det_plane=det_plane).values
     assert np.logical_and(ratios >= 0, ratios <= 1).all()
+    
+    
+def test_apply_same_sensor_id_in_groups_of_4sensors():
+    '''
+    Check the result of the sensors_id after joining them in groups of 4.
+    '''
+    df = pd.DataFrame({'event_id'  : [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                       'sensor_id' : [100, 108, 109, 322, 331, 532, 534, 718, 719, 726]})
+
+    df = prf.apply_same_sensor_id_in_groups_of_4sensors(df)
+    
+    expected_result = np.array([11, 11, 11, 64, 64, 131, 132, 162, 162, 162])
+    
+    np.testing.assert_array_equal(df.sensor_id, expected_result)

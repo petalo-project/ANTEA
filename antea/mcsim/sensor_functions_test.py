@@ -1,14 +1,18 @@
 import os
 import pandas as pd
+import numpy  as np
 
 from .. database import load_db as db
 
 from .. io.mc_io         import load_mcsns_response
+from .. io.mc_io         import load_mcTOFsns_response
 from .  sensor_functions import apply_charge_fluctuation
 from .  sensor_functions import apply_sipm_pde
+from .  sensor_functions import apply_sipm_saturation
 
 import hypothesis.strategies as st
 from hypothesis  import given
+from typing      import Sequence
 
 def test_number_of_sensors_is_the_same(ANTEADATADIR):
     """
@@ -53,3 +57,22 @@ def test_detected_charge_is_not_greater_than_original(ANTEADATADIR, pde):
         det_sns     = det_sns_evt.charge.sum()
 
         assert det_sns <= sum_sns
+        
+        
+def test_apply_sipm_saturation(ANTEADATADIR):
+    '''
+    Checks that the charge after applying the SiPM saturation
+    is never higher than the original charge.
+    '''
+    PATH_IN       = os.path.join(ANTEADATADIR, 'petit_mc_fbk_test.pet.h5')
+    sns_response  = load_mcTOFsns_response(PATH_IN)
+    events        = sns_response.event_id.unique()
+
+    evt = events[0]
+    rec_time = 80
+    sns_response = sns_response[sns_response.event_id == evt]
+
+    sat_sns_response = sns_response.groupby(['event_id','sensor_id'], as_index=False).apply(apply_sipm_saturation, rec_time)
+
+    assert  (sat_sns_response.charge.values).tolist() <= (np.ones(len(sat_sns_response.charge))).tolist()
+
