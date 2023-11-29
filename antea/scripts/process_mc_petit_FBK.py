@@ -106,15 +106,19 @@ def process_mc_petit_FBK(input_file: str, output_file: str, recovery_time: int):
         orig_sns    = charge_df.groupby(['event_id', 'sensor_id'])['original_pe'].sum()
         orig_sns_df = pd.DataFrame(orig_sns)
         orig_a      = orig_sns_df.reset_index()
+        orig_a      = orig_a.rename(columns={'original_pe':'charge'})
 
         #Sum charge 4 in 4 SiPMs:
         tot  = tot_a.groupby(['event_id', 'sensor_id'])['charge'].sum().reset_index()
-        orig = orig_a.groupby(['event_id', 'sensor_id'])['original_pe'].sum().reset_index()
+        orig = orig_a.groupby(['event_id', 'sensor_id'])['charge'].sum().reset_index()
 
         # Adding charge fluctuation and charge threshold
-        tot = snsf.apply_charge_fluctuation(tot, DataSiPM_pb_idx)
-        tot = rf.find_SiPMs_over_threshold(tot, threshold=2)
-        tot.insert(len(tot.columns), 'original_pe', orig.original_pe.astype(float))
+        tot  = snsf.apply_charge_fluctuation(tot, DataSiPM_pb_idx)
+        tot  = rf.find_SiPMs_over_threshold(tot, threshold=2)
+        orig = snsf.apply_charge_fluctuation(orig, DataSiPM_pb_idx)
+        orig = rf.find_SiPMs_over_threshold(orig, threshold=2)
+        
+        tot.insert(len(tot.columns), 'original_pe', orig.charge.astype(float))
 
         tot['tofpet_id'] = tot['sensor_id'].apply(prf.tofpetid)
 
