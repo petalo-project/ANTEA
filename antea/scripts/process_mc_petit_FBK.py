@@ -176,12 +176,12 @@ def process_mc_petit_FBK(input_file: str, output_file: str, recovery_time: int):
             try:
                 min_id0, min_t0 = rf.find_first_time_of_sensors(evt_tof_exp_dist, sns0, n_pe)
             except WaveformEmptyTable:
-                # TOF dataframe has no minimum time in plane 0
+                print(f'TOF dataframe has no minimum time in plane 0 for event {evt}')
                 min_id0, min_t0 = [-1], -1
             try:
                 min_id2, min_t2 = rf.find_first_time_of_sensors(evt_tof_exp_dist, sns2, n_pe)
             except:
-                # TOF dataframe has no minimum time in plane 2
+                print(f'TOF dataframe has no minimum time in plane 2 for event {evt}')
                 min_id2, min_t2 = [-1], -1
 
             ## select SiPM with max charge
