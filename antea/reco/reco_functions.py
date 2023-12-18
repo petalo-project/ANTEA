@@ -23,6 +23,12 @@ def from_cartesian_to_cyl(pos: Sequence[np.ndarray]) -> Sequence[np.ndarray]:
     return cyl_pos
 
 
+def sel_coord(pos: Sequence[float], q: Sequence[float],
+              threshold: float) -> Tuple[Sequence[float], Sequence[float]]:
+    sel = q > threshold
+    return pos[sel], q[sel]
+
+
 def phi_mean_var(pos_phi: Sequence[float],
                  q: Sequence[float]) -> Tuple[float, float]:
     diff_sign = min(pos_phi) < 0 < max(pos_phi)
@@ -33,10 +39,15 @@ def phi_mean_var(pos_phi: Sequence[float],
     return mean_phi, var_phi
 
 
-def sel_coord(pos: Sequence[float], q: Sequence[float],
-              threshold: float) -> Tuple[Sequence[float], Sequence[float]]:
-    sel = q > threshold
-    return pos[sel], q[sel]
+def calculate_phi_sigma_from_cart_coord(pos: Sequence[np.ndarray],
+                                        q: Sequence[float], thr: float) -> float:
+    pos_sel, q_sel = sel_coord(pos, q, thr)
+    if len(pos_sel) != 0:
+        pos_phi = np.arctan2(pos_sel[:,1], pos_sel[:,0])
+        _, var_phi = phi_mean_var(pos_phi, q_sel)
+        return np.sqrt(var_phi)
+    else:
+        return 1.e9
 
 
 def find_SiPMs_over_threshold(df: pd.DataFrame,
@@ -61,12 +72,12 @@ def find_closest_sipm(point: Tuple[float, float, float],
 
 
 def divide_sipms_in_two_hemispheres(sns_ids: Sequence[int],
-                                    sns_positions: Sequence[Tuple[float, float, float]],
+                                    sns_positions: Sequence[np.ndarray],
                                     sns_charges: Sequence[float],
                                     reference_pos: Tuple[float, float, float]) -> Tuple[Sequence[int],
                                                                                         Sequence[int],
-                                                                                        Sequence[Tuple[float, float, float]],
-                                                                                        Sequence[Tuple[float, float, float]],
+                                                                                        Sequence[np.ndarray],
+                                                                                        Sequence[np.ndarray],
                                                                                         Sequence[float],
                                                                                         Sequence[float]]:
     """
@@ -75,10 +86,17 @@ def divide_sipms_in_two_hemispheres(sns_ids: Sequence[int],
     Return the lists of the ids, the charges and the positions of the
     SiPMs of the two groups.
     """
-    scalar_prods = sns_positions.dot(reference_pos)
+    sns_xy = np.array([sns_positions[:, 0], sns_positions[:, 1]]).transpose()
+    ref_xy = np.array([reference_pos[0], reference_pos[1]])
+
+    ### The scalar product is done only with the xy coordinates,
+    ### to produce correct results also for points far from the FOV centre.
+
+    scalar_prods = sns_xy.dot(ref_xy)
 
     mask1 = scalar_prods >  0
     mask2 = scalar_prods <= 0
+
 
     return (sns_ids      [mask1], sns_ids      [mask2],
             sns_positions[mask1], sns_positions[mask2],
@@ -88,12 +106,12 @@ def divide_sipms_in_two_hemispheres(sns_ids: Sequence[int],
 
 def assign_sipms_to_gammas(sns_response: pd.DataFrame,
                            true_pos: Sequence[Tuple[float, float, float]],
-                                              DataSiPM_idx: pd.DataFrame) -> Tuple[Sequence[int],
-                                                                                   Sequence[int],
-                                                                                   Sequence[Tuple[float, float, float]],
-                                                                                   Sequence[Tuple[float, float, float]],
-                                                                                   Sequence[float],
-                                                                                   Sequence[float]]:
+                           DataSiPM_idx: pd.DataFrame) -> Tuple[Sequence[int],
+                                                                Sequence[int],
+                                                                Sequence[np.ndarray],
+                                                                Sequence[np.ndarray],
+                                                                Sequence[float],
+                                                                Sequence[float]]:
     """
     Divide the SiPMs with charge between the two back-to-back gammas,
     or to one of the two if the other one hasn't interacted.
@@ -106,32 +124,17 @@ def assign_sipms_to_gammas(sns_response: pd.DataFrame,
         DataSiPM_idx = DataSiPM_idx.set_index('SensorID')
     sipms           = DataSiPM_idx.loc[sns_response.sensor_id]
     sns_ids         = sipms.index.astype('int64').values
+    sns_pos         = np.array([sipms.X.values, sipms.Y.values, sipms.Z.values]).transpose()
     sns_closest_pos = [find_closest_sipm(pos, sipms)[['X', 'Y', 'Z']].values
                        for pos in true_pos]
+    id1, id2, pos1, pos2, q1, q2 = divide_sipms_in_two_hemispheres(sns_ids, sns_pos,
+                                                                   sns_response.charge,
+                                                                   sns_closest_pos[0])
 
-    q1,   q2   = [], []
-    pos1, pos2 = [], []
-    id1, id2   = [], []
-
-    sns_positions = np.array([sipms.X.values, sipms.Y.values, sipms.Z.values]).transpose()
-    sns_charges   = sns_response.charge
-    closest_pos   = sns_closest_pos[0] ## Look at the first one, which always exists.
-
-    ### The sensors on the same semisphere are grouped together,
-    ### and those on the opposite side, too, only
-    ### if two interactions have been detected.
-    for sns_id, sns_pos, charge in zip(sns_ids, sns_positions, sns_charges):
-        scalar_prod = sns_pos.dot(closest_pos)
-        if scalar_prod > 0.:
-            q1  .append(charge)
-            pos1.append(sns_pos)
-            id1.append(sns_id)
-        elif len(sns_closest_pos) == 2:
-            q2  .append(charge)
-            pos2.append(sns_pos)
-            id2.append(sns_id)
-
-    return id1, id2, pos1, pos2, q1, q2
+    if len(sns_closest_pos) == 1:
+        return id1, [], pos1, [], q1, []
+    else:
+        return id1, id2, pos1, pos2, q1, q2
 
 
 def initial_coord_first_daughter(particles: pd.DataFrame,
