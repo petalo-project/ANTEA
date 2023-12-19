@@ -71,6 +71,7 @@ def find_closest_sipm(point: Tuple[float, float, float],
    return sipms.iloc[np.argmin(distances)]
 
 
+
 def divide_sipms_in_two_hemispheres(sns_ids: Sequence[int],
                                     sns_positions: Sequence[np.ndarray],
                                     sns_charges: Sequence[float],
@@ -321,7 +322,6 @@ def find_first_interactions_in_active(particles: pd.DataFrame,
 
     gamma_pos1, gamma_pos2, min_t1, min_t2, _, _ = find_first_interactions(particles, hits, 'ACTIVE', petit)
     if not len(gamma_pos1) or not len(gamma_pos2):
-        print("Cannot find two true gamma interactions for this event")
         return [], [], None, None, None, None
 
     ## find if the event is photoelectric-like
