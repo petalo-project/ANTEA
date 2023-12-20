@@ -140,7 +140,7 @@ def test_divide_sipms_in_two_hemispheres(x, y, z, l):
     Every point in the center of coordinates is neglected in order to avoid
     null scalar prod.
     """
-    point = np.array([x, y, z])
+    point = np.array([x, y])
 
     if np.isclose(  point.all(), 0.): return
     if (np.all(el)==0. for el in l) : return
@@ -151,13 +151,49 @@ def test_divide_sipms_in_two_hemispheres(x, y, z, l):
 
     _, _, pos1, pos2, q1, q2 = rf.divide_sipms_in_two_hemispheres(sns_ids, sns_positions, sns_charges, point)
 
-    scalar_prod1 = np.array([np.dot(point, p1) for p1 in pos1])
-    scalar_prod2 = np.array([np.dot(point, p2) for p2 in pos2])
+    pos1_xy = np.array([pos1[:, 0], pos1[:, 1]]).transpose()
+    pos2_xy = np.array([pos2[:, 0], pos2[:, 1]]).transpose()
+    scalar_prod1 = np.array([np.dot(point, p1) for p1 in pos1_xy])
+    scalar_prod2 = np.array([np.dot(point, p2) for p2 in pos2_xy])
 
     assert len(pos1) == len(q1)
     assert len(pos2) == len(q2)
     assert (scalar_prod1 > 0).all()
     assert (scalar_prod2 < 0).all()
+
+
+def test_divide_sipms_in_two_hemispheres_not_centred():
+   """
+   Checks that, if the origin of gammas is not in the geometrical centre of
+   the system, the SiPM division is done correctly, with the resulting positions
+   close to each other.
+   """
+   sns_ids = np.array([1, 2, 3, 4, 5, 6, 7, 8, 9, 10])
+   sns_positions = np.array([[-397.954,  96.979, 584.5],
+                             [-399.552,  90.170, 584.5],
+                             [-401.033,  83.336, 584.5],
+                             [-402.397,  76.477, 584.5],
+                             [-403.644,  69.595, 584.5],
+                             [-404.774,  62.694, 584.5],
+                             [ 349.97,  212.822,  892.5],
+                             [ 346.286, 218.766,  892.5],
+                             [ 342.5,   224.646,  892.5],
+                             [ 338.615, 230.461,  892.5]])
+   sns_charges = np.array([1, 1, 1, 1, 1, 1, 1, 1, 1, 5])
+   point = sns_positions[sns_charges.argmax()]
+   _, _, pos1, pos2, q1, q2 = rf.divide_sipms_in_two_hemispheres(sns_ids,
+                                                                 sns_positions,
+                                                                 sns_charges,
+                                                                 point)
+   
+   max1       = pos1[q1.argmax()]
+   diff1      = np.subtract(pos1, max1)
+   diff1      = np.array(diff1, dtype=np.float32)
+   distances1 = np.linalg.norm(diff1, axis=1)
+   max_dist1  = distances1.max()
+
+   assert max_dist1 < 100
+    
 
 
 def test_assign_sipms_to_gammas(ANTEADATADIR):
@@ -176,7 +212,7 @@ def test_assign_sipms_to_gammas(ANTEADATADIR):
     hits      = load_mchits(PATH_IN)
     events    = particles.event_id.unique()
 
-    for evt in events[:]:
+    for evt in events:
         evt_parts = particles[particles.event_id == evt]
         evt_hits  = hits     [hits     .event_id == evt]
 
@@ -188,25 +224,29 @@ def test_assign_sipms_to_gammas(ANTEADATADIR):
         sns_response = sel_df[sel_df.event_id == evt]
         if len(sns_response) == 0: continue
 
-        _, _, pos1, pos2, q1, q2 = rf.assign_sipms_to_gammas(sns_response, true_pos, DataSiPM_idx)
-
+        _, _, pos1, pos2, q1, q2 = rf.assign_sipms_to_gammas(sns_response,
+                                                             true_pos,
+                                                             DataSiPM_idx)
+        
         sipms           = DataSiPM_idx.loc[sns_response.sensor_id]
         sns_closest_pos = np.array([rf.find_closest_sipm(true_pos[0], sipms).X,
-                                    rf.find_closest_sipm(true_pos[0], sipms).Y,
-                                    rf.find_closest_sipm(true_pos[0], sipms).Z])
-        scalar_prod1 = np.array([np.dot(sns_closest_pos, p1) for p1 in pos1])
+                                    rf.find_closest_sipm(true_pos[0], sipms).Y])
 
+        pos1_xy = np.array([pos1[:, 0], pos1[:, 1]]).transpose()
+        scalar_prod1 = np.array([np.dot(sns_closest_pos, p1) for p1 in pos1_xy])
+        
         assert len(q1) == len(pos1)
         assert (scalar_prod1 > 0).all()
-
+        
         if len(true_pos) < 2:
-            assert len(q2)   == 0
-            assert len(pos2) == 0
+           assert len(q2)   == 0
+           assert len(pos2) == 0
         else:
-            scalar_prod2 = np.array([np.dot(sns_closest_pos, p2) for p2 in pos2])
-            assert len(q2) == len(pos2)
-            assert (scalar_prod2 < 0).all()
-
+           pos2_xy = np.array([pos2[:, 0], pos2[:, 1]]).transpose()
+           scalar_prod2 = np.array([np.dot(sns_closest_pos, p2) for p2 in pos2_xy])
+           assert len(q2) == len(pos2)
+           assert (scalar_prod2 < 0).all()
+           
 
 part_id = st.integers(min_value=1, max_value=1000)
 
