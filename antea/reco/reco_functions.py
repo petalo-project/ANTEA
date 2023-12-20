@@ -424,22 +424,46 @@ def find_coincidence_timestamps(tof_response: pd.DataFrame,
     return min1, min2, time1, time2
 
 
-def reconstruct_position(q: Sequence[float],
-                         pos: Sequence[Tuple[float, float, float]],
-                         Rmap: Map,
-                         thr_r: float = 0, thr_phi: float = 0, thr_z: float = 0) -> Tuple[float, float, float]:
+def reconstruct_r_with_map(q: Sequence[float],
+                           pos: Sequence[Tuple[float, float, float]],
+                           Rmap: Map, thr_r: float = 0) -> float:
     """
-    Calculates the r, phi and z coordinates, given charges and positions
-    of touched SiPMs. Different thresholds can be used for each one of them.
+    Calculates the r coordinate, given charges and positions of touched SiPM.
     """
-    ## Calculate R
+
     posr, qr = sel_coord(pos, q, thr_r)
     if len(posr) != 0:
         pos_phi = from_cartesian_to_cyl(posr)[:,1]
         _, var_phi = phi_mean_var(pos_phi, qr)
         r = Rmap(np.sqrt(var_phi)).value
     else:
-        return 1.e9, 1.e9, 1.e9
+        return 1.e9
+
+
+def reconstruct_r_with_function(q: Sequence[float],
+                                pos: Sequence[Tuple[float, float, float]],
+                                a0: float, a1: float, a2: float, thr_r: float = 0) -> float:
+    """
+    Calculates the r coordinate, given charges and positions of touched SiPM.
+    """
+
+    def find_r(x):
+        return a0 + a1*x + a2*x**2
+
+    sig_phi = calculate_phi_sigma_from_cart_coord(pos, q, thr_r)
+    if sig_phi < 1.e9:
+        r = find_r(sig_phi)
+    else:
+        return 1.e9
+
+
+def reconstruct_phi_z(q: Sequence[float],
+                      pos: Sequence[Tuple[float, float, float]],
+                      thr_phi: float = 0, thr_z: float = 0) -> Tuple[float, float]:
+    """
+    Calculates the phi and z coordinates, given charges and positions
+    of touched SiPMs. Different thresholds can be used for each one of them.
+    """
 
     ## Calculate phi
     posphi, qphi = sel_coord(pos, q, thr_phi)
@@ -448,7 +472,7 @@ def reconstruct_position(q: Sequence[float],
         reco_cart_pos = np.average(posphi, weights=qphi, axis=0)
         phi           = np.arctan2(reco_cart_pos[1], reco_cart_pos[0])
     else:
-        return 1.e9, 1.e9, 1.e9
+        return 1.e9, 1.e9
 
     ## Calculate z
     posz, qz = sel_coord(pos, q, thr_z)
@@ -457,7 +481,28 @@ def reconstruct_position(q: Sequence[float],
         reco_cart_pos = np.average(posz, weights=qz, axis=0)
         z             = reco_cart_pos[2]
     else:
+        return 1.e9, 1.e9
+
+    return phi, z
+
+
+def reconstruct_position(q: Sequence[float],
+                         pos: Sequence[Tuple[float, float, float]],
+                         Rmap: Map,
+                         thr_r: float = 0, thr_phi: float = 0, thr_z: float = 0) -> Tuple[float,
+                                                                                          float,
+                                                                                          float]:
+    """
+    Calculates the r, phi and z coordinates, given charges and positions
+    of touched SiPMs. Different thresholds can be used for each one of them.
+    R is found using a previously calculated map.
+    """
+    r = reconstruct_r_with_map(pos, q, Rmap, thr_r)
+
+    if r > 1.e8:
         return 1.e9, 1.e9, 1.e9
+
+    phi, z = reconstruct_phi_z(q, pos, thr_phi, thr_z)
 
     return r, phi, z
 
