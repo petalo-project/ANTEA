@@ -584,6 +584,7 @@ def test_only_gamma_hits_interaction():
    assert np.allclose(true_pos2, ref_pos2)
 
 
+
 @st.composite
 def lists_of_pos_and_charge(draw):
 
@@ -594,10 +595,11 @@ def lists_of_pos_and_charge(draw):
     return (draw(q), draw(pos))
 
 @given(lists_of_pos_and_charge())
-def test_pos_reconstruction(ANTEADATADIR, sipms):
+def test_pos_reconstruction_with_map(ANTEADATADIR, sipms):
     """
     Checks that the reconstructed position is always between the minimum
-    and the maximum of the SiPM positions, for phi and z coordinates.
+    and the maximum of the SiPM positions, for phi and z coordinates and that
+    r is greater than zero.
     """
 
     rpos_file = os.path.join(ANTEADATADIR, 'r_table_full_body.h5')
@@ -615,6 +617,32 @@ def test_pos_reconstruction(ANTEADATADIR, sipms):
 
     assert (pos_cyl[:, 1].min() < phi < pos_cyl[:, 1].max()) or np.isclose(phi, pos_cyl[:, 1].min()) or np.isclose(phi, pos_cyl[:, 1].max())
     assert (pos_cyl[:, 2].min() <   z < pos_cyl[:, 2].max()) or np.isclose(  z, pos_cyl[:, 2].min()) or np.isclose(  z, pos_cyl[:, 2].max())
+
+
+@given(lists_of_pos_and_charge())
+def test_pos_reconstruction_with_function(ANTEADATADIR, sipms):
+    """
+    Checks that the reconstructed position is always between the minimum
+    and the maximum of the SiPM positions, for phi and z coordinates and that
+    r is greater than zero.
+    """
+
+    rpos_file = os.path.join(ANTEADATADIR, 'r_table_full_body.h5')
+
+    RMap = load_map(rpos_file,
+                    group  = "Radius",
+                    node   = "f4pes150bins",
+                    x_name = "PhiRms",
+                    y_name = "Rpos",
+                    u_name = "RposUncertainty")
+
+    q, pos    = np.array(sipms[0]), np.array(sipms[1])
+    _, phi, z = rf.reconstruct_position_with_function(q, pos, 412, -367, -2176)
+    pos_cyl   = rf.from_cartesian_to_cyl(pos)
+
+    assert (pos_cyl[:, 1].min() < phi < pos_cyl[:, 1].max()) or np.isclose(phi, pos_cyl[:, 1].min()) or np.isclose(phi, pos_cyl[:, 1].max())
+    assert (pos_cyl[:, 2].min() <   z < pos_cyl[:, 2].max()) or np.isclose(  z, pos_cyl[:, 2].min()) or np.isclose(  z, pos_cyl[:, 2].max())
+
 
 
 id = st.lists(st.integers(min_value=1000, max_value=10000), min_size=1, max_size=50)
