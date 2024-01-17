@@ -29,8 +29,8 @@ def sel_coord(q: Sequence[float], pos: Sequence[np.ndarray],
     return q[sel], pos[sel]
 
 
-def phi_mean_var(pos_phi: Sequence[float],
-                 q: Sequence[float]) -> Tuple[float, float]:
+def phi_mean_var(q: Sequence[float],
+                 pos_phi: Sequence[float]) -> Tuple[float, float]:
     diff_sign = min(pos_phi) < 0 < max(pos_phi)
     if diff_sign & (np.abs(np.min(pos_phi))>np.pi/2):
         pos_phi[pos_phi<0] = np.pi + np.pi + pos_phi[pos_phi<0]
@@ -45,7 +45,7 @@ def calculate_phi_sigma_from_cart_coord(q: Sequence[float],
     q_sel, pos_sel = sel_coord(q, pos, thr)
     if len(pos_sel) != 0:
         pos_phi = np.arctan2(pos_sel[:,1], pos_sel[:,0])
-        _, var_phi = phi_mean_var(pos_phi, q_sel)
+        _, var_phi = phi_mean_var(q_sel, pos_phi)
         return np.sqrt(var_phi)
     else:
         return 1.e9
@@ -438,7 +438,7 @@ def reconstruct_r_with_map(q: Sequence[float],
     print(posr)
     if len(posr) != 0:
         pos_phi = from_cartesian_to_cyl(posr)[:,1]
-        _, var_phi = phi_mean_var(pos_phi, qr)
+        _, var_phi = phi_mean_var(qr, pos_phi)
         print(var_phi)
         r = Rmap(np.sqrt(var_phi)).value
     else:
@@ -448,7 +448,7 @@ def reconstruct_r_with_map(q: Sequence[float],
 
 
 def reconstruct_r_with_function(q: Sequence[float],
-                                pos: Sequence[Tuple[float, float, float]],
+                                pos: Sequence[np.ndarray],
                                 a0: float, a1: float, a2: float,
                                 thr_r: float = 0) -> float:
     """
