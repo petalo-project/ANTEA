@@ -179,8 +179,8 @@ def find_first_time_of_sensors(tof_response: pd.DataFrame,
     This function looks for the time among all sensors for the first
     photoelectron detected.
     In case more than one photoelectron arrives at the same time,
-    the sensor with minimum id is chosen.
-    The positive value of the id of the sensor and the time of detection
+    all those sensors are returned.
+    The positive value of the id of the sensors and the time of detection
     are returned.
     """
     tof = tof_response[tof_response.sensor_id.isin(sns_ids)]
