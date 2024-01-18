@@ -24,7 +24,7 @@ def from_cartesian_to_cyl(pos: Sequence[np.ndarray]) -> Sequence[np.ndarray]:
 
 
 def sel_coord(q: Sequence[float], pos: Sequence[np.ndarray],
-              threshold: float) -> Tuple[Sequence[np.ndarray], Sequence[float]]:
+              threshold: float) -> Tuple[Sequence[float], Sequence[Sequence[np.ndarray]]]:
     sel = q > threshold
     return q[sel], pos[sel]
 
@@ -107,7 +107,7 @@ def divide_sipms_in_two_hemispheres(sns_ids: Sequence[int],
 
 
 def assign_sipms_to_gammas(sns_response: pd.DataFrame,
-                           true_pos: Sequence[Tuple[float, float, float]],
+                           true_pos: Sequence[np.ndarray],
                            DataSiPM_idx: pd.DataFrame) -> Tuple[Sequence[int],
                                                                 Sequence[int],
                                                                 Sequence[np.ndarray],
@@ -414,8 +414,8 @@ def reconstruct_coincidences(sns_response: pd.DataFrame,
 def find_coincidence_timestamps(tof_response: pd.DataFrame,
                                 sns1: Sequence[int],
                                 sns2: Sequence[int],
-                                n_pe: int = 1)-> Tuple[Tuple[int], Tuple[int], float,
-                                                       float]:
+                                n_pe: int = 1)-> Tuple[Tuple[int], Tuple[int],
+                                                       float, float]:
     """
     Finds the first time and the IDs of the sensors used to calculate it
     for each one of two sets of sensors, given a sensor response dataframe.
@@ -470,7 +470,8 @@ def reconstruct_r_with_function(q: Sequence[float],
 
 def reconstruct_phi_z(q: Sequence[float],
                       pos: Sequence[np.ndarray],
-                      thr_phi: float = 0, thr_z: float = 0) -> Tuple[float, float]:
+                      thr_phi: float = 0, thr_z: float = 0) -> Tuple[float,
+                                                                     float]:
     """
     Calculates the phi and z coordinates, given charges and positions
     of touched SiPMs. Different thresholds can be used for each one of them.
@@ -518,10 +519,11 @@ def reconstruct_position(q: Sequence[float],
 
 
 def reconstruct_position_with_function(q: Sequence[float],
-                                       pos: Sequence[Tuple[float, float, float]],
+                                       pos: Sequence[np.ndarray],
                                        a0: float, a1: float, a2: float,
                                        thr_r: float = 0, thr_phi: float = 0,
-                                       thr_z: float = 0)-> Tuple[float, float, float]:
+                                       thr_z: float = 0)-> Tuple[float, float,
+                                                                 float]:
     """
     Calculates the r, phi and z coordinates, given charges and positions
     of touched SiPMs. Different thresholds can be used for each one of them.
@@ -538,7 +540,9 @@ def reconstruct_position_with_function(q: Sequence[float],
 
 
 def calculate_average_SiPM_pos(min_ids: Sequence[int],
-                               DataSiPM_idx: pd.DataFrame) -> Tuple[float, float, float]:
+                               DataSiPM_idx: pd.DataFrame) -> Tuple[float,
+                                                                    float,
+                                                                    float]:
     """
     Calculates the geometrical average position of the SiPMs with IDs in the list.
     """
