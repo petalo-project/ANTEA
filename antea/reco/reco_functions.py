@@ -23,14 +23,14 @@ def from_cartesian_to_cyl(pos: Sequence[np.ndarray]) -> Sequence[np.ndarray]:
     return cyl_pos
 
 
-def sel_coord(pos: Sequence[float], q: Sequence[float],
-              threshold: float) -> Tuple[Sequence[float], Sequence[float]]:
+def sel_coord(q: Sequence[float], pos: Sequence[np.ndarray],
+              threshold: float) -> Tuple[Sequence[float], Sequence[Sequence[np.ndarray]]]:
     sel = q > threshold
-    return pos[sel], q[sel]
+    return q[sel], pos[sel]
 
 
-def phi_mean_var(pos_phi: Sequence[float],
-                 q: Sequence[float]) -> Tuple[float, float]:
+def phi_mean_var(q: Sequence[float],
+                 pos_phi: Sequence[float]) -> Tuple[float, float]:
     diff_sign = min(pos_phi) < 0 < max(pos_phi)
     if diff_sign & (np.abs(np.min(pos_phi))>np.pi/2):
         pos_phi[pos_phi<0] = np.pi + np.pi + pos_phi[pos_phi<0]
@@ -39,12 +39,13 @@ def phi_mean_var(pos_phi: Sequence[float],
     return mean_phi, var_phi
 
 
-def calculate_phi_sigma_from_cart_coord(pos: Sequence[np.ndarray],
-                                        q: Sequence[float], thr: float) -> float:
-    pos_sel, q_sel = sel_coord(pos, q, thr)
+def calculate_phi_sigma_from_cart_coord(q: Sequence[float],
+                                        pos: Sequence[np.ndarray],
+                                        thr: float) -> float:
+    q_sel, pos_sel = sel_coord(q, pos, thr)
     if len(pos_sel) != 0:
         pos_phi = np.arctan2(pos_sel[:,1], pos_sel[:,0])
-        _, var_phi = phi_mean_var(pos_phi, q_sel)
+        _, var_phi = phi_mean_var(q_sel, pos_phi)
         return np.sqrt(var_phi)
     else:
         return 1.e9
@@ -106,7 +107,7 @@ def divide_sipms_in_two_hemispheres(sns_ids: Sequence[int],
 
 
 def assign_sipms_to_gammas(sns_response: pd.DataFrame,
-                           true_pos: Sequence[Tuple[float, float, float]],
+                           true_pos: Sequence[np.ndarray],
                            DataSiPM_idx: pd.DataFrame) -> Tuple[Sequence[int],
                                                                 Sequence[int],
                                                                 Sequence[np.ndarray],
@@ -178,8 +179,8 @@ def find_first_time_of_sensors(tof_response: pd.DataFrame,
     This function looks for the time among all sensors for the first
     photoelectron detected.
     In case more than one photoelectron arrives at the same time,
-    the sensor with minimum id is chosen.
-    The positive value of the id of the sensor and the time of detection
+    all those sensors are returned.
+    The positive value of the id of the sensors and the time of detection
     are returned.
     """
     tof = tof_response[tof_response.sensor_id.isin(sns_ids)]
@@ -413,7 +414,8 @@ def reconstruct_coincidences(sns_response: pd.DataFrame,
 def find_coincidence_timestamps(tof_response: pd.DataFrame,
                                 sns1: Sequence[int],
                                 sns2: Sequence[int],
-                                n_pe: int = 1)-> Tuple[Tuple[int], Tuple[int], float, float]:
+                                n_pe: int = 1)-> Tuple[Tuple[int], Tuple[int],
+                                                       float, float]:
     """
     Finds the first time and the IDs of the sensors used to calculate it
     for each one of two sets of sensors, given a sensor response dataframe.
@@ -424,46 +426,123 @@ def find_coincidence_timestamps(tof_response: pd.DataFrame,
     return min1, min2, time1, time2
 
 
-def reconstruct_position(q: Sequence[float],
-                         pos: Sequence[Tuple[float, float, float]],
-                         Rmap: Map,
-                         thr_r: float = 0, thr_phi: float = 0, thr_z: float = 0) -> Tuple[float, float, float]:
+def reconstruct_r_with_map(q: Sequence[float],
+                           pos: Sequence[np.ndarray],
+                           Rmap: Map, thr_r: float = 0) -> float:
     """
-    Calculates the r, phi and z coordinates, given charges and positions
-    of touched SiPMs. Different thresholds can be used for each one of them.
+    Calculates the r coordinate, given charges and positions of touched SiPMs,
+    using a previously calculated map.
     """
-    ## Calculate R
-    posr, qr = sel_coord(pos, q, thr_r)
+
+    qr, posr = sel_coord(q, pos, thr_r)
+    print(posr)
     if len(posr) != 0:
         pos_phi = from_cartesian_to_cyl(posr)[:,1]
-        _, var_phi = phi_mean_var(pos_phi, qr)
+        _, var_phi = phi_mean_var(qr, pos_phi)
+        print(var_phi)
         r = Rmap(np.sqrt(var_phi)).value
     else:
-        return 1.e9, 1.e9, 1.e9
+        r = 1.e9
+
+    return r
+
+
+def reconstruct_r_with_function(q: Sequence[float],
+                                pos: Sequence[np.ndarray],
+                                a0: float, a1: float, a2: float,
+                                thr_r: float = 0) -> float:
+    """
+    Calculates the r coordinate, given charges and positions of touched SiPMs,
+    using a second degree polynomial function.
+    """
+
+    def find_r(x):
+        return a0 + a1*x + a2*x**2
+
+    sig_phi = calculate_phi_sigma_from_cart_coord(q, pos, thr_r)
+    if sig_phi < 1.e9:
+        r = find_r(sig_phi)
+    else:
+        r = 1.e9
+
+    return r
+
+
+def reconstruct_phi_z(q: Sequence[float],
+                      pos: Sequence[np.ndarray],
+                      thr_phi: float = 0, thr_z: float = 0) -> Tuple[float,
+                                                                     float]:
+    """
+    Calculates the phi and z coordinates, given charges and positions
+    of touched SiPMs. Different thresholds can be used for each one of them.
+    """
 
     ## Calculate phi
-    posphi, qphi = sel_coord(pos, q, thr_phi)
+    qphi, posphi = sel_coord(q, pos, thr_phi)
 
     if len(qphi) != 0:
         reco_cart_pos = np.average(posphi, weights=qphi, axis=0)
         phi           = np.arctan2(reco_cart_pos[1], reco_cart_pos[0])
     else:
-        return 1.e9, 1.e9, 1.e9
+        return 1.e9, 1.e9
 
     ## Calculate z
-    posz, qz = sel_coord(pos, q, thr_z)
+    qz, posz = sel_coord(q, pos, thr_z)
 
     if len(qz) != 0:
         reco_cart_pos = np.average(posz, weights=qz, axis=0)
         z             = reco_cart_pos[2]
     else:
+        return 1.e9, 1.e9
+
+    return phi, z
+
+
+def reconstruct_position(q: Sequence[float],
+                         pos: Sequence[np.ndarray],
+                         Rmap: Map,
+                         thr_r: float = 0, thr_phi: float = 0,
+                         thr_z: float = 0) -> Tuple[float, float, float]:
+    """
+    Calculates the r, phi and z coordinates, given charges and positions
+    of touched SiPMs. Different thresholds can be used for each one of them.
+    R is found using a previously calculated map.
+    """
+    r = reconstruct_r_with_map(q, pos, Rmap, thr_r)
+
+    if r > 1.e8:
         return 1.e9, 1.e9, 1.e9
+
+    phi, z = reconstruct_phi_z(q, pos, thr_phi, thr_z)
+
+    return r, phi, z
+
+
+def reconstruct_position_with_function(q: Sequence[float],
+                                       pos: Sequence[np.ndarray],
+                                       a0: float, a1: float, a2: float,
+                                       thr_r: float = 0, thr_phi: float = 0,
+                                       thr_z: float = 0)-> Tuple[float, float,
+                                                                 float]:
+    """
+    Calculates the r, phi and z coordinates, given charges and positions
+    of touched SiPMs. Different thresholds can be used for each one of them.
+    R is found using a polynomial function.
+    """
+    r = reconstruct_r_with_function(q, pos, a0, a1, a2, thr_r)
+
+    if r > 1.e8:
+        return 1.e9, 1.e9, 1.e9
+
+    phi, z = reconstruct_phi_z(q, pos, thr_phi, thr_z)
 
     return r, phi, z
 
 
 def calculate_average_SiPM_pos(min_ids: Sequence[int],
-                               DataSiPM_idx: pd.DataFrame) -> Tuple[float, float, float]:
+                               DataSiPM_idx: pd.DataFrame) -> Tuple[float,
+                                                                    float,
+                                                                    float]:
     """
     Calculates the geometrical average position of the SiPMs with IDs in the list.
     """
