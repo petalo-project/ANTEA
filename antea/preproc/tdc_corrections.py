@@ -90,3 +90,38 @@ def apply_tdc_correction(df, df_tdc, field='tfine'):
     else: # for efine
         df['t2'] = df.tcoarse_extended + df.intg_w - (360 - df[correctd_field]) / 360
     return df
+
+
+def apply_tdc_linear_correction(df, df_tdc, field='tfine'):
+    '''
+    This function is used to calculate t1 with field = tfine and to calculate
+    t2 with field = efine using the linear TDC fit.
+    '''
+
+    df = df.reset_index().merge(df_tdc[['channel_id', 'tac_id', 'slope_low',
+                                        'origin_low', 'slope_high', 'origin_high',
+                                        'shift_phase', 'shift_mode']],
+                                        on=['channel_id', 'tac_id'])
+    df = df.sort_values('index').set_index('index')
+    df.index.name = None
+
+    period         = 360
+    corr_field     = f'{field}_corrected'
+    df[corr_field] = np.array(0.0)
+
+    df_l = df[df[field] <  df['shift_mode']]
+    df_h = df[df[field] >= df['shift_mode']]
+
+    df.loc[df_l.index, corr_field] = (df_l[field] - df_l.origin_low) / df_l.slope_low - df_l.shift_phase
+    df.loc[df_h.index, corr_field] = (df_h[field] - df_h.origin_high) / df_h.slope_high - df_h.shift_phase
+    df.loc[df[corr_field] < 0, corr_field] += 360
+
+
+    df = df.drop(columns=['slope_low', 'origin_low', 'slope_high', 'origin_high',
+                          'shift_phase', 'shift_mode'])
+
+    if field == 'tfine':
+        df['t1'] = df.tcoarse_extended - (360 - df[corr_field]) / 360
+    else: # for efine
+        df['t2'] = df.tcoarse_extended + df.intg_w - (360 - df[corr_field]) / 360
+    return df

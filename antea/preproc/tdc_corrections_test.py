@@ -8,6 +8,7 @@ from antea.preproc.tdc_corrections import compute_extended_tcoarse
 from antea.preproc.tdc_corrections import add_tcoarse_extended_to_df
 from antea.preproc.tdc_corrections import compute_integration_window_size
 from antea.preproc.tdc_corrections import apply_tdc_correction
+from antea.preproc.tdc_corrections import apply_tdc_linear_correction
 
 def test_correct_tfine_wrap_around():
     ''' Check the tfine correction '''
@@ -125,3 +126,46 @@ def test_apply_tdc_correction():
 
     assert np.allclose(tfine_df, tfine_df_expected)
     assert np.allclose(efine_df, efine_df_expected)
+
+
+def test_apply_tdc_linear_correction():
+    '''
+    Check the tfine and efine correction and the t1 and t2 calculation with
+    linear TDC fit.
+    '''
+    df = pd.DataFrame({'channel_id'       : [10, 34, 28, 56, 63, 0, 5],
+                       'tac_id'           : [0, 1, 1, 3, 2, 0, 1],
+                       'tfine'            : [200, 215, 230, 300, 350, 370, 390],
+                       'tcoarse_extended' : [200, 1000, 15000, 40000, 67536, 95536, 60000],
+                       'efine'            : [100, 150, 200, 230, 310, 360, 400],
+                       'intg_w'           : [50, 75, 130, 170, 230, 300, 390],})
+
+    df_tdc = pd.DataFrame({'channel_id'  : [10, 34, 28, 56, 63, 0, 5],
+                           'tac_id'      : [0, 1, 1, 3, 2, 0, 1],
+                           'slope_low'   : [-0.4178, -0.4147, -0.4173, -0.4255,
+                                            -0.4170, -0.4182, -0.4195],
+                           'origin_low'  : [240, 253, 271, 292, 299, 305, 320],
+                           'slope_high'  : [-0.390, -0.386, -0.385, -0.386,
+                                            -0.387, -0.384, -0.385],
+                           'origin_high' : [380, 395, 413, 423, 444, 457, 463],
+
+                           'shift_mode'  : [270, 280, 301, 295, 278, 284, 309 ],
+                           'shift_phase' : [80, 83, 85, 134, 136, 83, 81]})
+
+    tfine_df = apply_tdc_linear_correction(df, df_tdc,'tfine')
+    efine_df = apply_tdc_linear_correction(df, df_tdc,'efine')
+
+    tfine_df_expected                    = df.copy()
+    tfine_df_expected['tfine_corrected'] = [15.73, 8.63, 13.25, 184.65, 106.89,
+                                            143.56, 108.61]
+    tfine_df_expected['t1']              = [199.04, 999.02, 14999.03, 39999.51,
+                                            67535.29, 95535.39, 59999.30]
+
+    efine_df_expected                    = df.copy()
+    efine_df_expected['efine_corrected'] = [255.09, 165.37, 85.14, 11.71, 210.25,
+                                            169.60, 82.63]
+    efine_df_expected['t2']              = [249.70, 1074.45, 15129.23, 40169.03,
+                                            67765.58, 95835.47, 60389.22]
+
+    assert np.allclose(tfine_df, tfine_df_expected, atol = 0.01)
+    assert np.allclose(efine_df, efine_df_expected, atol = 0.01)
