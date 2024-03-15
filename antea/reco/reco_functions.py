@@ -205,9 +205,11 @@ def find_hit_distances_from_true_pos(hits: pd.DataFrame,
     Calculates the distances of all the hits in the same hemisphere of a given point,
     from the given point.
     """
-    positions       = hits[['x', 'y', 'z']].values
-    scalar_products = positions.dot(true_pos)
+    positions2D  = hits[['x', 'y']].values
+    true_pos2D   = np.array([true_pos[0], true_pos[1]])
+    scalar_products = positions2D.dot(true_pos2D)
 
+    positions = hits[['x', 'y', 'z']].values
     mask      = scalar_products >= 0
     diff      = np.subtract(positions[mask], true_pos)
     diff      = np.array(diff, dtype=np.float32)
